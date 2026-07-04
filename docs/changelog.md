@@ -29,6 +29,8 @@
 - Added Wider Field, Cold Moment, and Borrowed Breath skill upgrades.
 - Added Stage 5A Time Residue execution record.
 - Added local save data, active residues, run history, and minimal residue generation.
+- Added Stage 5B corruption execution record.
+- Added corruption thresholds, Corrupted rewards, and Corrupted Signal residue.
 
 ### Changed
 
@@ -40,3 +42,4 @@
 - Changed reward selection so capped rules are filtered before being shown to the player.
 - Changed CombatScene so Time Freeze and Time Rewind can read run-level skill upgrades.
 - Changed MapScene and SummaryScene to show Timeline Report and generated residues.
+- Changed CombatScene, MapScene, RewardScene, and SummaryScene to display or apply corruption state.

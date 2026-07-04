@@ -50,6 +50,7 @@ export function startNewRun(): RunState {
       rewindCooldownReductionMs: 0,
       rewindShieldDurationMs: 0
     },
+    corruption: 0,
     activeRules: [],
     appliedResidues: [],
     generatedResidues: [],
@@ -60,7 +61,8 @@ export function startNewRun(): RunState {
       eventsVisited: 0,
       elitesDefeated: 0,
       combatsCleared: 0,
-      bossDefeated: false
+      bossDefeated: false,
+      highestCorruption: 0
     },
     rewardsTaken: [],
     result: "running",

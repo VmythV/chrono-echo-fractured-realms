@@ -5,6 +5,7 @@ export type RunHistoryEntry = {
   result: "won" | "lost";
   nodesCleared: number;
   rewardsTaken: number;
+  corruption: number;
   generatedResidueIds: string[];
   endedAt: string;
 };
@@ -13,6 +14,8 @@ export type SaveData = {
   version: 1;
   activeResidues: ResidueInstance[];
   runHistory: RunHistoryEntry[];
+  highestCorruption: number;
+  lastRunCorruption: number;
 };
 
 const SAVE_KEY = "chrono-echo-save-v1";
@@ -39,7 +42,9 @@ export function loadSaveData(): SaveData {
     return {
       version: 1,
       activeResidues: parsed.activeResidues,
-      runHistory: parsed.runHistory.slice(0, MAX_RUN_HISTORY)
+      runHistory: parsed.runHistory.slice(0, MAX_RUN_HISTORY).map(normalizeRunHistoryEntry),
+      highestCorruption: normalizeCorruptionValue(parsed.highestCorruption),
+      lastRunCorruption: normalizeCorruptionValue(parsed.lastRunCorruption)
     };
   } catch {
     return createDefaultSaveData();
@@ -65,6 +70,7 @@ export function createRunHistoryEntry(
   result: "won" | "lost",
   nodesCleared: number,
   rewardsTaken: number,
+  corruption: number,
   generatedResidues: ResidueInstance[]
 ): RunHistoryEntry {
   return {
@@ -72,6 +78,7 @@ export function createRunHistoryEntry(
     result,
     nodesCleared,
     rewardsTaken,
+    corruption: normalizeCorruptionValue(corruption),
     generatedResidueIds: generatedResidues.map((residue) => residue.id),
     endedAt: new Date().toISOString()
   };
@@ -81,6 +88,24 @@ function createDefaultSaveData(): SaveData {
   return {
     version: 1,
     activeResidues: [],
-    runHistory: []
+    runHistory: [],
+    highestCorruption: 0,
+    lastRunCorruption: 0
   };
+}
+
+function normalizeRunHistoryEntry(entry: Partial<RunHistoryEntry>): RunHistoryEntry {
+  return {
+    seed: entry.seed ?? "unknown",
+    result: entry.result === "won" ? "won" : "lost",
+    nodesCleared: typeof entry.nodesCleared === "number" ? entry.nodesCleared : 0,
+    rewardsTaken: typeof entry.rewardsTaken === "number" ? entry.rewardsTaken : 0,
+    corruption: normalizeCorruptionValue(entry.corruption),
+    generatedResidueIds: Array.isArray(entry.generatedResidueIds) ? entry.generatedResidueIds : [],
+    endedAt: entry.endedAt ?? new Date().toISOString()
+  };
+}
+
+function normalizeCorruptionValue(value: unknown): number {
+  return typeof value === "number" ? Math.max(0, Math.min(100, Math.round(value))) : 0;
 }

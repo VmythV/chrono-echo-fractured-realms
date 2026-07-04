@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { formatCorruptionCombatEffect, formatCorruptionState } from "../../core/meta/corruption";
 import { getCurrentAvailableNodes, getRun, selectNode, startNewRun } from "../../core/run/run-manager";
 import { getRuleSlotText } from "../../core/run/reward-catalog";
 import type { NodeType, RunNode } from "../../core/run/run-state";
@@ -164,8 +165,13 @@ export class MapScene extends Phaser.Scene {
       run.appliedResidues.length === 0
         ? ["No active residue."]
         : run.appliedResidues.map((residue) => `${residue.title}: ${residue.description}`);
+    const timelineLines = [
+      `Corruption: ${formatCorruptionState(run.corruption)}`,
+      formatCorruptionCombatEffect(run.corruption),
+      ...reportLines
+    ];
 
-    this.add.text(820, 118, reportLines.join("\n"), {
+    this.add.text(820, 118, timelineLines.join("\n"), {
       color: "#cbd7e2",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "13px",

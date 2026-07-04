@@ -1,5 +1,10 @@
 import Phaser from "phaser";
 import {
+  formatCorruptionState,
+  getCorruptionTier,
+  type CorruptionTier
+} from "../../core/meta/corruption";
+import {
   completeNode,
   failRun,
   getNodeById,
@@ -103,6 +108,8 @@ export class CombatScene extends Phaser.Scene {
   private rewindCooldownLimitMs = TIME_SKILLS.rewindCooldownMs;
   private rewindShieldLimitMs = 0;
   private rewindShieldMs = 0;
+  private corruption = 0;
+  private corruptionTier: CorruptionTier = getCorruptionTier(0);
   private activeRules = new Map<TemporalRuleId, number>();
   private splitSecondReady = false;
   private snapshotElapsedMs = 0;
@@ -131,6 +138,8 @@ export class CombatScene extends Phaser.Scene {
     this.rewindCooldownLimitMs = Math.max(6000, TIME_SKILLS.rewindCooldownMs - run.player.rewindCooldownReductionMs);
     this.rewindShieldLimitMs = run.player.rewindShieldDurationMs;
     this.rewindShieldMs = 0;
+    this.corruption = run.corruption;
+    this.corruptionTier = getCorruptionTier(run.corruption);
     this.activeRules = new Map(run.activeRules.map((rule) => [rule.id, Math.max(1, rule.stacks)] as const));
     this.splitSecondReady = false;
     this.playerInvulnerableMs = 0;
@@ -153,6 +162,7 @@ export class CombatScene extends Phaser.Scene {
     this.createHud();
     this.createInput();
     this.physics.world.setBounds(ARENA.x, ARENA.y, ARENA.width, ARENA.height);
+    this.showCorruptionStatus();
   }
 
   update(time: number, delta: number): void {
@@ -281,11 +291,11 @@ export class CombatScene extends Phaser.Scene {
     };
     const eliteMultiplier = this.nodeType === "elite" && kind !== "boss" ? 1.25 : 1;
 
-    return Math.round(baseHealth[kind] * eliteMultiplier);
+    return Math.round(baseHealth[kind] * eliteMultiplier * this.corruptionTier.enemyHealthMultiplier);
   }
 
   private createHud(): void {
-    this.add.rectangle(16, 14, 292, 230, 0x10151c, 0.9).setOrigin(0, 0).setDepth(19);
+    this.add.rectangle(16, 14, 292, 250, 0x10151c, 0.9).setOrigin(0, 0).setDepth(19);
     this.combatHud = this.add.graphics();
     this.combatHud.setDepth(20);
     this.enemyHud = this.add.graphics();
@@ -645,14 +655,14 @@ export class CombatScene extends Phaser.Scene {
     const direction = new Phaser.Math.Vector2(this.player.x - enemy.sprite.x, this.player.y - enemy.sprite.y);
     direction.normalize();
 
-    this.spawnEnemyProjectile(enemy.sprite.x, enemy.sprite.y, direction, speed, damage);
+    this.spawnEnemyProjectile(enemy.sprite.x, enemy.sprite.y, direction, speed, this.getEnemyDamage(damage));
   }
 
   private fireBossBurst(enemy: EnemyState): void {
     const baseAngle = Phaser.Math.Angle.Between(enemy.sprite.x, enemy.sprite.y, this.player.x, this.player.y);
     [-0.32, 0, 0.32].forEach((offset) => {
       const direction = new Phaser.Math.Vector2(Math.cos(baseAngle + offset), Math.sin(baseAngle + offset));
-      this.spawnEnemyProjectile(enemy.sprite.x, enemy.sprite.y, direction, 260, 7);
+      this.spawnEnemyProjectile(enemy.sprite.x, enemy.sprite.y, direction, 260, this.getEnemyDamage(7));
     });
   }
 
@@ -747,7 +757,7 @@ export class CombatScene extends Phaser.Scene {
   private checkPlayerEnemyContact(): void {
     this.enemies.forEach((enemy) => {
       if (enemy.sprite.active && this.physics.overlap(this.player, enemy.sprite)) {
-        this.damagePlayer(7);
+        this.damagePlayer(this.getEnemyDamage(7));
       }
     });
   }
@@ -843,6 +853,7 @@ export class CombatScene extends Phaser.Scene {
       `Q Freeze ${freeze}`,
       `E Rewind ${rewind}`,
       `Space Dash ${dash}`,
+      `Corruption ${formatCorruptionState(this.corruption)}`,
       this.getCombatSkillState(),
       this.getCombatRuleState(),
       "WASD move, mouse aim, left click attack"
@@ -963,6 +974,18 @@ export class CombatScene extends Phaser.Scene {
     }
 
     return `${Math.ceil(valueMs / 1000)}s`;
+  }
+
+  private getEnemyDamage(baseDamage: number): number {
+    return baseDamage + this.corruptionTier.enemyDamageBonus;
+  }
+
+  private showCorruptionStatus(): void {
+    if (this.corruptionTier.id === "stable") {
+      return;
+    }
+
+    this.showStatus(`Corruption ${this.corruptionTier.title}`);
   }
 
   private showStatus(message: string): void {

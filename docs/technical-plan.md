@@ -271,6 +271,16 @@ Stage 5A 当前实现：
 - `startNewRun()` 会消费上一局保存的 active residues 并应用到当前局。
 - `SummaryScene` 会 finalize 本局 residues，并写入 run history。
 
+Stage 5B 当前实现：
+
+- `src/core/meta/corruption.ts` 负责腐化阈值、格式化和腐化增加逻辑。
+- `RunState.corruption` 表示本局腐化值，`RunCounters.highestCorruption` 记录本局最高腐化。
+- `SaveData` 增加 `highestCorruption` 和 `lastRunCorruption`，旧存档缺失字段时默认 0。
+- Reward catalog 中的 Corrupted rewards 会给玩家即时收益，并调用腐化逻辑。
+- `CombatScene` 在进入房间时读取腐化阈值，轻微提高敌人生命和伤害。
+- `MapScene`、`RewardScene`、`CombatScene` 和 `SummaryScene` 展示腐化状态。
+- 高腐化结算会生成 `Corrupted Signal`，作为跨局正向反馈。
+
 ## 7. Time Systems
 
 ### 7.1 Time Freeze

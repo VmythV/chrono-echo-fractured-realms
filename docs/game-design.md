@@ -366,6 +366,8 @@ type ResidueDefinition = {
 - 不做大量随机负面状态。
 - UI 必须清楚展示当前阈值和下一阈值效果。
 
+当前 Stage 5B 先实装本局腐化值和四档阈值。玩家通过 Corrupted 奖励主动增加腐化，获得更高即时收益；腐化只轻微提高本局敌人生命和伤害，并在 Map、Reward、Combat 和 Summary 中显示。腐化达到 50 或以上时，结算会生成 `Corrupted Signal`，让高风险局留下一个可理解的正向残响。
+
 ## 10. Enemies
 
 ### 10.1 Enemy Roles

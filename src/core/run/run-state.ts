@@ -1,8 +1,14 @@
 export type NodeType = "combat" | "elite" | "event" | "shop" | "rest" | "boss";
-export type RewardKind = "Upgrade" | "Rule" | "Recovery";
+export type RewardKind = "Upgrade" | "Rule" | "Recovery" | "Corrupted";
 export type RewardContext = "combat" | "elite" | "event" | "shop" | "rest";
 export type TemporalRuleId = "storedImpact" | "splitSecond" | "fastTimeline" | "emergencyLoop";
-export type ResidueId = "victoryEcho" | "lastStandMemory" | "frozenTimeline" | "recallTrace" | "merchantMemory";
+export type ResidueId =
+  | "victoryEcho"
+  | "lastStandMemory"
+  | "frozenTimeline"
+  | "recallTrace"
+  | "merchantMemory"
+  | "corruptedSignal";
 
 export type RunNode = {
   id: string;
@@ -31,6 +37,7 @@ export type RunState = {
   map: RunNode[][];
   bossNode: RunNode;
   player: PlayerRunState;
+  corruption: number;
   activeRules: TemporalRuleInstance[];
   appliedResidues: ResidueInstance[];
   generatedResidues: ResidueInstance[];
@@ -47,6 +54,7 @@ export type RewardChoice = {
   ruleId?: TemporalRuleId;
   title: string;
   description: string;
+  corruptionGain?: number;
   apply: (state: RunState) => void;
 };
 
@@ -73,4 +81,5 @@ export type RunCounters = {
   elitesDefeated: number;
   combatsCleared: number;
   bossDefeated: boolean;
+  highestCorruption: number;
 };

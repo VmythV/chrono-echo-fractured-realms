@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { formatCorruptionState } from "../../core/meta/corruption";
 import { finalizeRunResidues, formatResidues } from "../../core/meta/time-residue";
 import { getRun, startNewRun } from "../../core/run/run-manager";
 import { getRuleSlotText } from "../../core/run/reward-catalog";
@@ -34,22 +35,23 @@ export class SummaryScene extends Phaser.Scene {
       `Rewards taken: ${run.rewardsTaken.length}`,
       `Final health: ${run.player.health}/${run.player.maxHealth}`,
       `Attack bonus: +${run.player.attackDamageBonus}`,
+      `Corruption: ${formatCorruptionState(run.corruption)}`,
       `Rule slots: ${getRuleSlotText(run)}`,
       `Skills: ${this.formatSkillUpgrades()}`,
       `Rules: ${this.formatRules()}`,
       `Generated residues: ${formatResidues(generatedResidues)}`
     ];
 
-    this.add.text(640, 324, stats.join("\n"), {
+    this.add.text(640, 342, stats.join("\n"), {
       align: "center",
       color: "#e7edf2",
       fontFamily: "Inter, Arial, sans-serif",
-      fontSize: "18px",
-      lineSpacing: 9,
+      fontSize: "16px",
+      lineSpacing: 6,
       wordWrap: { width: 840 }
     }).setOrigin(0.5, 0.5);
 
-    this.add.text(640, 454, this.formatGeneratedResidueDetails(), {
+    this.add.text(640, 500, this.formatGeneratedResidueDetails(), {
       align: "center",
       color: "#cbd7e2",
       fontFamily: "Inter, Arial, sans-serif",
@@ -58,12 +60,12 @@ export class SummaryScene extends Phaser.Scene {
       wordWrap: { width: 760 }
     }).setOrigin(0.5, 0.5);
 
-    const button = this.add.rectangle(640, 550, 210, 46, 0x263746, 1);
+    const button = this.add.rectangle(640, 590, 210, 46, 0x263746, 1);
     button.setStrokeStyle(2, 0x8be9fd, 0.9);
     button.setInteractive({ useHandCursor: true });
     button.on("pointerup", () => this.startNextRun());
 
-    this.add.text(640, 550, "Start New Run", {
+    this.add.text(640, 590, "Start New Run", {
       align: "center",
       color: "#e7edf2",
       fontFamily: "Inter, Arial, sans-serif",

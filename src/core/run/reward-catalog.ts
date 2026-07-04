@@ -1,3 +1,4 @@
+import { addCorruption } from "../meta/corruption";
 import type { RewardChoice, RewardContext, RunState, TemporalRuleId } from "./run-state";
 
 export const MAX_TEMPORAL_RULES = 5;
@@ -108,6 +109,29 @@ const REWARD_CATALOG: Record<string, RewardDefinition> = {
       state.player.attackDamageBonus += 8;
     }
   },
+  fracturedEdge: {
+    id: "fracturedEdge",
+    kind: "Corrupted",
+    title: "Fractured Edge",
+    description: "Gain 10 attack damage this run. Corruption +18.",
+    corruptionGain: 18,
+    apply: (state) => {
+      state.player.attackDamageBonus += 10;
+      addCorruption(state, 18);
+    }
+  },
+  voidCache: {
+    id: "voidCache",
+    kind: "Corrupted",
+    title: "Void Cache",
+    description: "Max health increases by 18 and you heal 18. Corruption +15.",
+    corruptionGain: 15,
+    apply: (state) => {
+      state.player.maxHealth += 18;
+      state.player.health = Math.min(state.player.maxHealth, state.player.health + 18);
+      addCorruption(state, 15);
+    }
+  },
   merchantTune: {
     id: "merchantTune",
     kind: "Upgrade",
@@ -184,8 +208,8 @@ const REWARD_CATALOG: Record<string, RewardDefinition> = {
 
 const REWARD_POOLS: Record<RewardContext, string[]> = {
   combat: ["sharpenedEcho", "coldMoment", "storedImpact"],
-  elite: ["vitalMemory", "widerField", "fastTimeline"],
-  event: ["riskyCache", "borrowedBreath", "splitSecond"],
+  elite: ["fracturedEdge", "vitalMemory", "fastTimeline"],
+  event: ["voidCache", "borrowedBreath", "splitSecond"],
   shop: ["merchantTune", "widerField", "saferRecall"],
   rest: ["cleanRest", "vitalMemory", "emergencyLoop"]
 };

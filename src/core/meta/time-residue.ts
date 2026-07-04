@@ -61,6 +61,15 @@ const RESIDUE_DEFINITIONS: Record<ResidueId, ResidueDefinition> = {
       run.player.maxHealth += bonusHealth;
       run.player.health += bonusHealth;
     }
+  },
+  corruptedSignal: {
+    id: "corruptedSignal",
+    title: "Corrupted Signal",
+    description: "Next run starts with 6 extra attack damage.",
+    durationRuns: 1,
+    apply: (run, stacks) => {
+      run.player.attackDamageBonus += 6 * stacks;
+    }
   }
 };
 
@@ -108,9 +117,12 @@ export function finalizeRunResidues(run: RunState): ResidueInstance[] {
       run.result === "won" ? "won" : "lost",
       run.completedNodeIds.length,
       run.rewardsTaken.length,
+      run.corruption,
       generatedResidues
     )
   );
+  saveData.lastRunCorruption = run.corruption;
+  saveData.highestCorruption = Math.max(saveData.highestCorruption, run.counters.highestCorruption, run.corruption);
   saveSaveData(saveData);
 
   run.generatedResidues = generatedResidues;
@@ -139,6 +151,10 @@ function generateResidues(run: RunState): ResidueInstance[] {
     residueIds.push("victoryEcho");
   } else {
     residueIds.push("lastStandMemory");
+  }
+
+  if (run.corruption >= 50) {
+    residueIds.push("corruptedSignal");
   }
 
   if (run.counters.timeFreezeCasts >= 2) {

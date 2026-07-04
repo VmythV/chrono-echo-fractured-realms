@@ -220,6 +220,7 @@
 当前执行记录：
 
 - `docs/stage-5a-time-residue.md`
+- `docs/stage-5b-corruption.md`
 
 ## 9. Stage 6: Web Playable Build
 

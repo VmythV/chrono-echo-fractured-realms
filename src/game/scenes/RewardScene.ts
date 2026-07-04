@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { formatCorruptionState } from "../../core/meta/corruption";
 import { applyReward, completeNode, getNodeById, getRewards, getRun } from "../../core/run/run-manager";
 import { getRuleSlotText } from "../../core/run/reward-catalog";
 import type { RewardContext, RewardKind } from "../../core/run/run-state";
@@ -11,7 +12,8 @@ type RewardSceneData = {
 const REWARD_KIND_COLORS: Record<RewardKind, string> = {
   Upgrade: "#f7d06e",
   Rule: "#8be9fd",
-  Recovery: "#8fd694"
+  Recovery: "#8fd694",
+  Corrupted: "#f18f6f"
 };
 
 export class RewardScene extends Phaser.Scene {
@@ -45,6 +47,11 @@ export class RewardScene extends Phaser.Scene {
       fontSize: "18px"
     });
     this.add.text(64, 120, `Rule slots ${getRuleSlotText(run)}`, {
+      color: "#cbd7e2",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "16px"
+    });
+    this.add.text(64, 146, `Corruption ${formatCorruptionState(run.corruption)}`, {
       color: "#cbd7e2",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "16px"
