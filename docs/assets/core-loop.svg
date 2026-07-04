@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="300" viewBox="0 0 960 300" role="img" aria-labelledby="title desc">
+  <title id="title">Core Loop Diagram</title>
+  <desc id="desc">A simple loop showing fracture entry, map choice, node play, reward, boss, summary, and residue affecting the next run.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#2f4053"/>
+    </marker>
+    <style>
+      .bg { fill: #f7f3e8; }
+      .box { fill: #ffffff; stroke: #2f4053; stroke-width: 2; rx: 8; }
+      .box-accent { fill: #dfeee8; stroke: #2f4053; stroke-width: 2; rx: 8; }
+      .box-risk { fill: #f2d7d0; stroke: #2f4053; stroke-width: 2; rx: 8; }
+      .text { fill: #1d2733; font-family: Arial, sans-serif; font-size: 18px; font-weight: 700; text-anchor: middle; }
+      .small { fill: #44556a; font-family: Arial, sans-serif; font-size: 13px; text-anchor: middle; }
+      .line { fill: none; stroke: #2f4053; stroke-width: 2.5; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect class="bg" x="0" y="0" width="960" height="300"/>
+
+  <rect class="box" x="30" y="80" width="120" height="78"/>
+  <text class="text" x="90" y="112">Enter</text>
+  <text class="small" x="90" y="136">Time Fracture</text>
+
+  <rect class="box" x="190" y="80" width="120" height="78"/>
+  <text class="text" x="250" y="112">Choose</text>
+  <text class="small" x="250" y="136">Time Tree Node</text>
+
+  <rect class="box" x="350" y="80" width="120" height="78"/>
+  <text class="text" x="410" y="112">Play</text>
+  <text class="small" x="410" y="136">Combat or Event</text>
+
+  <rect class="box-accent" x="510" y="80" width="120" height="78"/>
+  <text class="text" x="570" y="112">Reward</text>
+  <text class="small" x="570" y="136">Skill or Rule</text>
+
+  <rect class="box-risk" x="670" y="80" width="120" height="78"/>
+  <text class="text" x="730" y="112">Boss</text>
+  <text class="small" x="730" y="136">Fracture Warden</text>
+
+  <rect class="box" x="830" y="80" width="100" height="78"/>
+  <text class="text" x="880" y="112">Summary</text>
+  <text class="small" x="880" y="136">Run Result</text>
+
+  <path class="line" d="M150,119 L184,119"/>
+  <path class="line" d="M310,119 L344,119"/>
+  <path class="line" d="M470,119 L504,119"/>
+  <path class="line" d="M630,119 L664,119"/>
+  <path class="line" d="M790,119 L824,119"/>
+
+  <path class="line" d="M570,158 C570,210 250,210 250,164"/>
+  <text class="small" x="410" y="232">Repeat nodes until the run reaches the boss</text>
+
+  <path class="line" d="M880,158 C880,270 90,270 90,164"/>
+  <text class="small" x="485" y="282">Time Residue changes the next run in visible, lightweight ways</text>
+</svg>

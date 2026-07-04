@@ -5,15 +5,26 @@ Chrono Echo: Fractured Realms
 
 ---
 
+# 0. Document Index
+
+This overview records the high-level concept. Current executable design and planning details live in:
+
+- `docs/game-design.md`: complete gameplay design and first-version scope
+- `docs/development-plan.md`: staged execution plan and acceptance criteria
+- `docs/technical-plan.md`: technical architecture and extensibility plan
+- `docs/changelog.md`: project change history
+
+---
+
 # 1. Game Overview
 
 ## Genre
-Web-based Roguelike + Action Strategy + Meta Progression
+Web-based Roguelike + Top-down Action + Meta Progression
 
 ## Core Concept
-The world has been shattered by "time fractures." Each run enters a randomly generated timeline ruin—blending ancient, modern, futuristic, and corrupted realities.
+The world has been shattered by "time fractures." Each run enters a short timeline ruin blending ancient, modern, futuristic, and corrupted realities.
 
-You are not simply fighting through dungeons—you are interacting with broken timelines and shaping what reality becomes.
+You are not simply fighting through rooms. Your actions leave Time Residue, causing later runs to change in visible, lightweight ways.
 
 Inspired by:
 - Slay the Spire (build diversity)
@@ -24,14 +35,14 @@ Inspired by:
 
 # 2. Core Gameplay Loop
 
-## Single Run (10–15 minutes)
+## Single Run (10 to 15 minutes)
 
 ### Step 1: Enter Time Fracture
-Randomly generated timeline environments:
+Generated timeline environments:
 - Ancient Temple (traps, curses)
 - Modern City Collapse (gunfire, drones)
 - Future Ruins (gravity shifts, energy beings)
-- Corrupted Layer (rule-breaking anomalies)
+- Corrupted Layer (high-risk anomaly rewards)
 
 ---
 
@@ -41,18 +52,20 @@ Map is structured as branching nodes:
 - Event Nodes (time paradox events)
 - Shop Nodes (time merchants)
 - Memory Nodes (unlock abilities from past runs)
+- Rest Nodes
 - Boss Nodes
 
 ---
 
 ### Step 3: Combat System
-Hybrid system:
-- 2D top-down or side view
-- Skill-based + tactical pause selection
-- Time-based skill cards
+Real-time combat system:
+- 2D top-down room battles
+- Direct movement, aiming, basic attack, dash
+- Two active time skills in the first version
+- Reward choices happen between nodes, not through a complex in-combat card system
 
 Core idea:
-Players manipulate time during combat (pause, rewind, delay, duplicate actions).
+Players manipulate time during combat through readable actions such as freeze, rewind, delay, echo, and anchor effects.
 
 ---
 
@@ -68,9 +81,9 @@ Instead, each run leaves "time echoes":
 - Past actions influence future runs
 
 Examples:
-- Using fire-heavy builds → future fire resistance increases, ice weakens
-- Killing many NPCs → shops become more expensive
-- Saving NPCs → beneficial paradox events appear later
+- Frequent Time Freeze use leads to some enemy resistance, but also increases Freeze upgrade chances.
+- High corruption creates Error Elite encounters, but improves rare reward chances.
+- Saving NPCs makes beneficial paradox events appear later.
 
 ---
 
@@ -78,7 +91,7 @@ Examples:
 
 A global instability meter:
 - Higher corruption = stronger enemies
-- Higher rewards (rare drops, unique enemies)
+- Higher rewards (rare upgrades, unique enemies)
 - Introduces "error entities" (glitch bosses)
 
 ---
@@ -101,8 +114,8 @@ Three-layer build design:
 ## Layer 1: Combat Skills
 - Time freeze
 - Time rewind
-- Dash / blink
-- Clone attack
+- Echo attack
+- Time anchor
 
 ## Layer 2: Temporal Rules (Passive Modifiers)
 - Delayed damage system
@@ -118,21 +131,21 @@ Three-layer build design:
 
 # 5. Enemy Design
 
-Enemies are not static—they learn and adapt.
+Enemies are readable first, adaptive second.
 
 ## Types:
 
 ### Time Error Entities
 - Attack your previous death position
-- Mimic your last build
+- Mimic one visible behavior from your last run
 
 ### Historical Echoes
 - Ancient generals that adapt to your tactics
 - Future AI that predicts input patterns
 
 ### Rule Breakers
-- UI manipulation enemies
-- Input delay creatures
+- Reserved for later experiments
+- Not part of the first playable version
 
 ---
 
