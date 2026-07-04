@@ -45,7 +45,7 @@ const PLAYER = {
   dashCooldownMs: 900,
   attackCooldownMs: 220,
   attackSpeed: 680,
-  attackDamage: 18,
+  attackDamage: 22,
   maxHealth: 100,
   invulnerableAfterHitMs: 520
 };
@@ -65,8 +65,11 @@ export class CombatScene extends Phaser.Scene {
   private aimLine!: Phaser.GameObjects.Line;
   private freezePreview!: Phaser.GameObjects.Arc;
   private rewindTrail!: Phaser.GameObjects.Graphics;
+  private combatHud!: Phaser.GameObjects.Graphics;
+  private enemyHud!: Phaser.GameObjects.Graphics;
   private hudText!: Phaser.GameObjects.Text;
   private statusText!: Phaser.GameObjects.Text;
+  private resultPanelElements: Array<Phaser.GameObjects.Rectangle | Phaser.GameObjects.Text> = [];
   private keys!: Record<"W" | "A" | "S" | "D" | "Q" | "E" | "SPACE", Phaser.Input.Keyboard.Key>;
   private enemies: EnemyState[] = [];
   private projectiles: ProjectileState[] = [];
@@ -84,6 +87,23 @@ export class CombatScene extends Phaser.Scene {
 
   constructor() {
     super("CombatScene");
+  }
+
+  init(): void {
+    this.enemies = [];
+    this.projectiles = [];
+    this.snapshots = [];
+    this.resultPanelElements = [];
+    this.playerHealth = PLAYER.maxHealth;
+    this.playerInvulnerableMs = 0;
+    this.attackElapsedMs = PLAYER.attackCooldownMs;
+    this.dashCooldownMs = 0;
+    this.dashRemainingMs = 0;
+    this.dashVector.set(0, 0);
+    this.freezeCooldownMs = 0;
+    this.rewindCooldownMs = 0;
+    this.snapshotElapsedMs = 0;
+    this.roomState = "playing";
   }
 
   create(): void {
@@ -206,6 +226,10 @@ export class CombatScene extends Phaser.Scene {
 
   private createHud(): void {
     this.add.rectangle(16, 14, 292, 174, 0x10151c, 0.9).setOrigin(0, 0).setDepth(19);
+    this.combatHud = this.add.graphics();
+    this.combatHud.setDepth(20);
+    this.enemyHud = this.add.graphics();
+    this.enemyHud.setDepth(18);
 
     this.aimLine = this.add.line(0, 0, 0, 0, 0, 0, 0x8be9fd, 0.55);
     this.aimLine.setOrigin(0, 0);
@@ -236,6 +260,8 @@ export class CombatScene extends Phaser.Scene {
     });
     this.statusText.setOrigin(0.5, 0.5);
     this.statusText.setDepth(20);
+
+    this.createResultPanel();
   }
 
   private createInput(): void {
@@ -338,7 +364,9 @@ export class CombatScene extends Phaser.Scene {
     const endY = this.player.y + Math.sin(angle) * 58;
     this.aimLine.setTo(this.player.x, this.player.y, endX, endY);
     this.freezePreview.setPosition(pointer.worldX, pointer.worldY);
-    this.freezePreview.setVisible(this.isInsideArena(pointer.worldX, pointer.worldY));
+    this.freezePreview.setVisible(
+      this.keys.Q.isDown && this.freezeCooldownMs <= 0 && this.isInsideArena(pointer.worldX, pointer.worldY)
+    );
 
     this.rewindTrail.clear();
     this.rewindTrail.lineStyle(2, 0x6edbd6, 0.2);
@@ -403,6 +431,7 @@ export class CombatScene extends Phaser.Scene {
     const pointer = this.input.activePointer;
     pointer.updateWorldPoint(this.cameras.main);
     const center = new Phaser.Math.Vector2(pointer.worldX, pointer.worldY);
+    this.playFreezePulse(center.x, center.y);
 
     this.enemies.forEach((enemy) => {
       if (!enemy.sprite.active) {
@@ -452,6 +481,7 @@ export class CombatScene extends Phaser.Scene {
     this.playerHealth = Math.min(PLAYER.maxHealth, restoredHealth);
     this.playerInvulnerableMs = 800;
     this.rewindCooldownMs = TIME_SKILLS.rewindCooldownMs;
+    this.playRewindPulse(snapshot.x, snapshot.y);
     this.showStatus("Time Rewind");
   }
 
@@ -508,7 +538,7 @@ export class CombatScene extends Phaser.Scene {
     this.projectiles.push({
       sprite: projectile,
       owner: "enemy",
-      damage: 12,
+      damage: 8,
       frozenMs: 0,
       lifespanMs: 1800
     });
@@ -546,13 +576,14 @@ export class CombatScene extends Phaser.Scene {
       }
 
       if (projectile.owner === "player") {
-        this.enemies.forEach((enemy) => {
+        for (const enemy of this.enemies) {
           if (!enemy.sprite.active || !this.physics.overlap(projectile.sprite, enemy.sprite)) {
-            return;
+            continue;
           }
 
           enemy.health -= projectile.damage;
           projectile.sprite.destroy();
+          this.showFloatingText(`${projectile.damage}`, enemy.sprite.x, enemy.sprite.y - 30, "#f7d06e");
           enemy.sprite.setScale(1.12);
           this.tweens.add({
             targets: enemy.sprite,
@@ -561,9 +592,11 @@ export class CombatScene extends Phaser.Scene {
           });
 
           if (enemy.health <= 0) {
+            this.showFloatingText("Break", enemy.sprite.x, enemy.sprite.y, "#8be9fd");
             enemy.sprite.destroy();
           }
-        });
+          break;
+        }
       } else if (this.physics.overlap(projectile.sprite, this.player)) {
         projectile.sprite.destroy();
         this.damagePlayer(projectile.damage);
@@ -574,7 +607,7 @@ export class CombatScene extends Phaser.Scene {
   private checkPlayerEnemyContact(): void {
     this.enemies.forEach((enemy) => {
       if (enemy.sprite.active && this.physics.overlap(this.player, enemy.sprite)) {
-        this.damagePlayer(10);
+        this.damagePlayer(7);
       }
     });
   }
@@ -586,6 +619,7 @@ export class CombatScene extends Phaser.Scene {
 
     this.playerHealth = Math.max(0, this.playerHealth - amount);
     this.playerInvulnerableMs = PLAYER.invulnerableAfterHitMs;
+    this.showFloatingText(`${amount}`, this.player.x, this.player.y - 34, "#f18f6f");
     this.player.setTint(0xf7d06e);
     this.tweens.add({
       targets: this.player,
@@ -609,20 +643,23 @@ export class CombatScene extends Phaser.Scene {
     if (this.playerHealth <= 0) {
       this.roomState = "lost";
       this.player.setVelocity(0, 0);
-      this.showStatus("Timeline collapsed. Press R to restart.");
-      this.input.keyboard?.once("keydown-R", () => this.scene.restart());
+      this.showResultPanel("Timeline Collapsed", "The fracture overran this prototype room.");
+      this.input.keyboard?.once("keydown-R", () => this.restartPrototype());
       return;
     }
 
     if (this.enemies.length === 0) {
       this.roomState = "won";
       this.player.setVelocity(0, 0);
-      this.showStatus("Fracture stabilized. Press R to replay prototype.");
-      this.input.keyboard?.once("keydown-R", () => this.scene.restart());
+      this.showResultPanel("Fracture Stabilized", "The room is clear and the combat loop is complete.");
+      this.input.keyboard?.once("keydown-R", () => this.restartPrototype());
     }
   }
 
   private updateHud(): void {
+    this.drawCombatHud();
+    this.drawEnemyHud();
+
     const freeze = this.formatCooldown(this.freezeCooldownMs);
     const rewind = this.formatCooldown(this.rewindCooldownMs);
     const dash = this.formatCooldown(this.dashCooldownMs);
@@ -634,6 +671,67 @@ export class CombatScene extends Phaser.Scene {
       `Space Dash ${dash}`,
       "WASD move, mouse aim, left click attack"
     ]);
+  }
+
+  private drawCombatHud(): void {
+    this.combatHud.clear();
+    this.drawBar(this.combatHud, 168, 31, 78, 9, this.playerHealth / PLAYER.maxHealth, 0x6edbd6);
+    this.drawBar(
+      this.combatHud,
+      180,
+      88,
+      66,
+      7,
+      1 - this.freezeCooldownMs / TIME_SKILLS.freezeCooldownMs,
+      0x8be9fd
+    );
+    this.drawBar(
+      this.combatHud,
+      180,
+      115,
+      66,
+      7,
+      1 - this.rewindCooldownMs / TIME_SKILLS.rewindCooldownMs,
+      0x8fd694
+    );
+    this.drawBar(this.combatHud, 180, 142, 66, 7, 1 - this.dashCooldownMs / PLAYER.dashCooldownMs, 0xf7d06e);
+  }
+
+  private drawEnemyHud(): void {
+    this.enemyHud.clear();
+
+    this.enemies.forEach((enemy) => {
+      if (!enemy.sprite.active) {
+        return;
+      }
+
+      const barX = enemy.sprite.x - 24;
+      const barY = enemy.sprite.y - 34;
+      this.drawBar(this.enemyHud, barX, barY, 48, 5, enemy.health / enemy.maxHealth, 0xf18f6f);
+
+      if (enemy.frozenMs > 0) {
+        const frozenRatio = enemy.frozenMs / TIME_SKILLS.freezeDurationMs;
+        this.enemyHud.lineStyle(2, 0x8be9fd, 0.65);
+        this.enemyHud.strokeCircle(enemy.sprite.x, enemy.sprite.y, 26);
+        this.drawBar(this.enemyHud, barX, barY - 7, 48, 4, frozenRatio, 0x8be9fd);
+      }
+    });
+  }
+
+  private drawBar(
+    graphics: Phaser.GameObjects.Graphics,
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    progress: number,
+    fill: number
+  ): void {
+    const ratio = Phaser.Math.Clamp(progress, 0, 1);
+    graphics.fillStyle(0x071016, 0.82);
+    graphics.fillRoundedRect(x, y, width, height, 3);
+    graphics.fillStyle(fill, 0.95);
+    graphics.fillRoundedRect(x, y, width * ratio, height, 3);
   }
 
   private formatCooldown(valueMs: number): string {
@@ -651,6 +749,124 @@ export class CombatScene extends Phaser.Scene {
         this.statusText.setText("");
       }
     });
+  }
+
+  private showFloatingText(text: string, x: number, y: number, color: string): void {
+    const damageText = this.add.text(x, y, text, {
+      align: "center",
+      color,
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "16px"
+    });
+    damageText.setOrigin(0.5, 0.5);
+    damageText.setDepth(22);
+    this.tweens.add({
+      targets: damageText,
+      y: y - 28,
+      alpha: 0,
+      duration: 520,
+      ease: "Quad.easeOut",
+      onComplete: () => damageText.destroy()
+    });
+  }
+
+  private playFreezePulse(x: number, y: number): void {
+    const pulse = this.add.circle(x, y, TIME_SKILLS.freezeRadius);
+    pulse.setStrokeStyle(3, 0x8be9fd, 0.8);
+    pulse.setFillStyle(0x8be9fd, 0.08);
+    pulse.setDepth(6);
+    this.tweens.add({
+      targets: pulse,
+      alpha: 0,
+      scale: 1.12,
+      duration: 320,
+      ease: "Quad.easeOut",
+      onComplete: () => pulse.destroy()
+    });
+  }
+
+  private playRewindPulse(x: number, y: number): void {
+    const pulse = this.add.circle(x, y, 42);
+    pulse.setStrokeStyle(3, 0x8fd694, 0.9);
+    pulse.setFillStyle(0x8fd694, 0.08);
+    pulse.setDepth(6);
+    this.tweens.add({
+      targets: pulse,
+      alpha: 0,
+      scale: 2.1,
+      duration: 360,
+      ease: "Quad.easeOut",
+      onComplete: () => pulse.destroy()
+    });
+  }
+
+  private createResultPanel(): void {
+    const panel = this.add.rectangle(640, 360, 420, 210, 0x10151c, 0.94);
+    panel.setStrokeStyle(2, 0x5a7288, 1);
+    panel.setDepth(30);
+
+    const title = this.add.text(640, 310, "", {
+      align: "center",
+      color: "#f7f3e8",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "28px"
+    });
+    title.setOrigin(0.5, 0.5);
+    title.setDepth(31);
+    title.setData("role", "result-title");
+
+    const body = this.add.text(640, 352, "", {
+      align: "center",
+      color: "#cbd7e2",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "16px",
+      wordWrap: { width: 340 }
+    });
+    body.setOrigin(0.5, 0.5);
+    body.setDepth(31);
+    body.setData("role", "result-body");
+
+    const restartButton = this.add.rectangle(640, 414, 190, 42, 0x263746, 1);
+    restartButton.setStrokeStyle(2, 0x8be9fd, 0.8);
+    restartButton.setDepth(31);
+    restartButton.setInteractive({ useHandCursor: true });
+    restartButton.on("pointerup", () => this.restartPrototype());
+
+    const restartText = this.add.text(640, 414, "Restart Prototype", {
+      align: "center",
+      color: "#e7edf2",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "16px"
+    });
+    restartText.setOrigin(0.5, 0.5);
+    restartText.setDepth(32);
+
+    this.resultPanelElements = [panel, title, body, restartButton, restartText];
+    this.setResultPanelVisible(false);
+  }
+
+  private showResultPanel(title: string, body: string): void {
+    this.resultPanelElements.forEach((element) => {
+      if (element.getData("role") === "result-title" && element instanceof Phaser.GameObjects.Text) {
+        element.setText(title);
+      }
+
+      if (element.getData("role") === "result-body" && element instanceof Phaser.GameObjects.Text) {
+        element.setText(body);
+      }
+    });
+    this.setResultPanelVisible(true);
+    this.statusText.setText("");
+  }
+
+  private setResultPanelVisible(visible: boolean): void {
+    this.resultPanelElements.forEach((element) => {
+      element.setVisible(visible);
+    });
+  }
+
+  private restartPrototype(): void {
+    this.scene.restart();
   }
 
   private isInsideArena(x: number, y: number): boolean {

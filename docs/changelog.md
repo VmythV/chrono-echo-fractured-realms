@@ -17,7 +17,10 @@
 - Added Vite, TypeScript, and Phaser 4.2.0 project scaffold.
 - Added first combat prototype scene.
 - Added Stage 2 combat prototype execution record.
+- Added combat readability polish with player bars, enemy health bars, hit feedback, freeze and rewind pulse effects, and a restartable result panel.
 
 ### Changed
 
 - Updated the planned web runtime to Phaser `4.2.0`.
+- Tuned the first combat room toward a lighter prototype difficulty.
+- Moved Phaser scene runtime state reset into `init()` so replay starts from a clean state.
