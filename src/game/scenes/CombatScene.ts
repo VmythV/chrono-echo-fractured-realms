@@ -1,8 +1,17 @@
 import Phaser from "phaser";
+import {
+  completeNode,
+  failRun,
+  getNodeById,
+  getRun,
+  setPlayerHealth
+} from "../../core/run/run-manager";
+import type { NodeType } from "../../core/run/run-state";
 
 type ArcadeImage = Phaser.Physics.Arcade.Image;
 
-type EnemyKind = "chaser" | "shooter";
+type EnemyKind = "chaser" | "shooter" | "boss";
+type ResultMode = "reward" | "summary";
 
 type EnemyState = {
   sprite: ArcadeImage;
@@ -61,6 +70,8 @@ const TIME_SKILLS = {
 };
 
 export class CombatScene extends Phaser.Scene {
+  private nodeId = "";
+  private nodeType: NodeType = "combat";
   private player!: ArcadeImage;
   private aimLine!: Phaser.GameObjects.Line;
   private freezePreview!: Phaser.GameObjects.Arc;
@@ -82,19 +93,32 @@ export class CombatScene extends Phaser.Scene {
   private dashVector = new Phaser.Math.Vector2();
   private freezeCooldownMs = 0;
   private rewindCooldownMs = 0;
+  private playerMaxHealth = PLAYER.maxHealth;
+  private attackDamage = PLAYER.attackDamage;
+  private freezeCooldownLimitMs = TIME_SKILLS.freezeCooldownMs;
+  private rewindCooldownLimitMs = TIME_SKILLS.rewindCooldownMs;
   private snapshotElapsedMs = 0;
   private roomState: "playing" | "won" | "lost" = "playing";
+  private resultMode: ResultMode = "reward";
 
   constructor() {
     super("CombatScene");
   }
 
-  init(): void {
+  init(data: { nodeId?: string } = {}): void {
+    const run = getRun();
+    const node = data.nodeId ? getNodeById(data.nodeId) : undefined;
+    this.nodeId = node?.id ?? "prototype-combat";
+    this.nodeType = node?.type ?? "combat";
     this.enemies = [];
     this.projectiles = [];
     this.snapshots = [];
     this.resultPanelElements = [];
-    this.playerHealth = PLAYER.maxHealth;
+    this.playerMaxHealth = run.player.maxHealth;
+    this.playerHealth = Math.max(1, Math.min(run.player.health, this.playerMaxHealth));
+    this.attackDamage = PLAYER.attackDamage + run.player.attackDamageBonus;
+    this.freezeCooldownLimitMs = Math.max(4500, TIME_SKILLS.freezeCooldownMs - run.player.freezeCooldownReductionMs);
+    this.rewindCooldownLimitMs = Math.max(6000, TIME_SKILLS.rewindCooldownMs - run.player.rewindCooldownReductionMs);
     this.playerInvulnerableMs = 0;
     this.attackElapsedMs = PLAYER.attackCooldownMs;
     this.dashCooldownMs = 0;
@@ -104,6 +128,7 @@ export class CombatScene extends Phaser.Scene {
     this.rewindCooldownMs = 0;
     this.snapshotElapsedMs = 0;
     this.roomState = "playing";
+    this.resultMode = "reward";
   }
 
   create(): void {
@@ -139,6 +164,7 @@ export class CombatScene extends Phaser.Scene {
     this.makeCircleTexture("player-core", 18, 0x6edbd6, 0x122a33);
     this.makeCircleTexture("chaser-core", 18, 0xe06f5d, 0x341815);
     this.makeCircleTexture("shooter-core", 18, 0xd5b65f, 0x352b13);
+    this.makeCircleTexture("boss-core", 30, 0xb57be8, 0x2d1838);
     this.makeCircleTexture("player-shot", 6, 0x8be9fd, 0x0f3c45);
     this.makeCircleTexture("enemy-shot", 7, 0xf18f6f, 0x4a1f17);
   }
@@ -200,28 +226,48 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private createEnemies(): void {
+    if (this.nodeType === "boss") {
+      this.spawnEnemy("boss", ARENA.x + ARENA.width / 2, ARENA.y + 130);
+      return;
+    }
+
     this.spawnEnemy("chaser", ARENA.x + 210, ARENA.y + 250);
     this.spawnEnemy("chaser", ARENA.x + ARENA.width - 210, ARENA.y + 265);
     this.spawnEnemy("shooter", ARENA.x + ARENA.width / 2, ARENA.y + 100);
+
+    if (this.nodeType === "elite") {
+      this.spawnEnemy("chaser", ARENA.x + ARENA.width / 2, ARENA.y + 330);
+    }
   }
 
   private spawnEnemy(kind: EnemyKind, x: number, y: number): void {
-    const texture = kind === "chaser" ? "chaser-core" : "shooter-core";
+    const texture = kind === "boss" ? "boss-core" : kind === "chaser" ? "chaser-core" : "shooter-core";
     const sprite = this.physics.add.image(x, y, texture);
-    sprite.setCircle(18, 3, 3);
+    sprite.setCircle(kind === "boss" ? 30 : 18, 3, 3);
     sprite.setCollideWorldBounds(true);
     sprite.setDepth(8);
 
     this.enemies.push({
       sprite,
       kind,
-      health: kind === "chaser" ? 48 : 62,
-      maxHealth: kind === "chaser" ? 48 : 62,
-      speed: kind === "chaser" ? 145 : 95,
-      fireCooldownMs: kind === "shooter" ? 1300 : 0,
-      fireElapsedMs: kind === "shooter" ? 500 : 0,
+      health: this.getEnemyHealth(kind),
+      maxHealth: this.getEnemyHealth(kind),
+      speed: kind === "boss" ? 68 : kind === "chaser" ? 145 : 95,
+      fireCooldownMs: kind === "boss" ? 1150 : kind === "shooter" ? 1300 : 0,
+      fireElapsedMs: kind === "boss" || kind === "shooter" ? 500 : 0,
       frozenMs: 0
     });
+  }
+
+  private getEnemyHealth(kind: EnemyKind): number {
+    const baseHealth: Record<EnemyKind, number> = {
+      chaser: 48,
+      shooter: 62,
+      boss: 220
+    };
+    const eliteMultiplier = this.nodeType === "elite" && kind !== "boss" ? 1.25 : 1;
+
+    return Math.round(baseHealth[kind] * eliteMultiplier);
   }
 
   private createHud(): void {
@@ -404,7 +450,7 @@ export class CombatScene extends Phaser.Scene {
     this.projectiles.push({
       sprite: projectile,
       owner: "player",
-      damage: PLAYER.attackDamage,
+      damage: this.attackDamage,
       frozenMs: 0,
       lifespanMs: 900
     });
@@ -427,7 +473,7 @@ export class CombatScene extends Phaser.Scene {
       return;
     }
 
-    this.freezeCooldownMs = TIME_SKILLS.freezeCooldownMs;
+    this.freezeCooldownMs = this.freezeCooldownLimitMs;
     const pointer = this.input.activePointer;
     pointer.updateWorldPoint(this.cameras.main);
     const center = new Phaser.Math.Vector2(pointer.worldX, pointer.worldY);
@@ -478,9 +524,9 @@ export class CombatScene extends Phaser.Scene {
 
     this.player.setPosition(snapshot.x, snapshot.y);
     this.player.setVelocity(0, 0);
-    this.playerHealth = Math.min(PLAYER.maxHealth, restoredHealth);
+    this.playerHealth = Math.min(this.playerMaxHealth, restoredHealth);
     this.playerInvulnerableMs = 800;
-    this.rewindCooldownMs = TIME_SKILLS.rewindCooldownMs;
+    this.rewindCooldownMs = this.rewindCooldownLimitMs;
     this.playRewindPulse(snapshot.x, snapshot.y);
     this.showStatus("Time Rewind");
   }
@@ -503,8 +549,29 @@ export class CombatScene extends Phaser.Scene {
         return;
       }
 
+      if (enemy.kind === "boss") {
+        this.updateBoss(enemy, delta);
+        return;
+      }
+
       this.updateShooter(enemy, delta);
     });
+  }
+
+  private updateBoss(enemy: EnemyState, delta: number): void {
+    const distance = Phaser.Math.Distance.Between(enemy.sprite.x, enemy.sprite.y, this.player.x, this.player.y);
+
+    if (distance > 280) {
+      this.physics.moveToObject(enemy.sprite, this.player, enemy.speed);
+    } else {
+      enemy.sprite.setVelocity(0, 0);
+    }
+
+    enemy.fireElapsedMs += delta;
+    if (enemy.fireElapsedMs >= enemy.fireCooldownMs) {
+      enemy.fireElapsedMs = 0;
+      this.fireBossBurst(enemy);
+    }
   }
 
   private updateShooter(enemy: EnemyState, delta: number): void {
@@ -523,22 +590,40 @@ export class CombatScene extends Phaser.Scene {
     enemy.fireElapsedMs += delta;
     if (enemy.fireElapsedMs >= enemy.fireCooldownMs) {
       enemy.fireElapsedMs = 0;
-      this.fireEnemyShot(enemy);
+      this.fireEnemyShot(enemy, 330, 8);
     }
   }
 
-  private fireEnemyShot(enemy: EnemyState): void {
+  private fireEnemyShot(enemy: EnemyState, speed: number, damage: number): void {
     const direction = new Phaser.Math.Vector2(this.player.x - enemy.sprite.x, this.player.y - enemy.sprite.y);
     direction.normalize();
 
-    const projectile = this.physics.add.image(enemy.sprite.x, enemy.sprite.y, "enemy-shot");
+    this.spawnEnemyProjectile(enemy.sprite.x, enemy.sprite.y, direction, speed, damage);
+  }
+
+  private fireBossBurst(enemy: EnemyState): void {
+    const baseAngle = Phaser.Math.Angle.Between(enemy.sprite.x, enemy.sprite.y, this.player.x, this.player.y);
+    [-0.32, 0, 0.32].forEach((offset) => {
+      const direction = new Phaser.Math.Vector2(Math.cos(baseAngle + offset), Math.sin(baseAngle + offset));
+      this.spawnEnemyProjectile(enemy.sprite.x, enemy.sprite.y, direction, 260, 7);
+    });
+  }
+
+  private spawnEnemyProjectile(
+    x: number,
+    y: number,
+    direction: Phaser.Math.Vector2,
+    speed: number,
+    damage: number
+  ): void {
+    const projectile = this.physics.add.image(x, y, "enemy-shot");
     projectile.setCircle(7, 3, 3);
-    projectile.setVelocity(direction.x * 330, direction.y * 330);
+    projectile.setVelocity(direction.x * speed, direction.y * speed);
     projectile.setDepth(9);
     this.projectiles.push({
       sprite: projectile,
       owner: "enemy",
-      damage: 8,
+      damage,
       frozenMs: 0,
       lifespanMs: 1800
     });
@@ -643,16 +728,41 @@ export class CombatScene extends Phaser.Scene {
     if (this.playerHealth <= 0) {
       this.roomState = "lost";
       this.player.setVelocity(0, 0);
-      this.showResultPanel("Timeline Collapsed", "The fracture overran this prototype room.");
-      this.input.keyboard?.once("keydown-R", () => this.restartPrototype());
+      setPlayerHealth(0);
+      failRun("The player was defeated inside a time fracture.");
+      this.showResultPanel(
+        "Timeline Collapsed",
+        "The run ends here. The next version will turn this into Time Residue.",
+        "Run Summary",
+        "summary"
+      );
+      this.input.keyboard?.once("keydown-R", () => this.advanceAfterResult());
       return;
     }
 
     if (this.enemies.length === 0) {
       this.roomState = "won";
       this.player.setVelocity(0, 0);
-      this.showResultPanel("Fracture Stabilized", "The room is clear and the combat loop is complete.");
-      this.input.keyboard?.once("keydown-R", () => this.restartPrototype());
+      setPlayerHealth(this.playerHealth);
+
+      if (this.nodeType === "boss") {
+        completeNode(this.nodeId);
+        this.showResultPanel(
+          "Fracture Warden Defeated",
+          "The route is complete. Review this run before starting another timeline.",
+          "Run Summary",
+          "summary"
+        );
+      } else {
+        this.showResultPanel(
+          this.nodeType === "elite" ? "Elite Stabilized" : "Node Stabilized",
+          "Choose one reward, then return to the time tree.",
+          "Choose Reward",
+          "reward"
+        );
+      }
+
+      this.input.keyboard?.once("keydown-R", () => this.advanceAfterResult());
     }
   }
 
@@ -664,7 +774,7 @@ export class CombatScene extends Phaser.Scene {
     const rewind = this.formatCooldown(this.rewindCooldownMs);
     const dash = this.formatCooldown(this.dashCooldownMs);
     this.hudText.setText([
-      `Health ${this.playerHealth}/${PLAYER.maxHealth}`,
+      `Health ${this.playerHealth}/${this.playerMaxHealth}`,
       `Enemies ${this.enemies.length}`,
       `Q Freeze ${freeze}`,
       `E Rewind ${rewind}`,
@@ -675,14 +785,14 @@ export class CombatScene extends Phaser.Scene {
 
   private drawCombatHud(): void {
     this.combatHud.clear();
-    this.drawBar(this.combatHud, 168, 31, 78, 9, this.playerHealth / PLAYER.maxHealth, 0x6edbd6);
+    this.drawBar(this.combatHud, 168, 31, 78, 9, this.playerHealth / this.playerMaxHealth, 0x6edbd6);
     this.drawBar(
       this.combatHud,
       180,
       88,
       66,
       7,
-      1 - this.freezeCooldownMs / TIME_SKILLS.freezeCooldownMs,
+      1 - this.freezeCooldownMs / this.freezeCooldownLimitMs,
       0x8be9fd
     );
     this.drawBar(
@@ -691,7 +801,7 @@ export class CombatScene extends Phaser.Scene {
       115,
       66,
       7,
-      1 - this.rewindCooldownMs / TIME_SKILLS.rewindCooldownMs,
+      1 - this.rewindCooldownMs / this.rewindCooldownLimitMs,
       0x8fd694
     );
     this.drawBar(this.combatHud, 180, 142, 66, 7, 1 - this.dashCooldownMs / PLAYER.dashCooldownMs, 0xf7d06e);
@@ -830,9 +940,9 @@ export class CombatScene extends Phaser.Scene {
     restartButton.setStrokeStyle(2, 0x8be9fd, 0.8);
     restartButton.setDepth(31);
     restartButton.setInteractive({ useHandCursor: true });
-    restartButton.on("pointerup", () => this.restartPrototype());
+    restartButton.on("pointerup", () => this.advanceAfterResult());
 
-    const restartText = this.add.text(640, 414, "Restart Prototype", {
+    const restartText = this.add.text(640, 414, "Continue", {
       align: "center",
       color: "#e7edf2",
       fontFamily: "Inter, Arial, sans-serif",
@@ -840,12 +950,14 @@ export class CombatScene extends Phaser.Scene {
     });
     restartText.setOrigin(0.5, 0.5);
     restartText.setDepth(32);
+    restartText.setData("role", "result-action");
 
     this.resultPanelElements = [panel, title, body, restartButton, restartText];
     this.setResultPanelVisible(false);
   }
 
-  private showResultPanel(title: string, body: string): void {
+  private showResultPanel(title: string, body: string, actionLabel: string, resultMode: ResultMode): void {
+    this.resultMode = resultMode;
     this.resultPanelElements.forEach((element) => {
       if (element.getData("role") === "result-title" && element instanceof Phaser.GameObjects.Text) {
         element.setText(title);
@@ -853,6 +965,10 @@ export class CombatScene extends Phaser.Scene {
 
       if (element.getData("role") === "result-body" && element instanceof Phaser.GameObjects.Text) {
         element.setText(body);
+      }
+
+      if (element.getData("role") === "result-action" && element instanceof Phaser.GameObjects.Text) {
+        element.setText(actionLabel);
       }
     });
     this.setResultPanelVisible(true);
@@ -865,8 +981,16 @@ export class CombatScene extends Phaser.Scene {
     });
   }
 
-  private restartPrototype(): void {
-    this.scene.restart();
+  private advanceAfterResult(): void {
+    if (this.resultMode === "summary") {
+      this.scene.start("SummaryScene");
+      return;
+    }
+
+    this.scene.start("RewardScene", {
+      nodeId: this.nodeId,
+      context: this.nodeType === "elite" ? "elite" : "combat"
+    });
   }
 
   private isInsideArena(x: number, y: number): boolean {

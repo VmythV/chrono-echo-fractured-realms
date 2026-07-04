@@ -1,0 +1,81 @@
+import Phaser from "phaser";
+import { applyReward, completeNode, getNodeById, getRewards, getRun } from "../../core/run/run-manager";
+
+type RewardSceneData = {
+  nodeId: string;
+  context: "combat" | "elite" | "event" | "shop" | "rest";
+};
+
+export class RewardScene extends Phaser.Scene {
+  private nodeId = "";
+  private context: RewardSceneData["context"] = "combat";
+
+  constructor() {
+    super("RewardScene");
+  }
+
+  init(data: RewardSceneData): void {
+    this.nodeId = data.nodeId;
+    this.context = data.context;
+  }
+
+  create(): void {
+    const run = getRun();
+    const node = getNodeById(this.nodeId);
+    const choices = getRewards(this.context);
+    const title = node ? `${node.label} Choice` : "Timeline Choice";
+
+    this.add.rectangle(640, 360, 1280, 720, 0x10151c);
+    this.add.text(64, 46, title, {
+      color: "#f7f3e8",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "32px"
+    });
+    this.add.text(64, 92, `Health ${run.player.health}/${run.player.maxHealth}`, {
+      color: "#cbd7e2",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "18px"
+    });
+
+    choices.forEach((choice, index) => {
+      const x = 300 + index * 320;
+      const card = this.add.rectangle(x, 360, 260, 220, 0x18222c, 1);
+      card.setStrokeStyle(2, 0x5a7288, 1);
+      card.setInteractive({ useHandCursor: true });
+      card.on("pointerover", () => card.setStrokeStyle(3, 0x8be9fd, 1));
+      card.on("pointerout", () => card.setStrokeStyle(2, 0x5a7288, 1));
+      card.on("pointerup", () => this.chooseReward(choice.id));
+
+      this.add.text(x, 310, choice.title, {
+        align: "center",
+        color: "#f7f3e8",
+        fontFamily: "Inter, Arial, sans-serif",
+        fontSize: "22px",
+        wordWrap: { width: 210 }
+      }).setOrigin(0.5, 0.5);
+
+      this.add.text(x, 375, choice.description, {
+        align: "center",
+        color: "#cbd7e2",
+        fontFamily: "Inter, Arial, sans-serif",
+        fontSize: "16px",
+        lineSpacing: 6,
+        wordWrap: { width: 210 }
+      }).setOrigin(0.5, 0.5);
+
+      this.add.text(x, 452, "Choose", {
+        align: "center",
+        color: "#8be9fd",
+        fontFamily: "Inter, Arial, sans-serif",
+        fontSize: "15px"
+      }).setOrigin(0.5, 0.5);
+    });
+  }
+
+  private chooseReward(rewardId: string): void {
+    applyReward(rewardId, this.context);
+    completeNode(this.nodeId);
+    this.scene.start("MapScene");
+  }
+}
+

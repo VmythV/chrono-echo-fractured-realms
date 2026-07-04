@@ -1,6 +1,9 @@
 import Phaser from "phaser";
 import "./styles.css";
 import { CombatScene } from "./game/scenes/CombatScene";
+import { MapScene } from "./game/scenes/MapScene";
+import { RewardScene } from "./game/scenes/RewardScene";
+import { SummaryScene } from "./game/scenes/SummaryScene";
 
 const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.WEBGL,
@@ -30,8 +33,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: false
     }
   },
-  scene: [CombatScene]
+  scene: [MapScene, CombatScene, RewardScene, SummaryScene]
 };
 
 new Phaser.Game(config);
-

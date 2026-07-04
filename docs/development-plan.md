@@ -142,6 +142,10 @@
 
 - `feat: add run loop and time tree`
 
+当前执行记录：
+
+- `docs/stage-3-run-loop.md`
+
 ## 7. Stage 4: Build System
 
 目标：
