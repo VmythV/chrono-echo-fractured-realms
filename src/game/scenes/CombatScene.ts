@@ -4,6 +4,7 @@ import {
   failRun,
   getNodeById,
   getRun,
+  recordTimeSkillCast,
   setPlayerHealth
 } from "../../core/run/run-manager";
 import { MAX_TEMPORAL_RULES } from "../../core/run/reward-catalog";
@@ -504,6 +505,7 @@ export class CombatScene extends Phaser.Scene {
     }
 
     this.freezeCooldownMs = this.freezeCooldownLimitMs;
+    recordTimeSkillCast("freeze");
     const pointer = this.input.activePointer;
     pointer.updateWorldPoint(this.cameras.main);
     const center = new Phaser.Math.Vector2(pointer.worldX, pointer.worldY);
@@ -567,6 +569,7 @@ export class CombatScene extends Phaser.Scene {
     this.playerHealth = Math.min(this.playerMaxHealth, restoredHealth);
     this.playerInvulnerableMs = 800;
     this.rewindCooldownMs = this.rewindCooldownLimitMs;
+    recordTimeSkillCast("rewind");
     if (this.rewindShieldLimitMs > 0) {
       this.rewindShieldMs = this.rewindShieldLimitMs;
       this.showFloatingText("Shield", this.player.x, this.player.y - 46, "#8fd694");

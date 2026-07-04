@@ -1,3 +1,4 @@
+import { consumeResiduesForRun } from "../meta/time-residue";
 import { getRewardById, getRewardChoices } from "./reward-catalog";
 import type { NodeType, RewardChoice, RewardContext, RunNode, RunState } from "./run-state";
 
@@ -50,10 +51,23 @@ export function startNewRun(): RunState {
       rewindShieldDurationMs: 0
     },
     activeRules: [],
+    appliedResidues: [],
+    generatedResidues: [],
+    counters: {
+      timeFreezeCasts: 0,
+      timeRewindCasts: 0,
+      shopsVisited: 0,
+      eventsVisited: 0,
+      elitesDefeated: 0,
+      combatsCleared: 0,
+      bossDefeated: false
+    },
     rewardsTaken: [],
     result: "running",
-    summaryReason: ""
+    summaryReason: "",
+    summaryRecorded: false
   };
+  consumeResiduesForRun(activeRun);
 
   return activeRun;
 }
@@ -111,10 +125,12 @@ export function completeNode(nodeId: string): void {
 
   run.selectedNodeIds.push(nodeId);
   run.completedNodeIds.push(nodeId);
+  recordCompletedNode(node.type);
 
   if (node.type === "boss") {
     run.result = "won";
     run.summaryReason = "Fracture Warden defeated.";
+    run.counters.bossDefeated = true;
     return;
   }
 
@@ -130,6 +146,17 @@ export function failRun(reason: string): void {
 export function setPlayerHealth(health: number): void {
   const run = getRun();
   run.player.health = Math.max(0, Math.min(run.player.maxHealth, Math.round(health)));
+}
+
+export function recordTimeSkillCast(skill: "freeze" | "rewind"): void {
+  const run = getRun();
+
+  if (skill === "freeze") {
+    run.counters.timeFreezeCasts += 1;
+    return;
+  }
+
+  run.counters.timeRewindCasts += 1;
 }
 
 export function getRewards(context: RewardContext): RewardChoice[] {
@@ -160,4 +187,24 @@ function generateTimeTree(): RunNode[][] {
       label: NODE_LABELS[type]
     }));
   });
+}
+
+function recordCompletedNode(nodeType: NodeType): void {
+  const run = getRun();
+
+  if (nodeType === "combat") {
+    run.counters.combatsCleared += 1;
+  }
+
+  if (nodeType === "elite") {
+    run.counters.elitesDefeated += 1;
+  }
+
+  if (nodeType === "event") {
+    run.counters.eventsVisited += 1;
+  }
+
+  if (nodeType === "shop") {
+    run.counters.shopsVisited += 1;
+  }
 }

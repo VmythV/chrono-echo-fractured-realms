@@ -263,6 +263,14 @@ type SaveData = {
 - 读取失败时回退到默认存档。
 - 未来需要做迁移函数。
 
+Stage 5A 当前实现：
+
+- `src/core/meta/save-state.ts` 负责读取和写入 `localStorage`。
+- `src/core/meta/time-residue.ts` 负责生成、合并、消耗和应用 active residues。
+- `RunState` 增加 `appliedResidues`、`generatedResidues`、`counters` 和 `summaryRecorded`。
+- `startNewRun()` 会消费上一局保存的 active residues 并应用到当前局。
+- `SummaryScene` 会 finalize 本局 residues，并写入 run history。
+
 ## 7. Time Systems
 
 ### 7.1 Time Freeze

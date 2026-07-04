@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { finalizeRunResidues, formatResidues } from "../../core/meta/time-residue";
 import { getRun, startNewRun } from "../../core/run/run-manager";
 import { getRuleSlotText } from "../../core/run/reward-catalog";
 
@@ -10,6 +11,7 @@ export class SummaryScene extends Phaser.Scene {
   create(): void {
     const run = getRun();
     const won = run.result === "won";
+    const generatedResidues = finalizeRunResidues(run);
 
     this.add.rectangle(640, 360, 1280, 720, 0x10151c);
     this.add.text(640, 160, won ? "Run Complete" : "Timeline Collapsed", {
@@ -34,24 +36,34 @@ export class SummaryScene extends Phaser.Scene {
       `Attack bonus: +${run.player.attackDamageBonus}`,
       `Rule slots: ${getRuleSlotText(run)}`,
       `Skills: ${this.formatSkillUpgrades()}`,
-      `Rules: ${this.formatRules()}`
+      `Rules: ${this.formatRules()}`,
+      `Generated residues: ${formatResidues(generatedResidues)}`
     ];
 
-    this.add.text(640, 330, stats.join("\n"), {
+    this.add.text(640, 324, stats.join("\n"), {
       align: "center",
       color: "#e7edf2",
       fontFamily: "Inter, Arial, sans-serif",
-      fontSize: "20px",
-      lineSpacing: 10,
+      fontSize: "18px",
+      lineSpacing: 9,
+      wordWrap: { width: 840 }
+    }).setOrigin(0.5, 0.5);
+
+    this.add.text(640, 454, this.formatGeneratedResidueDetails(), {
+      align: "center",
+      color: "#cbd7e2",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "14px",
+      lineSpacing: 5,
       wordWrap: { width: 760 }
     }).setOrigin(0.5, 0.5);
 
-    const button = this.add.rectangle(640, 500, 210, 46, 0x263746, 1);
+    const button = this.add.rectangle(640, 550, 210, 46, 0x263746, 1);
     button.setStrokeStyle(2, 0x8be9fd, 0.9);
     button.setInteractive({ useHandCursor: true });
     button.on("pointerup", () => this.startNextRun());
 
-    this.add.text(640, 500, "Start New Run", {
+    this.add.text(640, 550, "Start New Run", {
       align: "center",
       color: "#e7edf2",
       fontFamily: "Inter, Arial, sans-serif",
@@ -95,5 +107,15 @@ export class SummaryScene extends Phaser.Scene {
     }
 
     return upgrades.length > 0 ? upgrades.join(", ") : "Base";
+  }
+
+  private formatGeneratedResidueDetails(): string {
+    const residues = getRun().generatedResidues;
+
+    if (residues.length === 0) {
+      return "No residue was generated.";
+    }
+
+    return residues.map((residue) => `${residue.title}: ${residue.description}`).join("\n");
   }
 }

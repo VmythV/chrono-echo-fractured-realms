@@ -27,6 +27,8 @@
 - Added centralized reward catalog, rule slot limits, stack limits, and fallback reward selection.
 - Added Stage 4C skill upgrade execution record.
 - Added Wider Field, Cold Moment, and Borrowed Breath skill upgrades.
+- Added Stage 5A Time Residue execution record.
+- Added local save data, active residues, run history, and minimal residue generation.
 
 ### Changed
 
@@ -37,3 +39,4 @@
 - Changed RewardScene, MapScene, CombatScene, and SummaryScene to expose current build information.
 - Changed reward selection so capped rules are filtered before being shown to the player.
 - Changed CombatScene so Time Freeze and Time Rewind can read run-level skill upgrades.
+- Changed MapScene and SummaryScene to show Timeline Report and generated residues.

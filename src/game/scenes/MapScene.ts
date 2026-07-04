@@ -55,6 +55,7 @@ export class MapScene extends Phaser.Scene {
     });
 
     this.drawMap();
+    this.drawTimelineReport();
     this.drawStartOverButton();
   }
 
@@ -148,6 +149,29 @@ export class MapScene extends Phaser.Scene {
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "16px"
     }).setOrigin(0.5, 0.5);
+  }
+
+  private drawTimelineReport(): void {
+    const run = getRun();
+    const title = this.add.text(820, 88, "Timeline Report", {
+      color: "#f7f3e8",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "18px"
+    });
+    title.setOrigin(0, 0);
+
+    const reportLines =
+      run.appliedResidues.length === 0
+        ? ["No active residue."]
+        : run.appliedResidues.map((residue) => `${residue.title}: ${residue.description}`);
+
+    this.add.text(820, 118, reportLines.join("\n"), {
+      color: "#cbd7e2",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "13px",
+      lineSpacing: 5,
+      wordWrap: { width: 390 }
+    });
   }
 
   private getNodeY(count: number, index: number): number {

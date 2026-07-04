@@ -217,6 +217,10 @@
 
 - `feat: add time residue and corruption systems`
 
+当前执行记录：
+
+- `docs/stage-5a-time-residue.md`
+
 ## 9. Stage 6: Web Playable Build
 
 目标：

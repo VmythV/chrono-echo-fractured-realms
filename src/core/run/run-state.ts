@@ -2,6 +2,7 @@ export type NodeType = "combat" | "elite" | "event" | "shop" | "rest" | "boss";
 export type RewardKind = "Upgrade" | "Rule" | "Recovery";
 export type RewardContext = "combat" | "elite" | "event" | "shop" | "rest";
 export type TemporalRuleId = "storedImpact" | "splitSecond" | "fastTimeline" | "emergencyLoop";
+export type ResidueId = "victoryEcho" | "lastStandMemory" | "frozenTimeline" | "recallTrace" | "merchantMemory";
 
 export type RunNode = {
   id: string;
@@ -31,9 +32,13 @@ export type RunState = {
   bossNode: RunNode;
   player: PlayerRunState;
   activeRules: TemporalRuleInstance[];
+  appliedResidues: ResidueInstance[];
+  generatedResidues: ResidueInstance[];
+  counters: RunCounters;
   rewardsTaken: string[];
   result: "running" | "won" | "lost";
   summaryReason: string;
+  summaryRecorded: boolean;
 };
 
 export type RewardChoice = {
@@ -50,4 +55,22 @@ export type TemporalRuleInstance = {
   title: string;
   description: string;
   stacks: number;
+};
+
+export type ResidueInstance = {
+  id: ResidueId;
+  title: string;
+  description: string;
+  remainingRuns: number;
+  stacks: number;
+};
+
+export type RunCounters = {
+  timeFreezeCasts: number;
+  timeRewindCasts: number;
+  shopsVisited: number;
+  eventsVisited: number;
+  elitesDefeated: number;
+  combatsCleared: number;
+  bossDefeated: boolean;
 };
