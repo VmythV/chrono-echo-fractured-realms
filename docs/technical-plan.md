@@ -22,7 +22,7 @@
 | --- | --- | --- |
 | Language | TypeScript | 便于维护数据结构和系统边界 |
 | Build Tool | Vite | 轻量，适合网页游戏快速开发 |
-| Game Runtime | Phaser 3 | 适合 2D Canvas/WebGL 游戏、输入和场景管理 |
+| Game Runtime | Phaser 4.2.0 | 适合 2D WebGL 游戏、输入、场景管理和后续扩展 |
 | UI | Phaser UI plus DOM overlay | 第一版避免引入过重 UI 框架 |
 | Save | localStorage | 足够支持单机网页原型 |
 | Assets | SVG, PNG, JSON | 轻量、易版本管理 |
@@ -35,6 +35,8 @@
 - 账号系统。
 - React 全量 UI。
 - 大型资源管线。
+
+Phaser 版本固定为 `4.2.0`。如果后续升级 Phaser，应先查阅官方变更记录，再更新文档、依赖和兼容性验证。
 
 未来如果菜单、记忆树和设置界面变复杂，可以再加入 React 作为独立 UI 层。
 
@@ -457,4 +459,3 @@ npm run dev
 - 是否改善核心游玩。
 - 是否能保持短局节奏。
 - 是否能在现有模块边界内实现。
-

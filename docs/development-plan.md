@@ -105,6 +105,10 @@
 
 - `feat: add combat prototype`
 
+当前执行记录：
+
+- `docs/stage-2-combat-prototype.md`
+
 ## 6. Stage 3: Run Loop And Time Tree
 
 目标：
@@ -247,4 +251,3 @@
 - 是否存在未说明的范围扩大。
 - Git 状态是否清晰。
 - 提交信息是否描述阶段成果。
-
