@@ -65,6 +65,14 @@ export function saveSaveData(saveData: SaveData): void {
   );
 }
 
+export function clearSaveData(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.removeItem(SAVE_KEY);
+}
+
 export function createRunHistoryEntry(
   seed: string,
   result: "won" | "lost",

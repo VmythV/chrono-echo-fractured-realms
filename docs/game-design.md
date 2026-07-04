@@ -488,6 +488,8 @@ Memory 是局外成长，不做传统等级碾压。
 - Reward Screen：三选一奖励。
 - Run Summary：结算、残响生成、记忆进度。
 
+当前 Stage 6A 先实装 Main Menu 作为首屏。菜单只提供开始一局、查看本地时间线摘要和重置本地存档，不加入复杂设置或长篇说明。
+
 ### 14.2 Feedback Rules
 
 - 敌人攻击前必须有预警。

@@ -256,6 +256,10 @@
 
 - `chore: prepare web playable build`
 
+当前执行记录：
+
+- `docs/stage-6a-web-shell.md`
+
 ## 10. Development Checkpoints
 
 每个开发阶段结束前检查：

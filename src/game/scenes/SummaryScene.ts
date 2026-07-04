@@ -60,17 +60,8 @@ export class SummaryScene extends Phaser.Scene {
       wordWrap: { width: 760 }
     }).setOrigin(0.5, 0.5);
 
-    const button = this.add.rectangle(640, 590, 210, 46, 0x263746, 1);
-    button.setStrokeStyle(2, 0x8be9fd, 0.9);
-    button.setInteractive({ useHandCursor: true });
-    button.on("pointerup", () => this.startNextRun());
-
-    this.add.text(640, 590, "Start New Run", {
-      align: "center",
-      color: "#e7edf2",
-      fontFamily: "Inter, Arial, sans-serif",
-      fontSize: "17px"
-    }).setOrigin(0.5, 0.5);
+    this.createButton(522, 590, "Start New Run", 0x263746, 0x8be9fd, () => this.startNextRun());
+    this.createButton(758, 590, "Main Menu", 0x18222c, 0x5a7288, () => this.scene.start("MainMenuScene"));
 
     this.input.keyboard?.once("keydown-R", () => this.startNextRun());
   }
@@ -78,6 +69,29 @@ export class SummaryScene extends Phaser.Scene {
   private startNextRun(): void {
     startNewRun();
     this.scene.start("MapScene");
+  }
+
+  private createButton(
+    x: number,
+    y: number,
+    label: string,
+    fill: number,
+    stroke: number,
+    onClick: () => void
+  ): void {
+    const button = this.add.rectangle(x, y, 210, 46, fill, 1);
+    button.setStrokeStyle(2, stroke, 0.9);
+    button.setInteractive({ useHandCursor: true });
+    button.on("pointerover", () => button.setStrokeStyle(3, 0x8be9fd, 1));
+    button.on("pointerout", () => button.setStrokeStyle(2, stroke, 0.9));
+    button.on("pointerup", onClick);
+
+    this.add.text(x, y, label, {
+      align: "center",
+      color: "#e7edf2",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "17px"
+    }).setOrigin(0.5, 0.5);
   }
 
   private formatRules(): string {

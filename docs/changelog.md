@@ -31,6 +31,8 @@
 - Added local save data, active residues, run history, and minimal residue generation.
 - Added Stage 5B corruption execution record.
 - Added corruption thresholds, Corrupted rewards, and Corrupted Signal residue.
+- Added Stage 6A web shell execution record.
+- Added MainMenuScene with local timeline summary and reset save action.
 
 ### Changed
 
@@ -43,3 +45,4 @@
 - Changed CombatScene so Time Freeze and Time Rewind can read run-level skill upgrades.
 - Changed MapScene and SummaryScene to show Timeline Report and generated residues.
 - Changed CombatScene, MapScene, RewardScene, and SummaryScene to display or apply corruption state.
+- Changed game startup flow to begin at MainMenuScene before creating a run.
