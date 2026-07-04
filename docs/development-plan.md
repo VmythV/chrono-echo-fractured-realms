@@ -157,7 +157,7 @@
 - 技能升级系统。
 - Temporal Rules 系统。
 - 奖励权重。
-- 第一批 5 到 8 个被动规则。
+- 第一批 4 到 8 个被动规则。
 - 第一批 6 到 10 个技能升级。
 - 简单稀有度。
 
@@ -177,6 +177,10 @@
 建议提交：
 
 - `feat: add skill upgrades and temporal rules`
+
+当前执行记录：
+
+- `docs/stage-4-build-system.md`
 
 ## 8. Stage 5: Time Residue And Corruption
 

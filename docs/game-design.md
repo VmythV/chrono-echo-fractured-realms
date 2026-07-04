@@ -234,11 +234,13 @@ Temporal Rules 是轻量被动。每个规则都应该能用一句话解释。
 
 | Rule | Effect | Build Direction |
 | --- | --- | --- |
-| Stored Impact | 对冻结敌人的伤害提高 | Freeze 输出 |
-| Emergency Loop | 生命低于 30% 时 Time Rewind 冷却加快 | 生存 |
-| Fast Timeline | 每次闪避后短暂提高攻速 | 走位输出 |
-| Split Second | 使用时间技能后下一次普攻额外命中一次 | 技能连携 |
+| Stored Impact | 对冻结敌人的普攻伤害提高 | Freeze 输出 |
+| Emergency Loop | 生命低于 35% 时 Time Rewind 冷却加快 | 生存 |
+| Fast Timeline | 闪避后立刻刷新普攻 | 走位输出 |
+| Split Second | 使用时间技能后下一次普攻造成额外伤害 | 技能连携 |
 | Risky Correction | 腐化越高，时间技能冷却越短 | 高风险高收益 |
+
+当前 Stage 4A 实装前四条规则，先验证“少量规则改变战斗节奏”的体验。Risky Correction 依赖腐化系统，留到 Time Residue 和 Corruption 阶段。
 
 限制：
 
@@ -537,4 +539,3 @@ Memory 是局外成长，不做传统等级碾压。
 - 每个新机制一句话能解释。
 - 新内容能进入现有节点、奖励、残响或敌人框架。
 - 不为了扩展牺牲单局节奏。
-

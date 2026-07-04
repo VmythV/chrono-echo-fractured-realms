@@ -30,15 +30,17 @@ export class SummaryScene extends Phaser.Scene {
       `Nodes cleared: ${run.completedNodeIds.length}`,
       `Rewards taken: ${run.rewardsTaken.length}`,
       `Final health: ${run.player.health}/${run.player.maxHealth}`,
-      `Attack bonus: +${run.player.attackDamageBonus}`
+      `Attack bonus: +${run.player.attackDamageBonus}`,
+      `Rules: ${this.formatRules()}`
     ];
 
-    this.add.text(640, 320, stats, {
+    this.add.text(640, 330, stats.join("\n"), {
       align: "center",
       color: "#e7edf2",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "20px",
-      lineSpacing: 12
+      lineSpacing: 10,
+      wordWrap: { width: 760 }
     }).setOrigin(0.5, 0.5);
 
     const button = this.add.rectangle(640, 500, 210, 46, 0x263746, 1);
@@ -60,5 +62,16 @@ export class SummaryScene extends Phaser.Scene {
     startNewRun();
     this.scene.start("MapScene");
   }
-}
 
+  private formatRules(): string {
+    const rules = getRun().activeRules;
+
+    if (rules.length === 0) {
+      return "None";
+    }
+
+    return rules
+      .map((rule) => (rule.stacks > 1 ? `${rule.title} x${rule.stacks}` : rule.title))
+      .join(", ");
+  }
+}

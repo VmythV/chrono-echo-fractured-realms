@@ -1,4 +1,6 @@
 export type NodeType = "combat" | "elite" | "event" | "shop" | "rest" | "boss";
+export type RewardKind = "Upgrade" | "Rule" | "Recovery";
+export type TemporalRuleId = "storedImpact" | "splitSecond" | "fastTimeline" | "emergencyLoop";
 
 export type RunNode = {
   id: string;
@@ -24,6 +26,7 @@ export type RunState = {
   map: RunNode[][];
   bossNode: RunNode;
   player: PlayerRunState;
+  activeRules: TemporalRuleInstance[];
   rewardsTaken: string[];
   result: "running" | "won" | "lost";
   summaryReason: string;
@@ -31,8 +34,15 @@ export type RunState = {
 
 export type RewardChoice = {
   id: string;
+  kind: RewardKind;
   title: string;
   description: string;
   apply: (state: RunState) => void;
 };
 
+export type TemporalRuleInstance = {
+  id: TemporalRuleId;
+  title: string;
+  description: string;
+  stacks: number;
+};

@@ -40,6 +40,12 @@ export class MapScene extends Phaser.Scene {
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "18px"
     });
+    this.add.text(40, 132, `Rules ${this.formatRules()}`, {
+      color: "#cbd7e2",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "15px",
+      wordWrap: { width: 780 }
+    });
 
     this.drawMap();
     this.drawStartOverButton();
@@ -55,7 +61,7 @@ export class MapScene extends Phaser.Scene {
 
     run.map.forEach((layer, depth) => {
       const x = startX + depth * gapX;
-      this.add.text(x, 154, `${depth + 1}`, {
+      this.add.text(x, 172, `${depth + 1}`, {
         color: "#6f8497",
         fontFamily: "Inter, Arial, sans-serif",
         fontSize: "14px"
@@ -157,5 +163,16 @@ export class MapScene extends Phaser.Scene {
 
     return labels[type];
   }
-}
 
+  private formatRules(): string {
+    const rules = getRun().activeRules;
+
+    if (rules.length === 0) {
+      return "None";
+    }
+
+    return rules
+      .map((rule) => (rule.stacks > 1 ? `${rule.title} x${rule.stacks}` : rule.title))
+      .join(" / ");
+  }
+}

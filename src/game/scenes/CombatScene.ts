@@ -6,7 +6,7 @@ import {
   getRun,
   setPlayerHealth
 } from "../../core/run/run-manager";
-import type { NodeType } from "../../core/run/run-state";
+import type { NodeType, TemporalRuleId } from "../../core/run/run-state";
 
 type ArcadeImage = Phaser.Physics.Arcade.Image;
 
@@ -97,6 +97,8 @@ export class CombatScene extends Phaser.Scene {
   private attackDamage = PLAYER.attackDamage;
   private freezeCooldownLimitMs = TIME_SKILLS.freezeCooldownMs;
   private rewindCooldownLimitMs = TIME_SKILLS.rewindCooldownMs;
+  private activeRules = new Map<TemporalRuleId, number>();
+  private splitSecondReady = false;
   private snapshotElapsedMs = 0;
   private roomState: "playing" | "won" | "lost" = "playing";
   private resultMode: ResultMode = "reward";
@@ -119,6 +121,8 @@ export class CombatScene extends Phaser.Scene {
     this.attackDamage = PLAYER.attackDamage + run.player.attackDamageBonus;
     this.freezeCooldownLimitMs = Math.max(4500, TIME_SKILLS.freezeCooldownMs - run.player.freezeCooldownReductionMs);
     this.rewindCooldownLimitMs = Math.max(6000, TIME_SKILLS.rewindCooldownMs - run.player.rewindCooldownReductionMs);
+    this.activeRules = new Map(run.activeRules.map((rule) => [rule.id, Math.max(1, rule.stacks)] as const));
+    this.splitSecondReady = false;
     this.playerInvulnerableMs = 0;
     this.attackElapsedMs = PLAYER.attackCooldownMs;
     this.dashCooldownMs = 0;
@@ -271,7 +275,7 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private createHud(): void {
-    this.add.rectangle(16, 14, 292, 174, 0x10151c, 0.9).setOrigin(0, 0).setDepth(19);
+    this.add.rectangle(16, 14, 292, 206, 0x10151c, 0.9).setOrigin(0, 0).setDepth(19);
     this.combatHud = this.add.graphics();
     this.combatHud.setDepth(20);
     this.enemyHud = this.add.graphics();
@@ -293,8 +297,8 @@ export class CombatScene extends Phaser.Scene {
     this.hudText = this.add.text(24, 20, "", {
       color: "#e7edf2",
       fontFamily: "Inter, Arial, sans-serif",
-      fontSize: "18px",
-      lineSpacing: 8
+      fontSize: "17px",
+      lineSpacing: 6
     });
     this.hudText.setDepth(20);
 
@@ -338,6 +342,9 @@ export class CombatScene extends Phaser.Scene {
     this.dashCooldownMs = Math.max(0, this.dashCooldownMs - delta);
     this.freezeCooldownMs = Math.max(0, this.freezeCooldownMs - delta);
     this.rewindCooldownMs = Math.max(0, this.rewindCooldownMs - delta);
+    if (this.getRuleStacks("emergencyLoop") > 0 && this.playerHealth <= this.playerMaxHealth * 0.35) {
+      this.rewindCooldownMs = Math.max(0, this.rewindCooldownMs - delta * this.getRuleStacks("emergencyLoop"));
+    }
     this.playerInvulnerableMs = Math.max(0, this.playerInvulnerableMs - delta);
     this.enemies.forEach((enemy) => {
       enemy.frozenMs = Math.max(0, enemy.frozenMs - delta);
@@ -434,6 +441,11 @@ export class CombatScene extends Phaser.Scene {
     this.dashRemainingMs = PLAYER.dashDurationMs;
     this.dashCooldownMs = PLAYER.dashCooldownMs;
     this.playerInvulnerableMs = Math.max(this.playerInvulnerableMs, PLAYER.dashDurationMs);
+
+    if (this.getRuleStacks("fastTimeline") > 0) {
+      this.attackElapsedMs = PLAYER.attackCooldownMs;
+      this.showStatus("Fast Timeline");
+    }
   }
 
   private tryFirePlayerShot(): void {
@@ -442,6 +454,14 @@ export class CombatScene extends Phaser.Scene {
     }
 
     this.attackElapsedMs = 0;
+    let damage = this.attackDamage;
+    if (this.splitSecondReady) {
+      const bonusDamage = 12 * this.getRuleStacks("splitSecond");
+      damage += bonusDamage;
+      this.splitSecondReady = false;
+      this.showFloatingText(`Split +${bonusDamage}`, this.player.x, this.player.y - 42, "#8be9fd");
+    }
+
     const direction = this.getAimVector();
     const projectile = this.physics.add.image(this.player.x, this.player.y, "player-shot");
     projectile.setCircle(6, 3, 3);
@@ -450,7 +470,7 @@ export class CombatScene extends Phaser.Scene {
     this.projectiles.push({
       sprite: projectile,
       owner: "player",
-      damage: this.attackDamage,
+      damage,
       frozenMs: 0,
       lifespanMs: 900
     });
@@ -507,7 +527,7 @@ export class CombatScene extends Phaser.Scene {
       }
     });
 
-    this.showStatus("Time Freeze");
+    this.showStatus(this.armSplitSecond() ? "Split Second Ready" : "Time Freeze");
   }
 
   private tryTimeRewind(): void {
@@ -528,7 +548,7 @@ export class CombatScene extends Phaser.Scene {
     this.playerInvulnerableMs = 800;
     this.rewindCooldownMs = this.rewindCooldownLimitMs;
     this.playRewindPulse(snapshot.x, snapshot.y);
-    this.showStatus("Time Rewind");
+    this.showStatus(this.armSplitSecond() ? "Split Second Ready" : "Time Rewind");
   }
 
   private updateEnemies(delta: number): void {
@@ -666,9 +686,17 @@ export class CombatScene extends Phaser.Scene {
             continue;
           }
 
-          enemy.health -= projectile.damage;
+          let damage = projectile.damage;
+          const storedImpactBonus = enemy.frozenMs > 0 ? 10 * this.getRuleStacks("storedImpact") : 0;
+
+          if (storedImpactBonus > 0) {
+            damage += storedImpactBonus;
+            this.showFloatingText(`Stored +${storedImpactBonus}`, enemy.sprite.x, enemy.sprite.y - 52, "#8be9fd");
+          }
+
+          enemy.health -= damage;
           projectile.sprite.destroy();
-          this.showFloatingText(`${projectile.damage}`, enemy.sprite.x, enemy.sprite.y - 30, "#f7d06e");
+          this.showFloatingText(`${damage}`, enemy.sprite.x, enemy.sprite.y - 30, "#f7d06e");
           enemy.sprite.setScale(1.12);
           this.tweens.add({
             targets: enemy.sprite,
@@ -779,8 +807,36 @@ export class CombatScene extends Phaser.Scene {
       `Q Freeze ${freeze}`,
       `E Rewind ${rewind}`,
       `Space Dash ${dash}`,
+      this.getCombatRuleState(),
       "WASD move, mouse aim, left click attack"
     ]);
+  }
+
+  private armSplitSecond(): boolean {
+    if (this.getRuleStacks("splitSecond") === 0) {
+      return false;
+    }
+
+    this.splitSecondReady = true;
+    return true;
+  }
+
+  private getCombatRuleState(): string {
+    const activeStates: string[] = [this.activeRules.size === 0 ? "Rules None" : `Rules ${this.activeRules.size}`];
+
+    if (this.splitSecondReady) {
+      activeStates.push("Split ready");
+    }
+
+    if (this.getRuleStacks("emergencyLoop") > 0 && this.playerHealth <= this.playerMaxHealth * 0.35) {
+      activeStates.push("Emergency loop");
+    }
+
+    return activeStates.join(" / ");
+  }
+
+  private getRuleStacks(ruleId: TemporalRuleId): number {
+    return this.activeRules.get(ruleId) ?? 0;
   }
 
   private drawCombatHud(): void {

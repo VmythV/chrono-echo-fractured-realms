@@ -1,4 +1,4 @@
-import type { NodeType, RewardChoice, RunNode, RunState } from "./run-state";
+import type { NodeType, RewardChoice, RunNode, RunState, TemporalRuleId } from "./run-state";
 
 const ROUTE_DEPTHS = 7;
 const NODE_LABELS: Record<NodeType, string> = {
@@ -45,6 +45,7 @@ export function startNewRun(): RunState {
       freezeCooldownReductionMs: 0,
       rewindCooldownReductionMs: 0
     },
+    activeRules: [],
     rewardsTaken: [],
     result: "running",
     summaryReason: ""
@@ -131,6 +132,7 @@ export function getRewards(context: "combat" | "elite" | "event" | "shop" | "res
   const rewards: Record<string, RewardChoice> = {
     sharpenedEcho: {
       id: "sharpenedEcho",
+      kind: "Upgrade",
       title: "Sharpened Echo",
       description: "Basic attacks deal 4 more damage this run.",
       apply: (state) => {
@@ -139,6 +141,7 @@ export function getRewards(context: "combat" | "elite" | "event" | "shop" | "res
     },
     stableLoop: {
       id: "stableLoop",
+      kind: "Recovery",
       title: "Stable Loop",
       description: "Heal 24 health.",
       apply: (state) => {
@@ -147,6 +150,7 @@ export function getRewards(context: "combat" | "elite" | "event" | "shop" | "res
     },
     widerFreeze: {
       id: "widerFreeze",
+      kind: "Upgrade",
       title: "Cold Focus",
       description: "Time Freeze cooldown is 1 second shorter this run.",
       apply: (state) => {
@@ -155,6 +159,7 @@ export function getRewards(context: "combat" | "elite" | "event" | "shop" | "res
     },
     saferRecall: {
       id: "saferRecall",
+      kind: "Upgrade",
       title: "Safer Recall",
       description: "Time Rewind cooldown is 1.5 seconds shorter this run.",
       apply: (state) => {
@@ -163,6 +168,7 @@ export function getRewards(context: "combat" | "elite" | "event" | "shop" | "res
     },
     vitalMemory: {
       id: "vitalMemory",
+      kind: "Recovery",
       title: "Vital Memory",
       description: "Max health increases by 12 and you heal 12.",
       apply: (state) => {
@@ -172,6 +178,7 @@ export function getRewards(context: "combat" | "elite" | "event" | "shop" | "res
     },
     cleanRest: {
       id: "cleanRest",
+      kind: "Recovery",
       title: "Clean Rest",
       description: "Heal 40 health.",
       apply: (state) => {
@@ -180,6 +187,7 @@ export function getRewards(context: "combat" | "elite" | "event" | "shop" | "res
     },
     riskyCache: {
       id: "riskyCache",
+      kind: "Upgrade",
       title: "Risky Cache",
       description: "Lose 8 health, then gain 8 attack damage this run.",
       apply: (state) => {
@@ -189,6 +197,7 @@ export function getRewards(context: "combat" | "elite" | "event" | "shop" | "res
     },
     merchantTune: {
       id: "merchantTune",
+      kind: "Upgrade",
       title: "Merchant Tune",
       description: "Heal 16 and reduce both time skill cooldowns slightly.",
       apply: (state) => {
@@ -196,15 +205,71 @@ export function getRewards(context: "combat" | "elite" | "event" | "shop" | "res
         state.player.freezeCooldownReductionMs += 500;
         state.player.rewindCooldownReductionMs += 500;
       }
+    },
+    storedImpact: {
+      id: "storedImpact",
+      kind: "Rule",
+      title: "Stored Impact",
+      description: "Frozen enemies take 10 extra basic attack damage.",
+      apply: (state) => {
+        addTemporalRule(
+          state,
+          "storedImpact",
+          "Stored Impact",
+          "Frozen enemies take 10 extra basic attack damage."
+        );
+      }
+    },
+    splitSecond: {
+      id: "splitSecond",
+      kind: "Rule",
+      title: "Split Second",
+      description: "After Time Freeze or Time Rewind, your next basic attack deals 12 extra damage.",
+      apply: (state) => {
+        addTemporalRule(
+          state,
+          "splitSecond",
+          "Split Second",
+          "After Time Freeze or Time Rewind, your next basic attack deals 12 extra damage."
+        );
+      }
+    },
+    fastTimeline: {
+      id: "fastTimeline",
+      kind: "Rule",
+      title: "Fast Timeline",
+      description: "Dashing immediately readies your basic attack.",
+      apply: (state) => {
+        addTemporalRule(
+          state,
+          "fastTimeline",
+          "Fast Timeline",
+          "Dashing immediately readies your basic attack."
+        );
+      }
+    },
+    emergencyLoop: {
+      id: "emergencyLoop",
+      kind: "Rule",
+      title: "Emergency Loop",
+      description: "At 35% health or lower, Time Rewind cooldown recovers faster.",
+      apply: (state) => {
+        addTemporalRule(
+          state,
+          "emergencyLoop",
+          "Emergency Loop",
+          "At 35% health or lower, Time Rewind cooldown recovers faster."
+        );
+      }
     }
   };
 
   const pools: Record<typeof context, RewardChoice[]> = {
-    combat: [rewards.sharpenedEcho, rewards.stableLoop, rewards.widerFreeze],
-    elite: [rewards.vitalMemory, rewards.sharpenedEcho, rewards.saferRecall],
-    event: [rewards.riskyCache, rewards.stableLoop, rewards.widerFreeze],
-    shop: [rewards.merchantTune, rewards.sharpenedEcho, rewards.saferRecall],
-    rest: [rewards.cleanRest, rewards.vitalMemory, rewards.stableLoop]
+    combat: [rewards.sharpenedEcho, rewards.storedImpact, rewards.splitSecond],
+    elite: [rewards.vitalMemory, rewards.fastTimeline, rewards.storedImpact],
+    event: [rewards.riskyCache, rewards.stableLoop, rewards.splitSecond],
+    shop: [rewards.merchantTune, rewards.fastTimeline, rewards.saferRecall],
+    rest: [rewards.cleanRest, rewards.vitalMemory, rewards.emergencyLoop]
   };
 
   return pools[context];
@@ -236,3 +301,18 @@ function generateTimeTree(): RunNode[][] {
   });
 }
 
+function addTemporalRule(state: RunState, id: TemporalRuleId, title: string, description: string): void {
+  const existingRule = state.activeRules.find((rule) => rule.id === id);
+
+  if (existingRule) {
+    existingRule.stacks += 1;
+    return;
+  }
+
+  state.activeRules.push({
+    id,
+    title,
+    description,
+    stacks: 1
+  });
+}

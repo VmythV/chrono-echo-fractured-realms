@@ -20,6 +20,9 @@
 - Added combat readability polish with player bars, enemy health bars, hit feedback, freeze and rewind pulse effects, and a restartable result panel.
 - Added Stage 3 run loop execution record.
 - Added in-memory run state, time tree map, reward scene, summary scene, and Boss route completion.
+- Added Stage 4 build-system execution record.
+- Added RewardChoice type labels and active Temporal Rules in run state.
+- Added the first four Temporal Rules: Stored Impact, Split Second, Fast Timeline, and Emergency Loop.
 
 ### Changed
 
@@ -27,3 +30,4 @@
 - Tuned the first combat room toward a lighter prototype difficulty.
 - Moved Phaser scene runtime state reset into `init()` so replay starts from a clean state.
 - Changed the game entry flow from direct combat prototype to Time Tree route selection.
+- Changed RewardScene, MapScene, CombatScene, and SummaryScene to expose current build information.

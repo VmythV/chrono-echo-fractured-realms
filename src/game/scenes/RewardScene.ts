@@ -1,9 +1,16 @@
 import Phaser from "phaser";
 import { applyReward, completeNode, getNodeById, getRewards, getRun } from "../../core/run/run-manager";
+import type { RewardKind } from "../../core/run/run-state";
 
 type RewardSceneData = {
   nodeId: string;
   context: "combat" | "elite" | "event" | "shop" | "rest";
+};
+
+const REWARD_KIND_COLORS: Record<RewardKind, string> = {
+  Upgrade: "#f7d06e",
+  Rule: "#8be9fd",
+  Recovery: "#8fd694"
 };
 
 export class RewardScene extends Phaser.Scene {
@@ -39,14 +46,21 @@ export class RewardScene extends Phaser.Scene {
 
     choices.forEach((choice, index) => {
       const x = 300 + index * 320;
-      const card = this.add.rectangle(x, 360, 260, 220, 0x18222c, 1);
+      const card = this.add.rectangle(x, 370, 260, 240, 0x18222c, 1);
       card.setStrokeStyle(2, 0x5a7288, 1);
       card.setInteractive({ useHandCursor: true });
       card.on("pointerover", () => card.setStrokeStyle(3, 0x8be9fd, 1));
       card.on("pointerout", () => card.setStrokeStyle(2, 0x5a7288, 1));
       card.on("pointerup", () => this.chooseReward(choice.id));
 
-      this.add.text(x, 310, choice.title, {
+      this.add.text(x, 280, choice.kind, {
+        align: "center",
+        color: REWARD_KIND_COLORS[choice.kind],
+        fontFamily: "Inter, Arial, sans-serif",
+        fontSize: "14px"
+      }).setOrigin(0.5, 0.5);
+
+      this.add.text(x, 326, choice.title, {
         align: "center",
         color: "#f7f3e8",
         fontFamily: "Inter, Arial, sans-serif",
@@ -54,7 +68,7 @@ export class RewardScene extends Phaser.Scene {
         wordWrap: { width: 210 }
       }).setOrigin(0.5, 0.5);
 
-      this.add.text(x, 375, choice.description, {
+      this.add.text(x, 394, choice.description, {
         align: "center",
         color: "#cbd7e2",
         fontFamily: "Inter, Arial, sans-serif",
@@ -63,7 +77,7 @@ export class RewardScene extends Phaser.Scene {
         wordWrap: { width: 210 }
       }).setOrigin(0.5, 0.5);
 
-      this.add.text(x, 452, "Choose", {
+      this.add.text(x, 468, "Choose", {
         align: "center",
         color: "#8be9fd",
         fontFamily: "Inter, Arial, sans-serif",
@@ -78,4 +92,3 @@ export class RewardScene extends Phaser.Scene {
     this.scene.start("MapScene");
   }
 }
-
