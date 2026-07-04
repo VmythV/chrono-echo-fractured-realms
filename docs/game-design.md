@@ -208,11 +208,13 @@
 
 | Upgrade | Applies To | Effect |
 | --- | --- | --- |
-| Cold Moment | Time Freeze | 冻结结束时造成小范围伤害 |
-| Wider Field | Time Freeze | 范围扩大 20% |
-| Borrowed Breath | Time Rewind | 回溯后获得 1 秒护盾 |
+| Cold Moment | Time Freeze | Freeze 命中敌人时造成 10 点伤害 |
+| Wider Field | Time Freeze | 范围增加 42 像素 |
+| Borrowed Breath | Time Rewind | 回溯后获得 1.2 秒的一次性护盾 |
 | Shorter Loop | Time Rewind | 冷却减少 2 秒 |
 | Second Echo | Echo Strike | 复制攻击伤害提高 |
+
+当前 Stage 4C 实装 Cold Moment、Wider Field 和 Borrowed Breath。Shorter Loop 以 Safer Recall 的形式先作为通用 Rewind 冷却升级存在。
 
 ## 7. Build System
 

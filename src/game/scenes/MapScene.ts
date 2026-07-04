@@ -47,6 +47,12 @@ export class MapScene extends Phaser.Scene {
       fontSize: "15px",
       wordWrap: { width: 780 }
     });
+    this.add.text(40, 158, `Skills ${this.formatSkillUpgrades()}`, {
+      color: "#cbd7e2",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "15px",
+      wordWrap: { width: 780 }
+    });
 
     this.drawMap();
     this.drawStartOverButton();
@@ -62,7 +68,7 @@ export class MapScene extends Phaser.Scene {
 
     run.map.forEach((layer, depth) => {
       const x = startX + depth * gapX;
-      this.add.text(x, 172, `${depth + 1}`, {
+      this.add.text(x, 194, `${depth + 1}`, {
         color: "#6f8497",
         fontFamily: "Inter, Arial, sans-serif",
         fontSize: "14px"
@@ -175,5 +181,24 @@ export class MapScene extends Phaser.Scene {
     return rules
       .map((rule) => (rule.stacks > 1 ? `${rule.title} x${rule.stacks}` : rule.title))
       .join(" / ");
+  }
+
+  private formatSkillUpgrades(): string {
+    const player = getRun().player;
+    const upgrades: string[] = [];
+
+    if (player.freezeRadiusBonus > 0) {
+      upgrades.push(`Freeze radius +${player.freezeRadiusBonus}`);
+    }
+
+    if (player.freezeImpactDamage > 0) {
+      upgrades.push(`Freeze hit ${player.freezeImpactDamage}`);
+    }
+
+    if (player.rewindShieldDurationMs > 0) {
+      upgrades.push(`Rewind shield ${Math.round(player.rewindShieldDurationMs / 100) / 10}s`);
+    }
+
+    return upgrades.length > 0 ? upgrades.join(" / ") : "Base";
   }
 }

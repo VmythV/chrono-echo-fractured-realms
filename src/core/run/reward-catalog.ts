@@ -37,6 +37,26 @@ const REWARD_CATALOG: Record<string, RewardDefinition> = {
     },
     fallback: true
   },
+  widerField: {
+    id: "widerField",
+    kind: "Upgrade",
+    title: "Wider Field",
+    description: "Time Freeze radius is 42 pixels larger this run.",
+    apply: (state) => {
+      state.player.freezeRadiusBonus += 42;
+    },
+    fallback: true
+  },
+  coldMoment: {
+    id: "coldMoment",
+    kind: "Upgrade",
+    title: "Cold Moment",
+    description: "Time Freeze deals 10 damage to enemies it catches.",
+    apply: (state) => {
+      state.player.freezeImpactDamage += 10;
+    },
+    fallback: true
+  },
   saferRecall: {
     id: "saferRecall",
     kind: "Upgrade",
@@ -44,6 +64,16 @@ const REWARD_CATALOG: Record<string, RewardDefinition> = {
     description: "Time Rewind cooldown is 1.5 seconds shorter this run.",
     apply: (state) => {
       state.player.rewindCooldownReductionMs += 1500;
+    },
+    fallback: true
+  },
+  borrowedBreath: {
+    id: "borrowedBreath",
+    kind: "Upgrade",
+    title: "Borrowed Breath",
+    description: "Time Rewind grants a one-hit shield for 1.2 seconds.",
+    apply: (state) => {
+      state.player.rewindShieldDurationMs += 1200;
     },
     fallback: true
   },
@@ -153,10 +183,10 @@ const REWARD_CATALOG: Record<string, RewardDefinition> = {
 };
 
 const REWARD_POOLS: Record<RewardContext, string[]> = {
-  combat: ["sharpenedEcho", "storedImpact", "splitSecond"],
-  elite: ["vitalMemory", "fastTimeline", "storedImpact"],
-  event: ["riskyCache", "stableLoop", "splitSecond"],
-  shop: ["merchantTune", "fastTimeline", "saferRecall"],
+  combat: ["sharpenedEcho", "coldMoment", "storedImpact"],
+  elite: ["vitalMemory", "widerField", "fastTimeline"],
+  event: ["riskyCache", "borrowedBreath", "splitSecond"],
+  shop: ["merchantTune", "widerField", "saferRecall"],
   rest: ["cleanRest", "vitalMemory", "emergencyLoop"]
 };
 

@@ -182,6 +182,7 @@
 
 - `docs/stage-4-build-system.md`
 - `docs/stage-4b-reward-catalog.md`
+- `docs/stage-4c-skill-upgrades.md`
 
 ## 8. Stage 5: Time Residue And Corruption
 

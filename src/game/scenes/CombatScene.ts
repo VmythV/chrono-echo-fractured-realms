@@ -96,8 +96,12 @@ export class CombatScene extends Phaser.Scene {
   private rewindCooldownMs = 0;
   private playerMaxHealth = PLAYER.maxHealth;
   private attackDamage = PLAYER.attackDamage;
+  private freezeRadius = TIME_SKILLS.freezeRadius;
+  private freezeImpactDamage = 0;
   private freezeCooldownLimitMs = TIME_SKILLS.freezeCooldownMs;
   private rewindCooldownLimitMs = TIME_SKILLS.rewindCooldownMs;
+  private rewindShieldLimitMs = 0;
+  private rewindShieldMs = 0;
   private activeRules = new Map<TemporalRuleId, number>();
   private splitSecondReady = false;
   private snapshotElapsedMs = 0;
@@ -120,8 +124,12 @@ export class CombatScene extends Phaser.Scene {
     this.playerMaxHealth = run.player.maxHealth;
     this.playerHealth = Math.max(1, Math.min(run.player.health, this.playerMaxHealth));
     this.attackDamage = PLAYER.attackDamage + run.player.attackDamageBonus;
+    this.freezeRadius = TIME_SKILLS.freezeRadius + run.player.freezeRadiusBonus;
+    this.freezeImpactDamage = run.player.freezeImpactDamage;
     this.freezeCooldownLimitMs = Math.max(4500, TIME_SKILLS.freezeCooldownMs - run.player.freezeCooldownReductionMs);
     this.rewindCooldownLimitMs = Math.max(6000, TIME_SKILLS.rewindCooldownMs - run.player.rewindCooldownReductionMs);
+    this.rewindShieldLimitMs = run.player.rewindShieldDurationMs;
+    this.rewindShieldMs = 0;
     this.activeRules = new Map(run.activeRules.map((rule) => [rule.id, Math.max(1, rule.stacks)] as const));
     this.splitSecondReady = false;
     this.playerInvulnerableMs = 0;
@@ -276,7 +284,7 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private createHud(): void {
-    this.add.rectangle(16, 14, 292, 206, 0x10151c, 0.9).setOrigin(0, 0).setDepth(19);
+    this.add.rectangle(16, 14, 292, 230, 0x10151c, 0.9).setOrigin(0, 0).setDepth(19);
     this.combatHud = this.add.graphics();
     this.combatHud.setDepth(20);
     this.enemyHud = this.add.graphics();
@@ -286,7 +294,7 @@ export class CombatScene extends Phaser.Scene {
     this.aimLine.setOrigin(0, 0);
     this.aimLine.setDepth(12);
 
-    this.freezePreview = this.add.circle(0, 0, TIME_SKILLS.freezeRadius);
+    this.freezePreview = this.add.circle(0, 0, this.freezeRadius);
     this.freezePreview.setStrokeStyle(2, 0x8be9fd, 0.24);
     this.freezePreview.setFillStyle(0x8be9fd, 0.05);
     this.freezePreview.setDepth(3);
@@ -343,6 +351,7 @@ export class CombatScene extends Phaser.Scene {
     this.dashCooldownMs = Math.max(0, this.dashCooldownMs - delta);
     this.freezeCooldownMs = Math.max(0, this.freezeCooldownMs - delta);
     this.rewindCooldownMs = Math.max(0, this.rewindCooldownMs - delta);
+    this.rewindShieldMs = Math.max(0, this.rewindShieldMs - delta);
     if (this.getRuleStacks("emergencyLoop") > 0 && this.playerHealth <= this.playerMaxHealth * 0.35) {
       this.rewindCooldownMs = Math.max(0, this.rewindCooldownMs - delta * this.getRuleStacks("emergencyLoop"));
     }
@@ -498,7 +507,7 @@ export class CombatScene extends Phaser.Scene {
     const pointer = this.input.activePointer;
     pointer.updateWorldPoint(this.cameras.main);
     const center = new Phaser.Math.Vector2(pointer.worldX, pointer.worldY);
-    this.playFreezePulse(center.x, center.y);
+    this.playFreezePulse(center.x, center.y, this.freezeRadius);
 
     this.enemies.forEach((enemy) => {
       if (!enemy.sprite.active) {
@@ -506,17 +515,27 @@ export class CombatScene extends Phaser.Scene {
       }
 
       const distance = Phaser.Math.Distance.Between(center.x, center.y, enemy.sprite.x, enemy.sprite.y);
-      if (distance <= TIME_SKILLS.freezeRadius) {
+      if (distance <= this.freezeRadius) {
         enemy.frozenMs = TIME_SKILLS.freezeDurationMs;
         enemy.sprite.setTint(0x8be9fd);
         enemy.sprite.setVelocity(0, 0);
+
+        if (this.freezeImpactDamage > 0) {
+          enemy.health -= this.freezeImpactDamage;
+          this.showFloatingText(`${this.freezeImpactDamage}`, enemy.sprite.x, enemy.sprite.y - 52, "#8be9fd");
+
+          if (enemy.health <= 0) {
+            this.showFloatingText("Break", enemy.sprite.x, enemy.sprite.y, "#8be9fd");
+            enemy.sprite.destroy();
+          }
+        }
       }
     });
 
     this.projectiles.forEach((projectile) => {
       if (projectile.owner === "enemy") {
         const distance = Phaser.Math.Distance.Between(center.x, center.y, projectile.sprite.x, projectile.sprite.y);
-        if (distance <= TIME_SKILLS.freezeRadius) {
+        if (distance <= this.freezeRadius) {
           projectile.frozenMs = TIME_SKILLS.freezeDurationMs;
           projectile.storedVelocity = new Phaser.Math.Vector2(
             projectile.sprite.body?.velocity.x ?? 0,
@@ -548,8 +567,12 @@ export class CombatScene extends Phaser.Scene {
     this.playerHealth = Math.min(this.playerMaxHealth, restoredHealth);
     this.playerInvulnerableMs = 800;
     this.rewindCooldownMs = this.rewindCooldownLimitMs;
+    if (this.rewindShieldLimitMs > 0) {
+      this.rewindShieldMs = this.rewindShieldLimitMs;
+      this.showFloatingText("Shield", this.player.x, this.player.y - 46, "#8fd694");
+    }
     this.playRewindPulse(snapshot.x, snapshot.y);
-    this.showStatus(this.armSplitSecond() ? "Split Second Ready" : "Time Rewind");
+    this.showStatus(this.armSplitSecond() ? "Split Second Ready" : this.rewindShieldMs > 0 ? "Borrowed Breath" : "Time Rewind");
   }
 
   private updateEnemies(delta: number): void {
@@ -727,7 +750,16 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private damagePlayer(amount: number): void {
-    if (this.playerInvulnerableMs > 0 || this.roomState !== "playing") {
+    if (this.roomState !== "playing" || this.playerInvulnerableMs > 0) {
+      return;
+    }
+
+    if (this.rewindShieldMs > 0) {
+      this.rewindShieldMs = 0;
+      this.playerInvulnerableMs = PLAYER.invulnerableAfterHitMs;
+      this.showFloatingText("Shield", this.player.x, this.player.y - 34, "#8fd694");
+      this.player.setTint(0x8fd694);
+      this.time.delayedCall(120, () => this.player.clearTint());
       return;
     }
 
@@ -808,9 +840,30 @@ export class CombatScene extends Phaser.Scene {
       `Q Freeze ${freeze}`,
       `E Rewind ${rewind}`,
       `Space Dash ${dash}`,
+      this.getCombatSkillState(),
       this.getCombatRuleState(),
       "WASD move, mouse aim, left click attack"
     ]);
+  }
+
+  private getCombatSkillState(): string {
+    const skillStates: string[] = [];
+
+    if (this.freezeRadius > TIME_SKILLS.freezeRadius) {
+      skillStates.push(`Freeze +${this.freezeRadius - TIME_SKILLS.freezeRadius}`);
+    }
+
+    if (this.freezeImpactDamage > 0) {
+      skillStates.push(`Hit ${this.freezeImpactDamage}`);
+    }
+
+    if (this.rewindShieldMs > 0) {
+      skillStates.push(`Shield ${Math.ceil(this.rewindShieldMs / 1000)}s`);
+    } else if (this.rewindShieldLimitMs > 0) {
+      skillStates.push("Shield ready");
+    }
+
+    return skillStates.length > 0 ? `Skills ${skillStates.join(" / ")}` : "Skills base";
   }
 
   private armSplitSecond(): boolean {
@@ -861,7 +914,7 @@ export class CombatScene extends Phaser.Scene {
       1 - this.rewindCooldownMs / this.rewindCooldownLimitMs,
       0x8fd694
     );
-    this.drawBar(this.combatHud, 180, 142, 66, 7, 1 - this.dashCooldownMs / PLAYER.dashCooldownMs, 0xf7d06e);
+    this.drawBar(this.combatHud, 180, 132, 66, 7, 1 - this.dashCooldownMs / PLAYER.dashCooldownMs, 0xf7d06e);
   }
 
   private drawEnemyHud(): void {
@@ -937,8 +990,8 @@ export class CombatScene extends Phaser.Scene {
     });
   }
 
-  private playFreezePulse(x: number, y: number): void {
-    const pulse = this.add.circle(x, y, TIME_SKILLS.freezeRadius);
+  private playFreezePulse(x: number, y: number, radius: number): void {
+    const pulse = this.add.circle(x, y, radius);
     pulse.setStrokeStyle(3, 0x8be9fd, 0.8);
     pulse.setFillStyle(0x8be9fd, 0.08);
     pulse.setDepth(6);

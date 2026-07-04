@@ -62,3 +62,9 @@ Stage 4 的目标是让单局奖励开始形成可感知构筑。当前阶段不
 Stage 4B 将奖励目录、节点奖励池和 Temporal Rule 限制拆分到独立执行文档：
 
 - `docs/stage-4b-reward-catalog.md`
+
+## 9. Stage 4C Follow-Up
+
+Stage 4C 将 Upgrade 奖励扩展到主动时间技能表现：
+
+- `docs/stage-4c-skill-upgrades.md`

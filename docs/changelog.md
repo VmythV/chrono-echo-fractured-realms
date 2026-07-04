@@ -25,6 +25,8 @@
 - Added the first four Temporal Rules: Stored Impact, Split Second, Fast Timeline, and Emergency Loop.
 - Added Stage 4B reward catalog execution record.
 - Added centralized reward catalog, rule slot limits, stack limits, and fallback reward selection.
+- Added Stage 4C skill upgrade execution record.
+- Added Wider Field, Cold Moment, and Borrowed Breath skill upgrades.
 
 ### Changed
 
@@ -34,3 +36,4 @@
 - Changed the game entry flow from direct combat prototype to Time Tree route selection.
 - Changed RewardScene, MapScene, CombatScene, and SummaryScene to expose current build information.
 - Changed reward selection so capped rules are filtered before being shown to the player.
+- Changed CombatScene so Time Freeze and Time Rewind can read run-level skill upgrades.

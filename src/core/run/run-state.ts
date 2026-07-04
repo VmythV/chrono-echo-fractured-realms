@@ -16,7 +16,10 @@ export type PlayerRunState = {
   maxHealth: number;
   attackDamageBonus: number;
   freezeCooldownReductionMs: number;
+  freezeImpactDamage: number;
+  freezeRadiusBonus: number;
   rewindCooldownReductionMs: number;
+  rewindShieldDurationMs: number;
 };
 
 export type RunState = {

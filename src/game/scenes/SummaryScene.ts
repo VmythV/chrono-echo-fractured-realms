@@ -33,6 +33,7 @@ export class SummaryScene extends Phaser.Scene {
       `Final health: ${run.player.health}/${run.player.maxHealth}`,
       `Attack bonus: +${run.player.attackDamageBonus}`,
       `Rule slots: ${getRuleSlotText(run)}`,
+      `Skills: ${this.formatSkillUpgrades()}`,
       `Rules: ${this.formatRules()}`
     ];
 
@@ -75,5 +76,24 @@ export class SummaryScene extends Phaser.Scene {
     return rules
       .map((rule) => (rule.stacks > 1 ? `${rule.title} x${rule.stacks}` : rule.title))
       .join(", ");
+  }
+
+  private formatSkillUpgrades(): string {
+    const player = getRun().player;
+    const upgrades: string[] = [];
+
+    if (player.freezeRadiusBonus > 0) {
+      upgrades.push(`Freeze radius +${player.freezeRadiusBonus}`);
+    }
+
+    if (player.freezeImpactDamage > 0) {
+      upgrades.push(`Freeze hit ${player.freezeImpactDamage}`);
+    }
+
+    if (player.rewindShieldDurationMs > 0) {
+      upgrades.push(`Rewind shield ${Math.round(player.rewindShieldDurationMs / 100) / 10}s`);
+    }
+
+    return upgrades.length > 0 ? upgrades.join(", ") : "Base";
   }
 }
