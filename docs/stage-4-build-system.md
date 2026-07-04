@@ -56,3 +56,9 @@ Stage 4 的目标是让单局奖励开始形成可感知构筑。当前阶段不
 - Playwright UI smoke 已验证 RewardScene 类型标签、MapScene active rules 摘要和 CombatScene Split Second 触发反馈。
 - Playwright 通过浏览器模块验证完整路线 run state：完成 8 个节点，最后节点为 `boss-0`，结果为 `won`，summary reason 为 `Fracture Warden defeated.`。
 - Playwright 验证期间没有 browser page error。Headless 截图期间出现 WebGL ReadPixels 性能警告，不影响玩法流程。
+
+## 8. Stage 4B Follow-Up
+
+Stage 4B 将奖励目录、节点奖励池和 Temporal Rule 限制拆分到独立执行文档：
+
+- `docs/stage-4b-reward-catalog.md`

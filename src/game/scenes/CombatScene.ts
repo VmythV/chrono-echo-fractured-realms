@@ -6,6 +6,7 @@ import {
   getRun,
   setPlayerHealth
 } from "../../core/run/run-manager";
+import { MAX_TEMPORAL_RULES } from "../../core/run/reward-catalog";
 import type { NodeType, TemporalRuleId } from "../../core/run/run-state";
 
 type ArcadeImage = Phaser.Physics.Arcade.Image;
@@ -822,7 +823,7 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private getCombatRuleState(): string {
-    const activeStates: string[] = [this.activeRules.size === 0 ? "Rules None" : `Rules ${this.activeRules.size}`];
+    const activeStates: string[] = [`Rules ${this.activeRules.size}/${MAX_TEMPORAL_RULES}`];
 
     if (this.splitSecondReady) {
       activeStates.push("Split ready");

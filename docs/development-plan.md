@@ -181,6 +181,7 @@
 当前执行记录：
 
 - `docs/stage-4-build-system.md`
+- `docs/stage-4b-reward-catalog.md`
 
 ## 8. Stage 5: Time Residue And Corruption
 

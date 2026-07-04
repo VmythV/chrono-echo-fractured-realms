@@ -1,5 +1,6 @@
 export type NodeType = "combat" | "elite" | "event" | "shop" | "rest" | "boss";
 export type RewardKind = "Upgrade" | "Rule" | "Recovery";
+export type RewardContext = "combat" | "elite" | "event" | "shop" | "rest";
 export type TemporalRuleId = "storedImpact" | "splitSecond" | "fastTimeline" | "emergencyLoop";
 
 export type RunNode = {
@@ -35,6 +36,7 @@ export type RunState = {
 export type RewardChoice = {
   id: string;
   kind: RewardKind;
+  ruleId?: TemporalRuleId;
   title: string;
   description: string;
   apply: (state: RunState) => void;

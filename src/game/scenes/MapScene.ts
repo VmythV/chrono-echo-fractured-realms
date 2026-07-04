@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { getCurrentAvailableNodes, getRun, selectNode, startNewRun } from "../../core/run/run-manager";
+import { getRuleSlotText } from "../../core/run/reward-catalog";
 import type { NodeType, RunNode } from "../../core/run/run-state";
 
 const NODE_COLORS: Record<NodeType, number> = {
@@ -40,7 +41,7 @@ export class MapScene extends Phaser.Scene {
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "18px"
     });
-    this.add.text(40, 132, `Rules ${this.formatRules()}`, {
+    this.add.text(40, 132, `Rules ${getRuleSlotText(run)} ${this.formatRules()}`, {
       color: "#cbd7e2",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "15px",

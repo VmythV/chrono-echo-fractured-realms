@@ -1,4 +1,5 @@
-import type { NodeType, RewardChoice, RunNode, RunState, TemporalRuleId } from "./run-state";
+import { getRewardById, getRewardChoices } from "./reward-catalog";
+import type { NodeType, RewardChoice, RewardContext, RunNode, RunState } from "./run-state";
 
 const ROUTE_DEPTHS = 7;
 const NODE_LABELS: Record<NodeType, string> = {
@@ -128,156 +129,13 @@ export function setPlayerHealth(health: number): void {
   run.player.health = Math.max(0, Math.min(run.player.maxHealth, Math.round(health)));
 }
 
-export function getRewards(context: "combat" | "elite" | "event" | "shop" | "rest"): RewardChoice[] {
-  const rewards: Record<string, RewardChoice> = {
-    sharpenedEcho: {
-      id: "sharpenedEcho",
-      kind: "Upgrade",
-      title: "Sharpened Echo",
-      description: "Basic attacks deal 4 more damage this run.",
-      apply: (state) => {
-        state.player.attackDamageBonus += 4;
-      }
-    },
-    stableLoop: {
-      id: "stableLoop",
-      kind: "Recovery",
-      title: "Stable Loop",
-      description: "Heal 24 health.",
-      apply: (state) => {
-        state.player.health = Math.min(state.player.maxHealth, state.player.health + 24);
-      }
-    },
-    widerFreeze: {
-      id: "widerFreeze",
-      kind: "Upgrade",
-      title: "Cold Focus",
-      description: "Time Freeze cooldown is 1 second shorter this run.",
-      apply: (state) => {
-        state.player.freezeCooldownReductionMs += 1000;
-      }
-    },
-    saferRecall: {
-      id: "saferRecall",
-      kind: "Upgrade",
-      title: "Safer Recall",
-      description: "Time Rewind cooldown is 1.5 seconds shorter this run.",
-      apply: (state) => {
-        state.player.rewindCooldownReductionMs += 1500;
-      }
-    },
-    vitalMemory: {
-      id: "vitalMemory",
-      kind: "Recovery",
-      title: "Vital Memory",
-      description: "Max health increases by 12 and you heal 12.",
-      apply: (state) => {
-        state.player.maxHealth += 12;
-        state.player.health = Math.min(state.player.maxHealth, state.player.health + 12);
-      }
-    },
-    cleanRest: {
-      id: "cleanRest",
-      kind: "Recovery",
-      title: "Clean Rest",
-      description: "Heal 40 health.",
-      apply: (state) => {
-        state.player.health = Math.min(state.player.maxHealth, state.player.health + 40);
-      }
-    },
-    riskyCache: {
-      id: "riskyCache",
-      kind: "Upgrade",
-      title: "Risky Cache",
-      description: "Lose 8 health, then gain 8 attack damage this run.",
-      apply: (state) => {
-        state.player.health = Math.max(1, state.player.health - 8);
-        state.player.attackDamageBonus += 8;
-      }
-    },
-    merchantTune: {
-      id: "merchantTune",
-      kind: "Upgrade",
-      title: "Merchant Tune",
-      description: "Heal 16 and reduce both time skill cooldowns slightly.",
-      apply: (state) => {
-        state.player.health = Math.min(state.player.maxHealth, state.player.health + 16);
-        state.player.freezeCooldownReductionMs += 500;
-        state.player.rewindCooldownReductionMs += 500;
-      }
-    },
-    storedImpact: {
-      id: "storedImpact",
-      kind: "Rule",
-      title: "Stored Impact",
-      description: "Frozen enemies take 10 extra basic attack damage.",
-      apply: (state) => {
-        addTemporalRule(
-          state,
-          "storedImpact",
-          "Stored Impact",
-          "Frozen enemies take 10 extra basic attack damage."
-        );
-      }
-    },
-    splitSecond: {
-      id: "splitSecond",
-      kind: "Rule",
-      title: "Split Second",
-      description: "After Time Freeze or Time Rewind, your next basic attack deals 12 extra damage.",
-      apply: (state) => {
-        addTemporalRule(
-          state,
-          "splitSecond",
-          "Split Second",
-          "After Time Freeze or Time Rewind, your next basic attack deals 12 extra damage."
-        );
-      }
-    },
-    fastTimeline: {
-      id: "fastTimeline",
-      kind: "Rule",
-      title: "Fast Timeline",
-      description: "Dashing immediately readies your basic attack.",
-      apply: (state) => {
-        addTemporalRule(
-          state,
-          "fastTimeline",
-          "Fast Timeline",
-          "Dashing immediately readies your basic attack."
-        );
-      }
-    },
-    emergencyLoop: {
-      id: "emergencyLoop",
-      kind: "Rule",
-      title: "Emergency Loop",
-      description: "At 35% health or lower, Time Rewind cooldown recovers faster.",
-      apply: (state) => {
-        addTemporalRule(
-          state,
-          "emergencyLoop",
-          "Emergency Loop",
-          "At 35% health or lower, Time Rewind cooldown recovers faster."
-        );
-      }
-    }
-  };
-
-  const pools: Record<typeof context, RewardChoice[]> = {
-    combat: [rewards.sharpenedEcho, rewards.storedImpact, rewards.splitSecond],
-    elite: [rewards.vitalMemory, rewards.fastTimeline, rewards.storedImpact],
-    event: [rewards.riskyCache, rewards.stableLoop, rewards.splitSecond],
-    shop: [rewards.merchantTune, rewards.fastTimeline, rewards.saferRecall],
-    rest: [rewards.cleanRest, rewards.vitalMemory, rewards.emergencyLoop]
-  };
-
-  return pools[context];
+export function getRewards(context: RewardContext): RewardChoice[] {
+  return getRewardChoices(context, getRun());
 }
 
-export function applyReward(rewardId: string, context: "combat" | "elite" | "event" | "shop" | "rest"): void {
+export function applyReward(rewardId: string, context: RewardContext): void {
   const run = getRun();
-  const reward = getRewards(context).find((choice) => choice.id === rewardId);
+  const reward = getRewardById(rewardId, context, run);
 
   if (!reward) {
     throw new Error(`Unknown reward: ${rewardId}`);
@@ -298,21 +156,5 @@ function generateTimeTree(): RunNode[][] {
       type,
       label: NODE_LABELS[type]
     }));
-  });
-}
-
-function addTemporalRule(state: RunState, id: TemporalRuleId, title: string, description: string): void {
-  const existingRule = state.activeRules.find((rule) => rule.id === id);
-
-  if (existingRule) {
-    existingRule.stacks += 1;
-    return;
-  }
-
-  state.activeRules.push({
-    id,
-    title,
-    description,
-    stacks: 1
   });
 }

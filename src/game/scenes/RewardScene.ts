@@ -1,10 +1,11 @@
 import Phaser from "phaser";
 import { applyReward, completeNode, getNodeById, getRewards, getRun } from "../../core/run/run-manager";
-import type { RewardKind } from "../../core/run/run-state";
+import { getRuleSlotText } from "../../core/run/reward-catalog";
+import type { RewardContext, RewardKind } from "../../core/run/run-state";
 
 type RewardSceneData = {
   nodeId: string;
-  context: "combat" | "elite" | "event" | "shop" | "rest";
+  context: RewardContext;
 };
 
 const REWARD_KIND_COLORS: Record<RewardKind, string> = {
@@ -42,6 +43,11 @@ export class RewardScene extends Phaser.Scene {
       color: "#cbd7e2",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "18px"
+    });
+    this.add.text(64, 120, `Rule slots ${getRuleSlotText(run)}`, {
+      color: "#cbd7e2",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "16px"
     });
 
     choices.forEach((choice, index) => {

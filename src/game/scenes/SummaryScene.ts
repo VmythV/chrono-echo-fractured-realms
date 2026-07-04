@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { getRun, startNewRun } from "../../core/run/run-manager";
+import { getRuleSlotText } from "../../core/run/reward-catalog";
 
 export class SummaryScene extends Phaser.Scene {
   constructor() {
@@ -31,6 +32,7 @@ export class SummaryScene extends Phaser.Scene {
       `Rewards taken: ${run.rewardsTaken.length}`,
       `Final health: ${run.player.health}/${run.player.maxHealth}`,
       `Attack bonus: +${run.player.attackDamageBonus}`,
+      `Rule slots: ${getRuleSlotText(run)}`,
       `Rules: ${this.formatRules()}`
     ];
 
