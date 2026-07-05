@@ -1,12 +1,23 @@
 import Phaser from "phaser";
 import { formatCorruptionState } from "../../core/meta/corruption";
 import { clearSaveData, loadSaveData, type SaveData } from "../../core/meta/save-state";
+import {
+  cycleSfxVolume,
+  formatVolumeLabel,
+  loadSettings,
+  toggleSfxEnabled,
+  type GameSettings
+} from "../../core/meta/settings";
 import { formatResidues } from "../../core/meta/time-residue";
 import { startNewRun } from "../../core/run/run-manager";
+import { playSfx } from "../audio/sfx";
 
 type MenuButtonVariant = "primary" | "secondary";
 
 export class MainMenuScene extends Phaser.Scene {
+  private soundButtonText!: Phaser.GameObjects.Text;
+  private volumeButtonText!: Phaser.GameObjects.Text;
+
   constructor() {
     super("MainMenuScene");
   }
@@ -124,8 +135,34 @@ export class MainMenuScene extends Phaser.Scene {
   }
 
   private drawActions(): void {
+    const settings = loadSettings();
+
     this.createButton(76, 294, 230, 48, "Start Run", "primary", () => this.startRun());
     this.createButton(76, 362, 230, 42, "Reset Save", "secondary", () => this.resetSave());
+    this.soundButtonText = this.createButton(76, 430, 230, 42, this.getSoundLabel(settings), "secondary", () =>
+      this.toggleSound()
+    );
+    this.volumeButtonText = this.createButton(76, 488, 230, 42, this.getVolumeLabel(settings), "secondary", () =>
+      this.cycleVolume()
+    );
+  }
+
+  private getSoundLabel(settings: GameSettings): string {
+    return `Sound: ${settings.sfxEnabled ? "On" : "Off"}`;
+  }
+
+  private getVolumeLabel(settings: GameSettings): string {
+    return `Volume: ${formatVolumeLabel(settings.sfxVolume)}`;
+  }
+
+  private toggleSound(): void {
+    const settings = toggleSfxEnabled();
+    this.soundButtonText.setText(this.getSoundLabel(settings));
+  }
+
+  private cycleVolume(): void {
+    const settings = cycleSfxVolume();
+    this.volumeButtonText.setText(this.getVolumeLabel(settings));
   }
 
   private createButton(
@@ -136,7 +173,7 @@ export class MainMenuScene extends Phaser.Scene {
     label: string,
     variant: MenuButtonVariant,
     onClick: () => void
-  ): void {
+  ): Phaser.GameObjects.Text {
     const fill = variant === "primary" ? 0x263746 : 0x18222c;
     const stroke = variant === "primary" ? 0x8be9fd : 0x5a7288;
     const textColor = variant === "primary" ? "#f7f3e8" : "#cbd7e2";
@@ -145,9 +182,12 @@ export class MainMenuScene extends Phaser.Scene {
     button.setInteractive({ useHandCursor: true });
     button.on("pointerover", () => button.setStrokeStyle(3, 0x8be9fd, 1));
     button.on("pointerout", () => button.setStrokeStyle(2, stroke, 1));
-    button.on("pointerup", onClick);
+    button.on("pointerup", () => {
+      playSfx("uiClick");
+      onClick();
+    });
 
-    this.add.text(x + width / 2, y + height / 2, label, {
+    return this.add.text(x + width / 2, y + height / 2, label, {
       align: "center",
       color: textColor,
       fontFamily: "Inter, Arial, sans-serif",

@@ -259,6 +259,7 @@
 当前执行记录：
 
 - `docs/stage-6a-web-shell.md`
+- `docs/stage-6b-settings-audio.md`
 
 ## 10. Development Checkpoints
 

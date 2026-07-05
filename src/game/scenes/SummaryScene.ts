@@ -3,6 +3,7 @@ import { formatCorruptionState } from "../../core/meta/corruption";
 import { finalizeRunResidues, formatResidues } from "../../core/meta/time-residue";
 import { getRun, startNewRun } from "../../core/run/run-manager";
 import { getRuleSlotText } from "../../core/run/reward-catalog";
+import { playSfx } from "../audio/sfx";
 
 export class SummaryScene extends Phaser.Scene {
   constructor() {
@@ -84,7 +85,10 @@ export class SummaryScene extends Phaser.Scene {
     button.setInteractive({ useHandCursor: true });
     button.on("pointerover", () => button.setStrokeStyle(3, 0x8be9fd, 1));
     button.on("pointerout", () => button.setStrokeStyle(2, stroke, 0.9));
-    button.on("pointerup", onClick);
+    button.on("pointerup", () => {
+      playSfx("uiClick");
+      onClick();
+    });
 
     this.add.text(x, y, label, {
       align: "center",

@@ -14,6 +14,7 @@ import {
 } from "../../core/run/run-manager";
 import { MAX_TEMPORAL_RULES } from "../../core/run/reward-catalog";
 import type { NodeType, TemporalRuleId } from "../../core/run/run-state";
+import { playSfx } from "../audio/sfx";
 
 type ArcadeImage = Phaser.Physics.Arcade.Image;
 
@@ -462,6 +463,7 @@ export class CombatScene extends Phaser.Scene {
     this.dashRemainingMs = PLAYER.dashDurationMs;
     this.dashCooldownMs = PLAYER.dashCooldownMs;
     this.playerInvulnerableMs = Math.max(this.playerInvulnerableMs, PLAYER.dashDurationMs);
+    playSfx("dash");
 
     if (this.getRuleStacks("fastTimeline") > 0) {
       this.attackElapsedMs = PLAYER.attackCooldownMs;
@@ -475,6 +477,7 @@ export class CombatScene extends Phaser.Scene {
     }
 
     this.attackElapsedMs = 0;
+    playSfx("playerShot");
     let damage = this.attackDamage;
     if (this.splitSecondReady) {
       const bonusDamage = 12 * this.getRuleStacks("splitSecond");
@@ -516,6 +519,7 @@ export class CombatScene extends Phaser.Scene {
 
     this.freezeCooldownMs = this.freezeCooldownLimitMs;
     recordTimeSkillCast("freeze");
+    playSfx("freeze");
     const pointer = this.input.activePointer;
     pointer.updateWorldPoint(this.cameras.main);
     const center = new Phaser.Math.Vector2(pointer.worldX, pointer.worldY);
@@ -580,6 +584,7 @@ export class CombatScene extends Phaser.Scene {
     this.playerInvulnerableMs = 800;
     this.rewindCooldownMs = this.rewindCooldownLimitMs;
     recordTimeSkillCast("rewind");
+    playSfx("rewind");
     if (this.rewindShieldLimitMs > 0) {
       this.rewindShieldMs = this.rewindShieldLimitMs;
       this.showFloatingText("Shield", this.player.x, this.player.y - 46, "#8fd694");
@@ -742,8 +747,11 @@ export class CombatScene extends Phaser.Scene {
           });
 
           if (enemy.health <= 0) {
+            playSfx("enemyBreak");
             this.showFloatingText("Break", enemy.sprite.x, enemy.sprite.y, "#8be9fd");
             enemy.sprite.destroy();
+          } else {
+            playSfx("enemyHit");
           }
           break;
         }
@@ -770,6 +778,7 @@ export class CombatScene extends Phaser.Scene {
     if (this.rewindShieldMs > 0) {
       this.rewindShieldMs = 0;
       this.playerInvulnerableMs = PLAYER.invulnerableAfterHitMs;
+      playSfx("shieldBlock");
       this.showFloatingText("Shield", this.player.x, this.player.y - 34, "#8fd694");
       this.player.setTint(0x8fd694);
       this.time.delayedCall(120, () => this.player.clearTint());
@@ -778,6 +787,8 @@ export class CombatScene extends Phaser.Scene {
 
     this.playerHealth = Math.max(0, this.playerHealth - amount);
     this.playerInvulnerableMs = PLAYER.invulnerableAfterHitMs;
+    playSfx("playerHurt");
+    this.cameras.main.shake(130, 0.004);
     this.showFloatingText(`${amount}`, this.player.x, this.player.y - 34, "#f18f6f");
     this.player.setTint(0xf7d06e);
     this.tweens.add({
@@ -802,6 +813,7 @@ export class CombatScene extends Phaser.Scene {
     if (this.playerHealth <= 0) {
       this.roomState = "lost";
       this.player.setVelocity(0, 0);
+      playSfx("defeat");
       setPlayerHealth(0);
       failRun("The player was defeated inside a time fracture.");
       this.showResultPanel(
@@ -817,6 +829,7 @@ export class CombatScene extends Phaser.Scene {
     if (this.enemies.length === 0) {
       this.roomState = "won";
       this.player.setVelocity(0, 0);
+      playSfx("victory");
       setPlayerHealth(this.playerHealth);
 
       if (this.nodeType === "boss") {
@@ -1076,7 +1089,10 @@ export class CombatScene extends Phaser.Scene {
     restartButton.setStrokeStyle(2, 0x8be9fd, 0.8);
     restartButton.setDepth(31);
     restartButton.setInteractive({ useHandCursor: true });
-    restartButton.on("pointerup", () => this.advanceAfterResult());
+    restartButton.on("pointerup", () => {
+      playSfx("uiClick");
+      this.advanceAfterResult();
+    });
 
     const restartText = this.add.text(640, 414, "Continue", {
       align: "center",

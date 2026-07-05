@@ -33,6 +33,10 @@
 - Added corruption thresholds, Corrupted rewards, and Corrupted Signal residue.
 - Added Stage 6A web shell execution record.
 - Added MainMenuScene with local timeline summary and reset save action.
+- Added Stage 6B settings and audio execution record.
+- Added local settings storage with sound toggle and volume steps.
+- Added runtime-synthesized sound effects for UI clicks, combat actions, time skills, and run results.
+- Added main menu Sound and Volume buttons.
 
 ### Changed
 
@@ -46,3 +50,4 @@
 - Changed MapScene and SummaryScene to show Timeline Report and generated residues.
 - Changed CombatScene, MapScene, RewardScene, and SummaryScene to display or apply corruption state.
 - Changed game startup flow to begin at MainMenuScene before creating a run.
+- Changed CombatScene to add a light camera shake when the player takes damage.

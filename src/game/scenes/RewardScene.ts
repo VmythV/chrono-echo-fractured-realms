@@ -3,6 +3,7 @@ import { formatCorruptionState } from "../../core/meta/corruption";
 import { applyReward, completeNode, getNodeById, getRewards, getRun } from "../../core/run/run-manager";
 import { getRuleSlotText } from "../../core/run/reward-catalog";
 import type { RewardContext, RewardKind } from "../../core/run/run-state";
+import { playSfx } from "../audio/sfx";
 
 type RewardSceneData = {
   nodeId: string;
@@ -100,6 +101,7 @@ export class RewardScene extends Phaser.Scene {
   }
 
   private chooseReward(rewardId: string): void {
+    playSfx("uiClick");
     applyReward(rewardId, this.context);
     completeNode(this.nodeId);
     this.scene.start("MapScene");

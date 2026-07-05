@@ -3,6 +3,7 @@ import { formatCorruptionCombatEffect, formatCorruptionState } from "../../core/
 import { getCurrentAvailableNodes, getRun, selectNode, startNewRun } from "../../core/run/run-manager";
 import { getRuleSlotText } from "../../core/run/reward-catalog";
 import type { NodeType, RunNode } from "../../core/run/run-state";
+import { playSfx } from "../audio/sfx";
 
 const NODE_COLORS: Record<NodeType, number> = {
   combat: 0x5a7288,
@@ -125,6 +126,7 @@ export class MapScene extends Phaser.Scene {
   }
 
   private enterNode(nodeId: string): void {
+    playSfx("uiClick");
     const node = selectNode(nodeId);
 
     if (node.type === "combat" || node.type === "elite" || node.type === "boss") {
@@ -140,6 +142,7 @@ export class MapScene extends Phaser.Scene {
     button.setStrokeStyle(2, 0x5a7288, 1);
     button.setInteractive({ useHandCursor: true });
     button.on("pointerup", () => {
+      playSfx("uiClick");
       startNewRun();
       this.scene.restart();
     });
