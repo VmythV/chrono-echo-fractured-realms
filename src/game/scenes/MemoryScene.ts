@@ -3,6 +3,7 @@ import { t } from "../../core/i18n";
 import { getMemoryNodeStatus, MEMORY_TREE, unlockMemoryNode, type MemoryNode } from "../../core/meta/memory-tree";
 import { loadSaveData } from "../../core/meta/save-state";
 import { playSfx } from "../audio/sfx";
+import { fadeInScene, transitionTo } from "../scene-transitions";
 
 const NODE_POSITIONS: Record<MemoryNode["id"], { x: number; y: number }> = {
   vitality: { x: 250, y: 260 },
@@ -18,6 +19,7 @@ export class MemoryScene extends Phaser.Scene {
   }
 
   create(): void {
+    fadeInScene(this);
     const saveData = loadSaveData();
 
     this.add.rectangle(640, 360, 1280, 720, 0x10151c);
@@ -125,7 +127,7 @@ export class MemoryScene extends Phaser.Scene {
     button.on("pointerout", () => button.setStrokeStyle(2, 0x8be9fd, 1));
     button.on("pointerup", () => {
       playSfx("uiClick");
-      this.scene.start("MainMenuScene");
+      transitionTo(this, "MainMenuScene");
     });
 
     this.add.text(191, 630, t("common.back"), {

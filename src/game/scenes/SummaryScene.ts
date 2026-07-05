@@ -10,6 +10,7 @@ import {
 import { getRun, startNewRun } from "../../core/run/run-manager";
 import { getRuleSlotText } from "../../core/run/reward-catalog";
 import { playSfx } from "../audio/sfx";
+import { fadeInScene, transitionTo } from "../scene-transitions";
 
 export class SummaryScene extends Phaser.Scene {
   constructor() {
@@ -17,6 +18,7 @@ export class SummaryScene extends Phaser.Scene {
   }
 
   create(): void {
+    fadeInScene(this);
     const run = getRun();
     const won = run.result === "won";
     const generatedResidues = finalizeRunResidues(run);
@@ -71,14 +73,14 @@ export class SummaryScene extends Phaser.Scene {
     }).setOrigin(0.5, 0.5);
 
     this.createButton(522, 590, t("summary.startNewRun"), 0x263746, 0x8be9fd, () => this.startNextRun());
-    this.createButton(758, 590, t("summary.mainMenu"), 0x18222c, 0x5a7288, () => this.scene.start("MainMenuScene"));
+    this.createButton(758, 590, t("summary.mainMenu"), 0x18222c, 0x5a7288, () => transitionTo(this, "MainMenuScene"));
 
     this.input.keyboard?.once("keydown-R", () => this.startNextRun());
   }
 
   private startNextRun(): void {
     startNewRun();
-    this.scene.start("MapScene");
+    transitionTo(this, "MapScene");
   }
 
   private createButton(

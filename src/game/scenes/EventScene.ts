@@ -8,6 +8,7 @@ import {
 } from "../../core/run/event-catalog";
 import { completeNode, getNodeById, getRun } from "../../core/run/run-manager";
 import { playSfx } from "../audio/sfx";
+import { fadeInScene, transitionTo } from "../scene-transitions";
 
 type EventSceneData = {
   nodeId: string;
@@ -25,6 +26,7 @@ export class EventScene extends Phaser.Scene {
   }
 
   create(): void {
+    fadeInScene(this);
     const run = getRun();
     const node = getNodeById(this.nodeId);
     const event = node ? getEventForNode(node) : getEventForNode({ id: "", depth: 0, lane: 0, type: "event", label: "" });
@@ -103,6 +105,6 @@ export class EventScene extends Phaser.Scene {
   private chooseOption(event: ParadoxEvent, optionId: "a" | "b"): void {
     applyEventOption(event, optionId, getRun());
     completeNode(this.nodeId);
-    this.scene.start("MapScene");
+    transitionTo(this, "MapScene");
   }
 }

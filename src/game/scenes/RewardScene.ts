@@ -5,6 +5,7 @@ import { applyReward, completeNode, getNodeById, getRewards, getRun, spendShards
 import { getRuleSlotText, SHOP_PRICES } from "../../core/run/reward-catalog";
 import type { RewardContext, RewardKind } from "../../core/run/run-state";
 import { playSfx } from "../audio/sfx";
+import { fadeInScene, transitionTo } from "../scene-transitions";
 
 type RewardSceneData = {
   nodeId: string;
@@ -32,6 +33,7 @@ export class RewardScene extends Phaser.Scene {
   }
 
   create(): void {
+    fadeInScene(this);
     const run = getRun();
     const node = getNodeById(this.nodeId);
     const choices = getRewards(this.context);
@@ -137,7 +139,7 @@ export class RewardScene extends Phaser.Scene {
     button.on("pointerup", () => {
       playSfx("uiClick");
       completeNode(this.nodeId);
-      this.scene.start("MapScene");
+      transitionTo(this, "MapScene");
     });
 
     this.add.text(640, 590, t("shop.leave"), {
@@ -157,6 +159,6 @@ export class RewardScene extends Phaser.Scene {
 
     applyReward(rewardId, this.context);
     completeNode(this.nodeId);
-    this.scene.start("MapScene");
+    transitionTo(this, "MapScene");
   }
 }

@@ -69,6 +69,10 @@
 - Added glow-baked shapes for the player, all enemies, both boss variants, and projectiles.
 - Added an aim direction arrow, rotating bolt projectiles, hit and break particle bursts, and dash afterimages.
 - Added a breathing pulse on available time tree nodes with stroke-based hover.
+- Added Stage 10B arena variety and transitions execution record.
+- Added seeded room layouts with four obstacle patterns and physics-blocking, projectile-destroying obstacles.
+- Added seeded enemy compositions by depth with randomized spawn points.
+- Added fade transitions between all main scenes via `scene-transitions.ts`.
 
 ### Changed
 
@@ -87,3 +91,4 @@
 - Changed the `__chronoEchoGame` debug handle to be exposed in packaged builds for automated verification.
 - Changed the main menu Sound and Volume buttons into a Settings entry that opens SettingsScene.
 - Changed residue, rule, corruption, and node text rendering to translate by id so saved data never shows a stale language.
+- Changed the combat arena from 780x560 to 1080x580 with the HUD floating over the battlefield.

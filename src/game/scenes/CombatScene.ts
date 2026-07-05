@@ -20,6 +20,7 @@ import {
 import { MAX_TEMPORAL_RULES } from "../../core/run/reward-catalog";
 import type { NodeType, TemporalRuleId } from "../../core/run/run-state";
 import { playSfx } from "../audio/sfx";
+import { fadeInScene, transitionTo } from "../scene-transitions";
 
 type ArcadeImage = Phaser.Physics.Arcade.Image;
 
@@ -57,11 +58,35 @@ type RewindSnapshot = {
 };
 
 const ARENA = {
-  x: 360,
-  y: 80,
-  width: 780,
-  height: 560
+  x: 100,
+  y: 70,
+  width: 1080,
+  height: 580
 };
+
+type ObstacleLayoutId = "open" | "pillars" | "corridor" | "scatter";
+
+function hashString(value: string): number {
+  let hash = 2166136261;
+
+  for (let index = 0; index < value.length; index++) {
+    hash ^= value.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+
+  return hash >>> 0;
+}
+
+function createRng(seed: number): () => number {
+  let state = seed;
+
+  return () => {
+    state = (state + 0x6d2b79f5) | 0;
+    let t = Math.imul(state ^ (state >>> 15), 1 | state);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
 const PLAYER = {
   speed: 260,
@@ -123,6 +148,9 @@ export class CombatScene extends Phaser.Scene {
   private hitEmitter!: Phaser.GameObjects.Particles.ParticleEmitter;
   private sparkEmitter!: Phaser.GameObjects.Particles.ParticleEmitter;
   private dashGhostTimerMs = 0;
+  private roomRng: () => number = Math.random;
+  private obstacleGroup!: Phaser.Physics.Arcade.StaticGroup;
+  private obstaclePoints: Array<{ x: number; y: number }> = [];
   private freezePreview!: Phaser.GameObjects.Arc;
   private rewindTrail!: Phaser.GameObjects.Graphics;
   private combatHud!: Phaser.GameObjects.Graphics;
@@ -242,9 +270,13 @@ export class CombatScene extends Phaser.Scene {
   }
 
   create(): void {
+    fadeInScene(this);
+    this.roomRng = createRng(hashString(`${getRun().seed}:${this.nodeId}`));
     this.createGeneratedTextures();
     this.createArena();
+    this.createObstacles();
     this.createPlayer();
+    this.physics.add.collider(this.player, this.obstacleGroup);
     this.createEnemies();
     this.createHud();
     this.createInput();
@@ -347,6 +379,28 @@ export class CombatScene extends Phaser.Scene {
       g.fillCircle(c, c, 7);
       g.fillStyle(0xffd9c4, 0.9);
       g.fillCircle(c, c, 3);
+    });
+
+    this.makeTexture("obstacle-round", 96, (g, c) => {
+      g.fillStyle(0xffffff, 0.06);
+      g.fillCircle(c, c, 34);
+      g.fillStyle(0x9a9a9a, 0.95);
+      g.fillCircle(c, c, 24);
+      g.lineStyle(3, 0xffffff, 0.5);
+      g.strokeCircle(c, c, 24);
+      g.fillStyle(0x565656, 0.9);
+      g.fillCircle(c, c, 13);
+    });
+
+    this.makeTexture("obstacle-block", 140, (g, c) => {
+      g.fillStyle(0xffffff, 0.06);
+      g.fillRoundedRect(c - 66, c - 26, 132, 52, 10);
+      g.fillStyle(0x9a9a9a, 0.95);
+      g.fillRoundedRect(c - 60, c - 20, 120, 40, 8);
+      g.lineStyle(3, 0xffffff, 0.5);
+      g.strokeRoundedRect(c - 60, c - 20, 120, 40, 8);
+      g.fillStyle(0x565656, 0.9);
+      g.fillRoundedRect(c - 48, c - 9, 96, 18, 5);
     });
 
     this.makeTexture("fx-soft", 18, (g, c) => {
@@ -509,19 +563,129 @@ export class CombatScene extends Phaser.Scene {
     this.playerNose.setDepth(11);
   }
 
+  private createObstacles(): void {
+    this.obstacleGroup = this.physics.add.staticGroup();
+    this.obstaclePoints = [];
+
+    if (this.nodeType === "boss") {
+      return;
+    }
+
+    const layout = this.pickObstacleLayout();
+    const cx = ARENA.x + ARENA.width / 2;
+    const cy = ARENA.y + ARENA.height / 2;
+
+    if (layout === "pillars") {
+      [[-0.25, -0.22], [0.25, -0.22], [-0.25, 0.22], [0.25, 0.22]].forEach(([fx, fy]) => {
+        this.addObstacle("obstacle-round", cx + fx * ARENA.width, cy + fy * ARENA.height, 24);
+      });
+      return;
+    }
+
+    if (layout === "corridor") {
+      this.addObstacle("obstacle-block", cx, cy - ARENA.height * 0.2, 0);
+      this.addObstacle("obstacle-block", cx, cy + ARENA.height * 0.2, 0);
+      return;
+    }
+
+    if (layout === "scatter") {
+      for (let index = 0; index < 5; index++) {
+        const x = ARENA.x + 90 + this.roomRng() * (ARENA.width - 180);
+        const y = ARENA.y + 80 + this.roomRng() * (ARENA.height - 220);
+        const nearPlayerSpawn =
+          Phaser.Math.Distance.Between(x, y, ARENA.x + ARENA.width / 2, ARENA.y + ARENA.height - 120) < 150;
+
+        if (!nearPlayerSpawn) {
+          this.addObstacle("obstacle-round", x, y, 24);
+        }
+      }
+    }
+  }
+
+  private pickObstacleLayout(): ObstacleLayoutId {
+    const layouts: ObstacleLayoutId[] = ["open", "pillars", "corridor", "scatter"];
+    return layouts[Math.floor(this.roomRng() * layouts.length)];
+  }
+
+  private addObstacle(texture: string, x: number, y: number, circleRadius: number): void {
+    const obstacle = this.obstacleGroup.create(x, y, texture) as Phaser.Physics.Arcade.Image;
+    obstacle.setTint(this.roomTheme.accent);
+    obstacle.setAlpha(0.85);
+    obstacle.setDepth(4);
+
+    const body = obstacle.body as Phaser.Physics.Arcade.StaticBody;
+
+    if (circleRadius > 0) {
+      body.setCircle(circleRadius + 2, obstacle.width / 2 - circleRadius - 2, obstacle.height / 2 - circleRadius - 2);
+    } else {
+      body.setSize(124, 44);
+    }
+
+    this.obstaclePoints.push({ x, y });
+  }
+
   private createEnemies(): void {
     if (this.nodeType === "boss") {
       this.spawnEnemy("boss", ARENA.x + ARENA.width / 2, ARENA.y + 130);
       return;
     }
 
-    this.spawnEnemy("chaser", ARENA.x + 210, ARENA.y + 250);
-    this.spawnEnemy(this.nodeDepth >= 3 ? "anomaly" : "chaser", ARENA.x + ARENA.width - 210, ARENA.y + 265);
-    this.spawnEnemy("shooter", ARENA.x + ARENA.width / 2, ARENA.y + 100);
+    const composition = this.buildComposition();
+    const placed: Array<{ x: number; y: number }> = [];
+
+    composition.forEach((kind) => {
+      const point = this.pickSpawnPoint(placed);
+      placed.push(point);
+      this.spawnEnemy(kind, point.x, point.y);
+    });
+  }
+
+  private buildComposition(): EnemyKind[] {
+    const shallowPools: EnemyKind[][] = [
+      ["chaser", "chaser", "shooter"],
+      ["chaser", "shooter"],
+      ["chaser", "chaser", "chaser"]
+    ];
+    const middlePools: EnemyKind[][] = [
+      ["chaser", "chaser", "shooter"],
+      ["chaser", "shooter", "shooter"],
+      ["chaser", "shooter", "anomaly"],
+      ["chaser", "chaser", "anomaly"]
+    ];
+    const deepPools: EnemyKind[][] = [
+      ["chaser", "chaser", "shooter", "anomaly"],
+      ["chaser", "shooter", "shooter", "anomaly"],
+      ["chaser", "chaser", "shooter", "shooter"],
+      ["anomaly", "anomaly", "chaser", "shooter"]
+    ];
+    const pools = this.nodeDepth <= 1 ? shallowPools : this.nodeDepth <= 3 ? middlePools : deepPools;
+    const composition = [...pools[Math.floor(this.roomRng() * pools.length)]];
 
     if (this.nodeType === "elite") {
-      this.spawnEnemy("anomaly", ARENA.x + ARENA.width / 2, ARENA.y + 330);
+      composition.push("anomaly");
     }
+
+    return composition;
+  }
+
+  private pickSpawnPoint(placed: Array<{ x: number; y: number }>): { x: number; y: number } {
+    const playerSpawn = { x: ARENA.x + ARENA.width / 2, y: ARENA.y + ARENA.height - 120 };
+
+    for (let attempt = 0; attempt < 24; attempt++) {
+      const x = ARENA.x + 70 + this.roomRng() * (ARENA.width - 140);
+      const y = ARENA.y + 60 + this.roomRng() * (ARENA.height * 0.5 - 60);
+      const farFromPlayer = Phaser.Math.Distance.Between(x, y, playerSpawn.x, playerSpawn.y) >= 280;
+      const farFromOthers = placed.every((point) => Phaser.Math.Distance.Between(x, y, point.x, point.y) >= 90);
+      const farFromObstacles = this.obstaclePoints.every(
+        (point) => Phaser.Math.Distance.Between(x, y, point.x, point.y) >= 85
+      );
+
+      if (farFromPlayer && farFromOthers && farFromObstacles) {
+        return { x, y };
+      }
+    }
+
+    return { x: ARENA.x + ARENA.width / 2, y: ARENA.y + 90 };
   }
 
   private spawnEnemy(kind: EnemyKind, x: number, y: number): void {
@@ -536,6 +700,7 @@ export class CombatScene extends Phaser.Scene {
     sprite.setCircle(bodyRadius, bodyRadius, bodyRadius);
     sprite.setCollideWorldBounds(true);
     sprite.setDepth(8);
+    this.physics.add.collider(sprite, this.obstacleGroup);
 
     if (kind === "anomaly") {
       this.tweens.add({
@@ -721,7 +886,7 @@ export class CombatScene extends Phaser.Scene {
     menuButton.on("pointerup", () => {
       playSfx("uiClick");
       this.physics.world.resume();
-      this.scene.start("MainMenuScene");
+      transitionTo(this, "MainMenuScene");
     });
 
     const menuText = this.add.text(640, 446, t("summary.mainMenu"), {
@@ -900,6 +1065,7 @@ export class CombatScene extends Phaser.Scene {
     projectile.setVelocity(direction.x * PLAYER.attackSpeed, direction.y * PLAYER.attackSpeed);
     projectile.setRotation(Math.atan2(direction.y, direction.x));
     projectile.setDepth(9);
+    this.addObstacleHit(projectile);
     this.projectiles.push({
       sprite: projectile,
       owner: "player",
@@ -938,6 +1104,7 @@ export class CombatScene extends Phaser.Scene {
       projectile.setRotation(baseAngle + offset);
       projectile.setDepth(9);
       projectile.setTint(0x9a8cf0);
+      this.addObstacleHit(projectile);
       this.projectiles.push({
         sprite: projectile,
         owner: "player",
@@ -1260,12 +1427,22 @@ export class CombatScene extends Phaser.Scene {
     projectile.setCircle(7, 7, 7);
     projectile.setVelocity(direction.x * speed, direction.y * speed);
     projectile.setDepth(9);
+    this.addObstacleHit(projectile);
     this.projectiles.push({
       sprite: projectile,
       owner: "enemy",
       damage,
       frozenMs: 0,
       lifespanMs: 1800
+    });
+  }
+
+  private addObstacleHit(projectile: ArcadeImage): void {
+    this.physics.add.overlap(projectile, this.obstacleGroup, () => {
+      if (projectile.active) {
+        this.hitEmitter.explode(4, projectile.x, projectile.y);
+        projectile.destroy();
+      }
     });
   }
 
@@ -1739,11 +1916,11 @@ export class CombatScene extends Phaser.Scene {
 
   private advanceAfterResult(): void {
     if (this.resultMode === "summary") {
-      this.scene.start("SummaryScene");
+      transitionTo(this, "SummaryScene");
       return;
     }
 
-    this.scene.start("RewardScene", {
+    transitionTo(this, "RewardScene", {
       nodeId: this.nodeId,
       context: this.nodeType === "elite" ? "elite" : "combat"
     });

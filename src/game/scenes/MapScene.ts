@@ -7,6 +7,7 @@ import { getCurrentAvailableNodes, getRun, saveRunSnapshot, selectNode, startNew
 import { getRuleSlotText } from "../../core/run/reward-catalog";
 import type { NodeType, RunNode } from "../../core/run/run-state";
 import { playSfx } from "../audio/sfx";
+import { fadeInScene, transitionTo } from "../scene-transitions";
 
 const NODE_COLORS: Record<NodeType, number> = {
   combat: 0x5a7288,
@@ -31,6 +32,7 @@ export class MapScene extends Phaser.Scene {
     }
 
     saveRunSnapshot();
+    fadeInScene(this);
 
     this.add.rectangle(640, 360, 1280, 720, 0x10151c);
     this.add.text(40, 28, t("map.title"), {
@@ -148,16 +150,16 @@ export class MapScene extends Phaser.Scene {
     const node = selectNode(nodeId);
 
     if (node.type === "combat" || node.type === "elite" || node.type === "boss") {
-      this.scene.start("CombatScene", { nodeId: node.id });
+      transitionTo(this, "CombatScene", { nodeId: node.id });
       return;
     }
 
     if (node.type === "event") {
-      this.scene.start("EventScene", { nodeId: node.id });
+      transitionTo(this, "EventScene", { nodeId: node.id });
       return;
     }
 
-    this.scene.start("RewardScene", { nodeId: node.id, context: node.type });
+    transitionTo(this, "RewardScene", { nodeId: node.id, context: node.type });
   }
 
   private getNodeLabel(node: RunNode): string {

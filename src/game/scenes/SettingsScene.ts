@@ -10,6 +10,7 @@ import {
   type GameSettings
 } from "../../core/meta/settings";
 import { playSfx } from "../audio/sfx";
+import { fadeInScene, transitionTo } from "../scene-transitions";
 
 type SettingsButtonVariant = "primary" | "secondary";
 
@@ -24,6 +25,7 @@ export class SettingsScene extends Phaser.Scene {
   }
 
   create(): void {
+    fadeInScene(this);
     const settings = loadSettings();
 
     this.add.rectangle(640, 360, 1280, 720, 0x10151c);
@@ -54,7 +56,7 @@ export class SettingsScene extends Phaser.Scene {
       this.cycleVolumeSetting()
     );
 
-    this.createButton(76, 490, 340, 48, t("common.back"), "primary", () => this.scene.start("MainMenuScene"));
+    this.createButton(76, 490, 340, 48, t("common.back"), "primary", () => transitionTo(this, "MainMenuScene"));
 
     this.add.text(76, 580, t("settings.note"), {
       color: "#6f8497",

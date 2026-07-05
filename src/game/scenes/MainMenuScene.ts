@@ -5,6 +5,7 @@ import { clearSaveData, loadSaveData, type SaveData } from "../../core/meta/save
 import { formatResidues } from "../../core/meta/time-residue";
 import { clearRunSnapshot, hasResumableRun, resumeSavedRun, startNewRun } from "../../core/run/run-manager";
 import { playSfx } from "../audio/sfx";
+import { fadeInScene, transitionTo } from "../scene-transitions";
 
 type MenuButtonVariant = "primary" | "secondary";
 
@@ -14,6 +15,7 @@ export class MainMenuScene extends Phaser.Scene {
   }
 
   create(): void {
+    fadeInScene(this);
     const saveData = loadSaveData();
 
     this.drawBackground();
@@ -159,16 +161,16 @@ export class MainMenuScene extends Phaser.Scene {
       this.startRun()
     );
     y += resumable ? 60 : 68;
-    this.createButton(76, y, 230, 42, t("menu.memoryTree"), "secondary", () => this.scene.start("MemoryScene"));
+    this.createButton(76, y, 230, 42, t("menu.memoryTree"), "secondary", () => transitionTo(this, "MemoryScene"));
     y += 60;
-    this.createButton(76, y, 230, 42, t("menu.settings"), "secondary", () => this.scene.start("SettingsScene"));
+    this.createButton(76, y, 230, 42, t("menu.settings"), "secondary", () => transitionTo(this, "SettingsScene"));
     y += 60;
     this.createButton(76, y, 230, 42, t("menu.resetSave"), "secondary", () => this.resetSave());
   }
 
   private continueRun(): void {
     if (resumeSavedRun()) {
-      this.scene.start("MapScene");
+      transitionTo(this, "MapScene");
       return;
     }
 
@@ -207,7 +209,7 @@ export class MainMenuScene extends Phaser.Scene {
 
   private startRun(): void {
     startNewRun();
-    this.scene.start("MapScene");
+    transitionTo(this, "MapScene");
   }
 
   private resetSave(): void {
