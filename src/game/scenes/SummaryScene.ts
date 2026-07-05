@@ -11,6 +11,7 @@ import { getRun, startNewRun } from "../../core/run/run-manager";
 import { getRuleSlotText } from "../../core/run/reward-catalog";
 import { playSfx } from "../audio/sfx";
 import { DISPLAY_FONT } from "../display";
+import { makePixelButton } from "../pixel-ui";
 import { fadeInScene, transitionTo } from "../scene-transitions";
 
 export class SummaryScene extends Phaser.Scene {
@@ -24,12 +25,12 @@ export class SummaryScene extends Phaser.Scene {
     const won = run.result === "won";
     const generatedResidues = finalizeRunResidues(run);
 
-    this.add.rectangle(640, 360, 1280, 720, 0x10151c);
+    this.add.rectangle(640, 360, 1280, 720, 0x1a1c2c);
     this.add.text(640, 96, won ? t("summary.wonTitle") : t("result.lostTitle"), {
       align: "center",
       color: "#f7f3e8",
       fontFamily: DISPLAY_FONT,
-      fontSize: "40px"
+      fontSize: "22px"
     }).setOrigin(0.5, 0.5);
 
     const summaryReason = isTranslationKey(run.summaryReason) ? t(run.summaryReason) : run.summaryReason;
@@ -89,15 +90,10 @@ export class SummaryScene extends Phaser.Scene {
     y: number,
     label: string,
     fill: number,
-    stroke: number,
+    _stroke: number,
     onClick: () => void
   ): void {
-    const button = this.add.rectangle(x, y, 210, 46, fill, 1);
-    button.setStrokeStyle(2, stroke, 0.9);
-    button.setInteractive({ useHandCursor: true });
-    button.on("pointerover", () => button.setStrokeStyle(3, 0x8be9fd, 1));
-    button.on("pointerout", () => button.setStrokeStyle(2, stroke, 0.9));
-    button.on("pointerup", () => {
+    makePixelButton(this, x, y, 210, 46, fill === 0x263746, () => {
       playSfx("uiClick");
       onClick();
     });

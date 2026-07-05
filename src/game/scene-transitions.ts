@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import { GAME_HEIGHT, GAME_WIDTH, RENDER_SCALE } from "./display";
+import { addScanlines } from "./pixel-ui";
 
 const FADE_RED = 16;
 const FADE_GREEN = 21;
@@ -14,6 +15,7 @@ export function fadeInScene(scene: Phaser.Scene): void {
   }
 
   camera.fadeIn(260, FADE_RED, FADE_GREEN, FADE_BLUE);
+  addScanlines(scene);
 }
 
 export function transitionTo(scene: Phaser.Scene, key: string, data?: object): void {

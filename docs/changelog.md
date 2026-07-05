@@ -108,3 +108,4 @@
 - Changed the run summary to top-anchored dynamic layout so the reason line and stats never overlap.
 - Fixed CJK text overflowing wrapped bounds by defaulting all wrapped text to advanced word wrap.
 - Added art direction proposals and the chosen pixel-art style sample (Stage 11A): SWEETIE-16 palette pixel sprites, tiled pixel floors, CRT scanlines, `pixelArt` rendering in the combat room.
+- Added Stage 11B pixel style rollout: global scanlines via scene transitions, Press Start 2P display font (OFL), hard-edged pixel panels and buttons across every scene, SWEETIE-16 menu decorations.

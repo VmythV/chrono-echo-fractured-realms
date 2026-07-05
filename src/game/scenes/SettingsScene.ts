@@ -11,6 +11,7 @@ import {
 } from "../../core/meta/settings";
 import { playSfx } from "../audio/sfx";
 import { DISPLAY_FONT } from "../display";
+import { makePixelButton } from "../pixel-ui";
 import { fadeInScene, transitionTo } from "../scene-transitions";
 
 type SettingsButtonVariant = "primary" | "secondary";
@@ -29,11 +30,11 @@ export class SettingsScene extends Phaser.Scene {
     fadeInScene(this);
     const settings = loadSettings();
 
-    this.add.rectangle(640, 360, 1280, 720, 0x10151c);
+    this.add.rectangle(640, 360, 1280, 720, 0x1a1c2c);
     this.add.text(72, 76, t("settings.title"), {
       color: "#f7f3e8",
       fontFamily: DISPLAY_FONT,
-      fontSize: "42px"
+      fontSize: "24px"
     });
 
     this.difficultyButtonText = this.createButton(76, 190, 340, 48, this.getDifficultyLabel(settings), "secondary", () =>
@@ -113,15 +114,8 @@ export class SettingsScene extends Phaser.Scene {
     variant: SettingsButtonVariant,
     onClick: () => void
   ): Phaser.GameObjects.Text {
-    const fill = variant === "primary" ? 0x263746 : 0x18222c;
-    const stroke = variant === "primary" ? 0x8be9fd : 0x5a7288;
-    const textColor = variant === "primary" ? "#f7f3e8" : "#cbd7e2";
-    const button = this.add.rectangle(x, y, width, height, fill, 1).setOrigin(0, 0);
-    button.setStrokeStyle(2, stroke, 1);
-    button.setInteractive({ useHandCursor: true });
-    button.on("pointerover", () => button.setStrokeStyle(3, 0x8be9fd, 1));
-    button.on("pointerout", () => button.setStrokeStyle(2, stroke, 1));
-    button.on("pointerup", () => {
+    const textColor = variant === "primary" ? "#f4f4f4" : "#94b0c2";
+    makePixelButton(this, x + width / 2, y + height / 2, width, height, variant === "primary", () => {
       playSfx("uiClick");
       onClick();
     });

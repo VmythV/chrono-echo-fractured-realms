@@ -6,6 +6,7 @@ import { formatResidues } from "../../core/meta/time-residue";
 import { clearRunSnapshot, hasResumableRun, resumeSavedRun, startNewRun } from "../../core/run/run-manager";
 import { playSfx } from "../audio/sfx";
 import { DISPLAY_FONT } from "../display";
+import { makePixelButton } from "../pixel-ui";
 import { fadeInScene, transitionTo } from "../scene-transitions";
 
 type MenuButtonVariant = "primary" | "secondary";
@@ -36,13 +37,13 @@ export class MainMenuScene extends Phaser.Scene {
   }
 
   private drawBackground(): void {
-    this.add.rectangle(640, 360, 1280, 720, 0x10151c);
+    this.add.rectangle(640, 360, 1280, 720, 0x1a1c2c);
 
     const graphics = this.add.graphics();
-    graphics.lineStyle(2, 0x263746, 0.68);
+    graphics.lineStyle(2, 0x29366f, 0.68);
     graphics.beginPath();
     graphics.moveTo(110, 570);
-    graphics.lineTo(284, 458);
+    graphics.lineTo(360, 486);
     graphics.lineTo(452, 494);
     graphics.lineTo(636, 338);
     graphics.lineTo(812, 470);
@@ -51,13 +52,13 @@ export class MainMenuScene extends Phaser.Scene {
     graphics.strokePath();
 
     [
-      [110, 570, 14, 0x6edbd6],
-      [284, 458, 20, 0x8fd694],
-      [452, 494, 16, 0xd5b65f],
-      [636, 338, 24, 0x8be9fd],
-      [812, 470, 17, 0xf18f6f],
-      [1014, 520, 26, 0xb57be8],
-      [1168, 448, 14, 0x6edbd6]
+      [110, 570, 14, 0x73eff7],
+      [360, 486, 20, 0xa7f070],
+      [452, 494, 16, 0xffcd75],
+      [636, 338, 24, 0x41a6f6],
+      [812, 470, 17, 0xb13e53],
+      [1014, 520, 26, 0x3b5dc9],
+      [1168, 448, 14, 0x73eff7]
     ].forEach(([x, y, radius, color], index) => {
       const node = this.add.circle(x, y, radius, color, 0.2);
       node.setStrokeStyle(2, color, 0.82);
@@ -102,24 +103,24 @@ export class MainMenuScene extends Phaser.Scene {
         alpha: { start: 0.16, end: 0 },
         scale: { start: 0.8, end: 0.2 },
         frequency: 300,
-        tint: [0x8be9fd, 0x6edbd6, 0xb57be8],
+        tint: [0x73eff7, 0xa7f070, 0x3b5dc9],
         blendMode: "ADD"
       })
       .setDepth(1);
 
-    this.add.rectangle(640, 360, 1280, 720, 0x10151c, 0.3);
+    this.add.rectangle(640, 360, 1280, 720, 0x1a1c2c, 0.3);
   }
 
   private drawTitle(): void {
     this.add.text(72, 76, "Chrono Echo", {
       color: "#f7f3e8",
       fontFamily: DISPLAY_FONT,
-      fontSize: "54px"
+      fontSize: "30px"
     });
     this.add.text(76, 136, "Fractured Realms", {
       color: "#8be9fd",
       fontFamily: DISPLAY_FONT,
-      fontSize: "24px"
+      fontSize: "13px"
     });
     this.add.text(76, 184, t("menu.tagline"), {
       color: "#cbd7e2",
@@ -229,15 +230,8 @@ export class MainMenuScene extends Phaser.Scene {
     variant: MenuButtonVariant,
     onClick: () => void
   ): Phaser.GameObjects.Text {
-    const fill = variant === "primary" ? 0x263746 : 0x18222c;
-    const stroke = variant === "primary" ? 0x8be9fd : 0x5a7288;
-    const textColor = variant === "primary" ? "#f7f3e8" : "#cbd7e2";
-    const button = this.add.rectangle(x, y, width, height, fill, 1).setOrigin(0, 0);
-    button.setStrokeStyle(2, stroke, 1);
-    button.setInteractive({ useHandCursor: true });
-    button.on("pointerover", () => button.setStrokeStyle(3, 0x8be9fd, 1));
-    button.on("pointerout", () => button.setStrokeStyle(2, stroke, 1));
-    button.on("pointerup", () => {
+    const textColor = variant === "primary" ? "#f4f4f4" : "#94b0c2";
+    makePixelButton(this, x + width / 2, y + height / 2, width, height, variant === "primary", () => {
       playSfx("uiClick");
       onClick();
     });

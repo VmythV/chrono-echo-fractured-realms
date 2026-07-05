@@ -4,6 +4,7 @@ import { getMemoryNodeStatus, MEMORY_TREE, unlockMemoryNode, type MemoryNode } f
 import { loadSaveData } from "../../core/meta/save-state";
 import { playSfx } from "../audio/sfx";
 import { DISPLAY_FONT } from "../display";
+import { drawPixelPanel, makePixelButton, PIXEL_UI } from "../pixel-ui";
 import { fadeInScene, transitionTo } from "../scene-transitions";
 
 const NODE_POSITIONS: Record<MemoryNode["id"], { x: number; y: number }> = {
@@ -23,11 +24,11 @@ export class MemoryScene extends Phaser.Scene {
     fadeInScene(this);
     const saveData = loadSaveData();
 
-    this.add.rectangle(640, 360, 1280, 720, 0x10151c);
+    this.add.rectangle(640, 360, 1280, 720, 0x1a1c2c);
     this.add.text(72, 56, t("memory.title"), {
       color: "#f7f3e8",
       fontFamily: DISPLAY_FONT,
-      fontSize: "42px"
+      fontSize: "24px"
     });
     this.add.text(76, 118, t("memory.balance", { count: saveData.memories }), {
       color: "#d5b65f",
@@ -62,15 +63,15 @@ export class MemoryScene extends Phaser.Scene {
     const unlocked = status === "unlocked";
     const available = status === "available";
 
-    const card = this.add.rectangle(
+    const card = drawPixelPanel(
+      this,
       position.x,
       position.y,
       320,
       156,
-      unlocked ? 0x1c2f33 : available ? 0x18222c : 0x131a22,
-      1
+      unlocked ? 0x1d3b46 : available ? PIXEL_UI.panelDark : 0x14151f,
+      unlocked ? 0x38b764 : available ? PIXEL_UI.accent : 0x333c57
     );
-    card.setStrokeStyle(2, unlocked ? 0x6edbd6 : available ? 0x8be9fd : 0x2f4053, 1);
 
     this.add.text(position.x, position.y - 50, t(`memory.${node.id}.title`), {
       align: "center",
@@ -108,10 +109,10 @@ export class MemoryScene extends Phaser.Scene {
       return;
     }
 
-    card.setInteractive({ useHandCursor: true });
-    card.on("pointerover", () => card.setStrokeStyle(3, 0x8be9fd, 1));
-    card.on("pointerout", () => card.setStrokeStyle(2, 0x8be9fd, 1));
-    card.on("pointerup", () => {
+    card.inner.setInteractive({ useHandCursor: true });
+    card.inner.on("pointerover", () => card.frame.setFillStyle(PIXEL_UI.accentBright));
+    card.inner.on("pointerout", () => card.frame.setFillStyle(PIXEL_UI.accent));
+    card.inner.on("pointerup", () => {
       playSfx("uiClick");
 
       if (unlockMemoryNode(node.id)) {
@@ -121,12 +122,7 @@ export class MemoryScene extends Phaser.Scene {
   }
 
   private drawBackButton(): void {
-    const button = this.add.rectangle(76, 606, 230, 48, 0x263746, 1).setOrigin(0, 0);
-    button.setStrokeStyle(2, 0x8be9fd, 1);
-    button.setInteractive({ useHandCursor: true });
-    button.on("pointerover", () => button.setStrokeStyle(3, 0x8be9fd, 1));
-    button.on("pointerout", () => button.setStrokeStyle(2, 0x8be9fd, 1));
-    button.on("pointerup", () => {
+    makePixelButton(this, 191, 630, 230, 48, true, () => {
       playSfx("uiClick");
       transitionTo(this, "MainMenuScene");
     });

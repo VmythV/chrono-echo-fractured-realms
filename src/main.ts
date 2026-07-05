@@ -108,7 +108,7 @@ function patchTextDefaults(): void {
 async function boot(): Promise<void> {
   try {
     await Promise.race([
-      document.fonts.load('700 32px "Orbitron"'),
+      Promise.all([document.fonts.load('700 32px "Orbitron"'), document.fonts.load('16px "Press Start 2P"')]),
       new Promise((resolve) => setTimeout(resolve, 1500))
     ]);
   } catch {

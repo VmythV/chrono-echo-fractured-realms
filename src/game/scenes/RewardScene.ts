@@ -6,6 +6,7 @@ import { getRuleSlotText, SHOP_PRICES } from "../../core/run/reward-catalog";
 import type { RewardContext, RewardKind } from "../../core/run/run-state";
 import { playSfx } from "../audio/sfx";
 import { DISPLAY_FONT } from "../display";
+import { drawPixelPanel, makePixelButton, PIXEL_UI } from "../pixel-ui";
 import { fadeInScene, transitionTo } from "../scene-transitions";
 
 type RewardSceneData = {
@@ -42,11 +43,11 @@ export class RewardScene extends Phaser.Scene {
       ? t("reward.title", { label: node.type === "boss" ? t("node.bossName") : t(`node.${node.type}`) })
       : t("reward.fallbackTitle");
 
-    this.add.rectangle(640, 360, 1280, 720, 0x10151c);
+    this.add.rectangle(640, 360, 1280, 720, 0x1a1c2c);
     this.add.text(64, 46, title, {
       color: "#f7f3e8",
       fontFamily: DISPLAY_FONT,
-      fontSize: "32px"
+      fontSize: "18px"
     });
     this.add.text(64, 92, t("common.health", { current: run.player.health, max: run.player.maxHealth }), {
       color: "#cbd7e2",
@@ -75,14 +76,21 @@ export class RewardScene extends Phaser.Scene {
       const x = 300 + index * 320;
       const price = SHOP_PRICES[choice.kind];
       const affordable = !isShop || run.shards >= price;
-      const card = this.add.rectangle(x, 372, 272, 292, affordable ? 0x18222c : 0x131a22, 1);
-      card.setStrokeStyle(2, affordable ? 0x5a7288 : 0x2f4053, 1);
+      const card = drawPixelPanel(
+        this,
+        x,
+        372,
+        272,
+        292,
+        affordable ? PIXEL_UI.panelDark : 0x14151f,
+        affordable ? PIXEL_UI.border : 0x333c57
+      );
 
       if (affordable) {
-        card.setInteractive({ useHandCursor: true });
-        card.on("pointerover", () => card.setStrokeStyle(3, 0x8be9fd, 1));
-        card.on("pointerout", () => card.setStrokeStyle(2, 0x5a7288, 1));
-        card.on("pointerup", () => this.chooseReward(choice.id, isShop ? price : 0));
+        card.inner.setInteractive({ useHandCursor: true });
+        card.inner.on("pointerover", () => card.frame.setFillStyle(PIXEL_UI.accentBright));
+        card.inner.on("pointerout", () => card.frame.setFillStyle(PIXEL_UI.border));
+        card.inner.on("pointerup", () => this.chooseReward(choice.id, isShop ? price : 0));
       }
 
       const titleKey = `reward.${choice.id}.title`;
@@ -132,12 +140,7 @@ export class RewardScene extends Phaser.Scene {
   }
 
   private drawLeaveButton(): void {
-    const button = this.add.rectangle(640, 590, 190, 44, 0x18222c, 1);
-    button.setStrokeStyle(2, 0x5a7288, 1);
-    button.setInteractive({ useHandCursor: true });
-    button.on("pointerover", () => button.setStrokeStyle(3, 0x8be9fd, 1));
-    button.on("pointerout", () => button.setStrokeStyle(2, 0x5a7288, 1));
-    button.on("pointerup", () => {
+    makePixelButton(this, 640, 590, 190, 44, false, () => {
       playSfx("uiClick");
       completeNode(this.nodeId);
       transitionTo(this, "MapScene");

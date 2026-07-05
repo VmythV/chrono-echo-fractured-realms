@@ -15,6 +15,7 @@ import { getRuleSlotText } from "../../core/run/reward-catalog";
 import type { NodeType, RunNode } from "../../core/run/run-state";
 import { playSfx } from "../audio/sfx";
 import { DISPLAY_FONT } from "../display";
+import { makePixelButton } from "../pixel-ui";
 import { fadeInScene, transitionTo } from "../scene-transitions";
 
 const NODE_COLORS: Record<NodeType, number> = {
@@ -42,11 +43,11 @@ export class MapScene extends Phaser.Scene {
     saveRunSnapshot();
     fadeInScene(this);
 
-    this.add.rectangle(640, 360, 1280, 720, 0x10151c);
+    this.add.rectangle(640, 360, 1280, 720, 0x1a1c2c);
     this.add.text(40, 28, t("map.title"), {
       color: "#f7f3e8",
       fontFamily: DISPLAY_FONT,
-      fontSize: "32px"
+      fontSize: "18px"
     });
     this.add.text(40, 72, t("common.health", { current: run.player.health, max: run.player.maxHealth }), {
       color: "#cbd7e2",
@@ -228,10 +229,7 @@ export class MapScene extends Phaser.Scene {
   }
 
   private drawStartOverButton(): void {
-    const button = this.add.rectangle(1148, 48, 156, 38, 0x263746, 1);
-    button.setStrokeStyle(2, 0x5a7288, 1);
-    button.setInteractive({ useHandCursor: true });
-    button.on("pointerup", () => {
+    makePixelButton(this, 1148, 48, 156, 38, false, () => {
       playSfx("uiClick");
       startNewRun();
       this.scene.restart();

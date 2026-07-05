@@ -21,6 +21,7 @@ import { MAX_TEMPORAL_RULES } from "../../core/run/reward-catalog";
 import type { NodeType, TemporalRuleId } from "../../core/run/run-state";
 import { playSfx } from "../audio/sfx";
 import { DISPLAY_FONT } from "../display";
+import { drawPixelPanel, makePixelButton, PIXEL_UI } from "../pixel-ui";
 import { fadeInScene, transitionTo } from "../scene-transitions";
 
 type ArcadeImage = Phaser.Physics.Arcade.Image;
@@ -512,9 +513,6 @@ export class CombatScene extends Phaser.Scene {
     this.createHud();
     this.createInput();
     this.physics.world.setBounds(ARENA.x, ARENA.y, ARENA.width, ARENA.height);
-    const scanlines = this.add.tileSprite(640, 360, 1280, 720, "fx-scanline");
-    scanlines.setDepth(55);
-    scanlines.setAlpha(0.45);
     this.showCorruptionStatus();
   }
 
@@ -551,10 +549,6 @@ export class CombatScene extends Phaser.Scene {
       g.fillRect(0, 0, 2, 2);
     });
 
-    this.makeTexture("fx-scanline", 3, (g) => {
-      g.fillStyle(0x000000, 0.4);
-      g.fillRect(0, 2, 3, 1);
-    });
   }
 
   private makePixelTexture(key: string, rows: string[]): void {
@@ -643,7 +637,7 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private createArena(): void {
-    this.add.rectangle(640, 360, 1280, 720, 0x10151c);
+    this.add.rectangle(640, 360, 1280, 720, 0x1a1c2c);
     this.add.rectangle(
       ARENA.x + ARENA.width / 2,
       ARENA.y + ARENA.height / 2,
@@ -983,10 +977,17 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private createHud(): void {
-    const panel = this.add.rectangle(HUD_PANEL.x, HUD_PANEL.y, HUD_PANEL.width, HUD_PANEL.height, 0x10151c, 0.92);
-    panel.setOrigin(0, 0);
-    panel.setStrokeStyle(1, 0x263746, 1);
-    panel.setDepth(19);
+    const hudPanel = drawPixelPanel(
+      this,
+      HUD_PANEL.x + HUD_PANEL.width / 2,
+      HUD_PANEL.y + HUD_PANEL.height / 2,
+      HUD_PANEL.width,
+      HUD_PANEL.height,
+      0x14151f
+    );
+    hudPanel.outer.setDepth(19);
+    hudPanel.frame.setDepth(19);
+    hudPanel.inner.setDepth(19);
     this.combatHud = this.add.graphics();
     this.combatHud.setDepth(20);
     this.enemyHud = this.add.graphics();
@@ -1066,15 +1067,16 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private createPausePanel(): void {
-    const panel = this.add.rectangle(640, 360, 400, 240, 0x10151c, 0.95);
-    panel.setStrokeStyle(2, 0x5a7288, 1);
-    panel.setDepth(40);
+    const panelParts = drawPixelPanel(this, 640, 360, 400, 240, 0x1f2436, PIXEL_UI.border);
+    panelParts.outer.setDepth(40);
+    panelParts.frame.setDepth(40);
+    panelParts.inner.setDepth(40);
 
     const title = this.add.text(640, 296, t("pause.title"), {
       align: "center",
       color: "#f7f3e8",
       fontFamily: DISPLAY_FONT,
-      fontSize: "28px"
+      fontSize: "16px"
     }).setOrigin(0.5, 0.5).setDepth(41);
 
     const hint = this.add.text(640, 338, t("pause.hint"), {
@@ -1085,14 +1087,13 @@ export class CombatScene extends Phaser.Scene {
       wordWrap: { width: 340 }
     }).setOrigin(0.5, 0.5).setDepth(41);
 
-    const resumeButton = this.add.rectangle(640, 392, 200, 42, 0x263746, 1);
-    resumeButton.setStrokeStyle(2, 0x8be9fd, 0.9);
-    resumeButton.setDepth(41);
-    resumeButton.setInteractive({ useHandCursor: true });
-    resumeButton.on("pointerup", () => {
+    const resumeParts = makePixelButton(this, 640, 392, 200, 42, true, () => {
       playSfx("uiClick");
       this.togglePause();
     });
+    resumeParts.outer.setDepth(41);
+    resumeParts.frame.setDepth(41);
+    resumeParts.inner.setDepth(41);
 
     const resumeText = this.add.text(640, 392, t("pause.resume"), {
       align: "center",
@@ -1101,15 +1102,14 @@ export class CombatScene extends Phaser.Scene {
       fontSize: "16px"
     }).setOrigin(0.5, 0.5).setDepth(42);
 
-    const menuButton = this.add.rectangle(640, 446, 200, 42, 0x18222c, 1);
-    menuButton.setStrokeStyle(2, 0x5a7288, 1);
-    menuButton.setDepth(41);
-    menuButton.setInteractive({ useHandCursor: true });
-    menuButton.on("pointerup", () => {
+    const menuParts = makePixelButton(this, 640, 446, 200, 42, false, () => {
       playSfx("uiClick");
       this.physics.world.resume();
       transitionTo(this, "MainMenuScene");
     });
+    menuParts.outer.setDepth(41);
+    menuParts.frame.setDepth(41);
+    menuParts.inner.setDepth(41);
 
     const menuText = this.add.text(640, 446, t("summary.mainMenu"), {
       align: "center",
@@ -1118,7 +1118,21 @@ export class CombatScene extends Phaser.Scene {
       fontSize: "16px"
     }).setOrigin(0.5, 0.5).setDepth(42);
 
-    this.pausePanelElements = [panel, title, hint, resumeButton, resumeText, menuButton, menuText];
+    this.pausePanelElements = [
+      panelParts.outer,
+      panelParts.frame,
+      panelParts.inner,
+      title,
+      hint,
+      resumeParts.outer,
+      resumeParts.frame,
+      resumeParts.inner,
+      resumeText,
+      menuParts.outer,
+      menuParts.frame,
+      menuParts.inner,
+      menuText
+    ];
     this.setPausePanelVisible(false);
   }
 
@@ -2142,9 +2156,10 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private createResultPanel(): void {
-    const panel = this.add.rectangle(640, 360, 420, 210, 0x10151c, 0.94);
-    panel.setStrokeStyle(2, 0x5a7288, 1);
-    panel.setDepth(30);
+    const panelParts = drawPixelPanel(this, 640, 360, 420, 210, 0x1f2436, PIXEL_UI.accent);
+    panelParts.outer.setDepth(30);
+    panelParts.frame.setDepth(30);
+    panelParts.inner.setDepth(30);
 
     const title = this.add.text(640, 310, "", {
       align: "center",
@@ -2167,14 +2182,13 @@ export class CombatScene extends Phaser.Scene {
     body.setDepth(31);
     body.setData("role", "result-body");
 
-    const restartButton = this.add.rectangle(640, 414, 190, 42, 0x263746, 1);
-    restartButton.setStrokeStyle(2, 0x8be9fd, 0.8);
-    restartButton.setDepth(31);
-    restartButton.setInteractive({ useHandCursor: true });
-    restartButton.on("pointerup", () => {
+    const restartParts = makePixelButton(this, 640, 414, 190, 42, true, () => {
       playSfx("uiClick");
       this.advanceAfterResult();
     });
+    restartParts.outer.setDepth(31);
+    restartParts.frame.setDepth(31);
+    restartParts.inner.setDepth(31);
 
     const restartText = this.add.text(640, 414, t("common.continue"), {
       align: "center",
@@ -2186,7 +2200,17 @@ export class CombatScene extends Phaser.Scene {
     restartText.setDepth(32);
     restartText.setData("role", "result-action");
 
-    this.resultPanelElements = [panel, title, body, restartButton, restartText];
+    this.resultPanelElements = [
+      panelParts.outer,
+      panelParts.frame,
+      panelParts.inner,
+      title,
+      body,
+      restartParts.outer,
+      restartParts.frame,
+      restartParts.inner,
+      restartText
+    ];
     this.setResultPanelVisible(false);
   }
 

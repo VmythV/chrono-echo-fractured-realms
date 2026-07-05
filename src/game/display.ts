@@ -6,5 +6,5 @@ export const RENDER_SCALE = Math.min(
   2
 );
 
-export const DISPLAY_FONT = '"Orbitron", Inter, Arial, sans-serif';
+export const DISPLAY_FONT = '"Press Start 2P", "Orbitron", Inter, Arial, sans-serif';
 export const BODY_FONT = "Inter, Arial, sans-serif";

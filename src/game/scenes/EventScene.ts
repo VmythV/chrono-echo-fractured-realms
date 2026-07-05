@@ -9,6 +9,7 @@ import {
 import { completeNode, getNodeById, getRun } from "../../core/run/run-manager";
 import { playSfx } from "../audio/sfx";
 import { DISPLAY_FONT } from "../display";
+import { drawPixelPanel, PIXEL_UI } from "../pixel-ui";
 import { fadeInScene, transitionTo } from "../scene-transitions";
 
 type EventSceneData = {
@@ -32,11 +33,11 @@ export class EventScene extends Phaser.Scene {
     const node = getNodeById(this.nodeId);
     const event = node ? getEventForNode(node) : getEventForNode({ id: "", depth: 0, lane: 0, type: "event", label: "" });
 
-    this.add.rectangle(640, 360, 1280, 720, 0x10151c);
+    this.add.rectangle(640, 360, 1280, 720, 0x1a1c2c);
     this.add.text(64, 46, t(`event.${event.id}.title`), {
       color: "#f7f3e8",
       fontFamily: DISPLAY_FONT,
-      fontSize: "32px"
+      fontSize: "18px"
     });
     this.add.text(64, 100, t("shards.label", { count: run.shards }), {
       color: "#d5b65f",
@@ -71,8 +72,15 @@ export class EventScene extends Phaser.Scene {
     }
 
     const affordable = canChooseEventOption(option, run);
-    const card = this.add.rectangle(640, y, 720, 96, affordable ? 0x18222c : 0x131a22, 1);
-    card.setStrokeStyle(2, affordable ? 0x5a7288 : 0x2f4053, 1);
+    const card = drawPixelPanel(
+      this,
+      640,
+      y,
+      720,
+      96,
+      affordable ? PIXEL_UI.panelDark : 0x14151f,
+      affordable ? PIXEL_UI.border : 0x333c57
+    );
 
     const label = this.add.text(640, y, t(`event.${event.id}.${optionId}`), {
       align: "center",
@@ -93,10 +101,10 @@ export class EventScene extends Phaser.Scene {
       return;
     }
 
-    card.setInteractive({ useHandCursor: true });
-    card.on("pointerover", () => card.setStrokeStyle(3, 0x8be9fd, 1));
-    card.on("pointerout", () => card.setStrokeStyle(2, 0x5a7288, 1));
-    card.on("pointerup", () => {
+    card.inner.setInteractive({ useHandCursor: true });
+    card.inner.on("pointerover", () => card.frame.setFillStyle(PIXEL_UI.accentBright));
+    card.inner.on("pointerout", () => card.frame.setFillStyle(PIXEL_UI.border));
+    card.inner.on("pointerup", () => {
       playSfx("uiClick");
       this.chooseOption(event, optionId);
     });

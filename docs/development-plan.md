@@ -29,6 +29,7 @@
 | Stage 8 | 局外记忆树 | 记忆货币、永久节点、新主动技能 |
 | Stage 9 | 稳定性与可维护性 | 断点续玩、暂停、冒烟测试 |
 | Stage 10 | 视觉识别 | 画风、主题战场、角色与攻击表现 |
+| Stage 11 | 像素画风 | 风格提案、样张、全面像素化 |
 
 ## 3. Stage 0: Baseline
 
@@ -363,7 +364,28 @@
 - `docs/stage-10d-hud-sidebar-animations.md`
 - `docs/stage-10e-route-boss-ui-fixes.md`
 
-## 14. Development Checkpoints
+## 14. Stage 11: Pixel Art Direction
+
+目标：
+
+- 依据玩家确认的画风提案（`docs/art-direction-proposals.html` 方案 A）统一全游戏为 16-bit 像素街机风。
+
+范围：
+
+- 风格提案与样张确认流程。
+- 程序生成像素精灵、主题地板、CRT 扫描线、像素字体、硬边 UI。
+
+验收标准：
+
+- 玩家确认样张后再全面铺开。
+- 玩法、物理与数值不变，冒烟测试全部通过。
+
+当前执行记录：
+
+- `docs/stage-11a-pixel-style-sample.md`
+- `docs/stage-11b-pixel-rollout.md`
+
+## 15. Development Checkpoints
 
 每个开发阶段结束前检查：
 
