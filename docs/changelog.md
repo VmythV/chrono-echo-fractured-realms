@@ -107,3 +107,4 @@
 - Changed reward cards to 272x292 with tighter typography so long shop descriptions stay inside the frame.
 - Changed the run summary to top-anchored dynamic layout so the reason line and stats never overlap.
 - Fixed CJK text overflowing wrapped bounds by defaulting all wrapped text to advanced word wrap.
+- Added art direction proposals and the chosen pixel-art style sample (Stage 11A): SWEETIE-16 palette pixel sprites, tiled pixel floors, CRT scanlines, `pixelArt` rendering in the combat room.

@@ -15,7 +15,8 @@ const config: Phaser.Types.Core.GameConfig = {
   type: Phaser.WEBGL,
   parent: "game-container",
   title: "Chrono Echo: Fractured Realms",
-  backgroundColor: "#10151c",
+  backgroundColor: "#1a1c2c",
+  pixelArt: true,
   disableContextMenu: true,
   scale: {
     mode: Phaser.Scale.FIT,

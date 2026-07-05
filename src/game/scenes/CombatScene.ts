@@ -121,6 +121,7 @@ const TIME_SKILLS = {
 };
 
 type TimelineTheme = {
+  id: string;
   floor: number;
   gridFill: number;
   gridAlt: number;
@@ -130,10 +131,229 @@ type TimelineTheme = {
 };
 
 const TIMELINE_THEMES: Record<"ancient" | "city" | "future" | "corrupted", TimelineTheme> = {
-  ancient: { floor: 0x1b1812, gridFill: 0x241f14, gridAlt: 0x201b12, gridStroke: 0x3a3222, accent: 0xd5b65f, particle: 0xd5b65f },
-  city: { floor: 0x141a21, gridFill: 0x1a2430, gridAlt: 0x18202a, gridStroke: 0x2a3644, accent: 0x8be9fd, particle: 0x8fa3b5 },
-  future: { floor: 0x0f1d1b, gridFill: 0x142622, gridAlt: 0x12211e, gridStroke: 0x1e3a34, accent: 0x6edbd6, particle: 0x6edbd6 },
-  corrupted: { floor: 0x171020, gridFill: 0x1f162c, gridAlt: 0x1b1326, gridStroke: 0x322044, accent: 0xb57be8, particle: 0xb57be8 }
+  ancient: { id: "ancient", floor: 0x1b1812, gridFill: 0x241f14, gridAlt: 0x201b12, gridStroke: 0x3a3222, accent: 0xd5b65f, particle: 0xd5b65f },
+  city: { id: "city", floor: 0x141a21, gridFill: 0x1a2430, gridAlt: 0x18202a, gridStroke: 0x2a3644, accent: 0x8be9fd, particle: 0x8fa3b5 },
+  future: { id: "future", floor: 0x0f1d1b, gridFill: 0x142622, gridAlt: 0x12211e, gridStroke: 0x1e3a34, accent: 0x6edbd6, particle: 0x6edbd6 },
+  corrupted: { id: "corrupted", floor: 0x171020, gridFill: 0x1f162c, gridAlt: 0x1b1326, gridStroke: 0x322044, accent: 0xb57be8, particle: 0xb57be8 }
+};
+
+
+const PIXEL_PALETTE: Record<string, number> = {
+  "0": 0x1a1c2c, "1": 0x5d275d, "2": 0xb13e53, "3": 0xef7d57, "4": 0xffcd75,
+  "5": 0xa7f070, "6": 0x38b764, "7": 0x257179, "8": 0x29366f, "9": 0x3b5dc9,
+  A: 0x41a6f6, B: 0x73eff7, C: 0xf4f4f4, D: 0x94b0c2, E: 0x566c86, F: 0x333c57
+};
+
+const PIXEL_SPRITES: Record<string, string[]> = {
+  "ship-player": [
+    "................",
+    ".......BB.......",
+    ".......BB.......",
+    "......ABBA......",
+    "......ABBA......",
+    ".....AABBAA.....",
+    ".....AACCAA.....",
+    "....9AACCAA9....",
+    "....9AACCAA9....",
+    "...99AAAAAA99...",
+    "...99AAAAAA99...",
+    "..8999AAAA9998..",
+    "..88999AA99988..",
+    ".88.89AAAA98.88.",
+    ".....88..88.....",
+    "................"
+  ],
+  "ship-chaser": [
+    "................",
+    "................",
+    ".2....2222....2.",
+    ".22..233332..22.",
+    "..222233332222..",
+    "...2233443322...",
+    "...2334444332...",
+    "....23444432....",
+    "....23444432....",
+    "...2334444332...",
+    "...2233333322...",
+    "..22.233332.22..",
+    ".22..233332..22.",
+    ".2....2332....2.",
+    "................",
+    "................"
+  ],
+  "ship-shooter": [
+    "................",
+    ".......44.......",
+    "......4334......",
+    ".....433334.....",
+    "....43333334....",
+    "...4333CC3334...",
+    "..43333CC33334..",
+    ".43333333333334.",
+    ".43333333333334.",
+    "..433333333334..",
+    "...4333333334...",
+    "....43333334....",
+    ".....433334.....",
+    "......4334......",
+    ".......44.......",
+    "................"
+  ],
+  "ship-anomaly": [
+    "................",
+    "................",
+    ".....99AA99.....",
+    "...99......99...",
+    "..9..........9..",
+    "..A....BB....A..",
+    ".9....BBBB....9.",
+    ".A....B99B....A.",
+    ".A....B99B....A.",
+    ".9....BBBB....9.",
+    "..A....BB....A..",
+    "..9..........9..",
+    "...99......99...",
+    ".....AA99AA.....",
+    "................",
+    "................"
+  ],
+  "ship-boss": [
+    "................",
+    ".....111111.....",
+    "...1122222211...",
+    "..112222222211..",
+    ".11222222222211.",
+    ".12222344322221.",
+    "1122234444322211",
+    "1222234CC4322221",
+    "1222234CC4322221",
+    "1122234444322211",
+    ".12222344322221.",
+    ".11222222222211.",
+    "..112222222211..",
+    "...1122222211...",
+    ".....111111.....",
+    "................"
+  ],
+  "bolt-player": [
+    ".CC.",
+    "BCCB",
+    "BCCB",
+    "BCCB",
+    "BCCB",
+    "BCCB",
+    "BBBB",
+    ".BB.",
+    ".BB."
+  ],
+  "orb-enemy": [
+    "..3333..",
+    ".344443.",
+    "34444443",
+    "344CC443",
+    "344CC443",
+    "34444443",
+    ".344443.",
+    "..3333.."
+  ],
+  meteor: [
+    "................",
+    "......DDDD......",
+    "....DDDDDDEE....",
+    "...DDDDDDDEEE...",
+    "..DDDDDDDDEEEE..",
+    "..DDDFFDDDDEEE..",
+    ".DDDFFFDDDDEEEE.",
+    ".DDDDFDDDDDEEEE.",
+    ".DDDDDDDDDDEEEE.",
+    ".EDDDDDDDDEEEEE.",
+    "..EDDDDDDEEEEE..",
+    "..EEDDDDEEEEE...",
+    "...EEEEEEEEE....",
+    ".....EEEEE......",
+    "................",
+    "................"
+  ],
+  "obstacle-block": [
+    "EEEEEEEEEEEEEEEEEEEEEEEE",
+    "EDDDDDDDDDDDDDDDDDDDDDDE",
+    "EDFFDDDDFFDDDDFFDDDDFFDE",
+    "EDFFDDDDFFDDDDFFDDDDFFDE",
+    "EDDDDDDDDDDDDDDDDDDDDDDE",
+    "EDDDDFFDDDDFFDDDDFFDDDDE",
+    "EDDDDFFDDDDFFDDDDFFDDDDE",
+    "EDDDDDDDDDDDDDDDDDDDDDDE",
+    "EDDDDDDDDDDDDDDDDDDDDDDE",
+    "EEEEEEEEEEEEEEEEEEEEEEEE"
+  ],
+  "thruster-a": [
+    ".44.",
+    "3443",
+    "3443",
+    ".33.",
+    ".3.."
+  ],
+  "thruster-b": [
+    ".44.",
+    "3443",
+    ".44.",
+    ".33.",
+    "..3."
+  ],
+  "boom-1": [
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    "......C4C.......",
+    ".....4CCC4......",
+    "......C4C.......",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................"
+  ],
+  "boom-2": [
+    "................",
+    "................",
+    ".......44.......",
+    ".....4....4.....",
+    "....4..CC..4....",
+    "...4..C44C..4...",
+    "...4..C44C..4...",
+    "....4..CC..4....",
+    ".....4....4.....",
+    ".......44.......",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................",
+    "................"
+  ],
+  "boom-3": [
+    "3......44......3",
+    "................",
+    "...3........3...",
+    "................",
+    "......3..3......",
+    "................",
+    ".3............3.",
+    "................",
+    "................",
+    ".3............3.",
+    "................",
+    "....3......3....",
+    "................",
+    "...3........3...",
+    "................",
+    "3......33......3"
+  ]
 };
 
 const MEMORY_SKILLS = {
@@ -210,22 +430,6 @@ export class CombatScene extends Phaser.Scene {
     super("CombatScene");
   }
 
-  preload(): void {
-    this.load.image("ship-player", "assets/kenney/playerShip1_blue.png");
-    this.load.image("ship-chaser", "assets/kenney/enemyRed1.png");
-    this.load.image("ship-shooter", "assets/kenney/enemyGreen2.png");
-    this.load.image("ship-anomaly", "assets/kenney/ufoBlue.png");
-    this.load.image("ship-boss", "assets/kenney/ufoRed.png");
-    this.load.image("bolt-player", "assets/kenney/laserBlue07.png");
-    this.load.image("orb-enemy", "assets/kenney/laserRed08.png");
-    this.load.image("meteor", "assets/kenney/meteorGrey_big3.png");
-    this.load.image("thruster-a", "assets/kenney/fire16.png");
-    this.load.image("thruster-b", "assets/kenney/fire17.png");
-    this.load.image("boom-1", "assets/kenney/laserRed09.png");
-    this.load.image("boom-2", "assets/kenney/laserRed10.png");
-    this.load.image("boom-3", "assets/kenney/laserRed11.png");
-  }
-
   init(data: { nodeId?: string } = {}): void {
     const run = getRun();
     const node = data.nodeId ? getNodeById(data.nodeId) : undefined;
@@ -298,8 +502,8 @@ export class CombatScene extends Phaser.Scene {
   create(): void {
     fadeInScene(this);
     this.roomRng = createRng(hashString(`${getRun().seed}:${this.nodeId}`));
-    this.createAnimations();
     this.createGeneratedTextures();
+    this.createAnimations();
     this.createArena();
     this.createObstacles();
     this.createPlayer();
@@ -308,6 +512,9 @@ export class CombatScene extends Phaser.Scene {
     this.createHud();
     this.createInput();
     this.physics.world.setBounds(ARENA.x, ARENA.y, ARENA.width, ARENA.height);
+    const scanlines = this.add.tileSprite(640, 360, 1280, 720, "fx-scanline");
+    scanlines.setDepth(55);
+    scanlines.setAlpha(0.45);
     this.showCorruptionStatus();
   }
 
@@ -336,25 +543,59 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private createGeneratedTextures(): void {
-    this.makeTexture("obstacle-block", 140, (g, c) => {
-      g.fillStyle(0xffffff, 0.06);
-      g.fillRoundedRect(c - 66, c - 26, 132, 52, 10);
-      g.fillStyle(0x9a9a9a, 0.95);
-      g.fillRoundedRect(c - 60, c - 20, 120, 40, 8);
-      g.lineStyle(3, 0xffffff, 0.5);
-      g.strokeRoundedRect(c - 60, c - 20, 120, 40, 8);
-      g.fillStyle(0x565656, 0.9);
-      g.fillRoundedRect(c - 48, c - 9, 96, 18, 5);
+    Object.entries(PIXEL_SPRITES).forEach(([key, rows]) => this.makePixelTexture(key, rows));
+    this.makeFloorTexture(`floor-${this.roomTheme.id}`, this.roomTheme.gridFill, this.roomTheme.gridAlt);
+
+    this.makeTexture("fx-pixel", 2, (g) => {
+      g.fillStyle(0xffffff, 1);
+      g.fillRect(0, 0, 2, 2);
     });
 
-    this.makeTexture("fx-soft", 18, (g, c) => {
-      g.fillStyle(0xffffff, 0.18);
-      g.fillCircle(c, c, 8);
-      g.fillStyle(0xffffff, 0.4);
-      g.fillCircle(c, c, 5);
-      g.fillStyle(0xffffff, 0.85);
-      g.fillCircle(c, c, 2.5);
+    this.makeTexture("fx-scanline", 3, (g) => {
+      g.fillStyle(0x000000, 0.4);
+      g.fillRect(0, 2, 3, 1);
     });
+  }
+
+  private makePixelTexture(key: string, rows: string[]): void {
+    if (this.textures.exists(key)) {
+      return;
+    }
+
+    const graphics = this.add.graphics();
+    const width = Math.max(...rows.map((row) => row.length));
+
+    rows.forEach((row, y) => {
+      [...row].forEach((char, x) => {
+        const color = PIXEL_PALETTE[char];
+
+        if (color !== undefined) {
+          graphics.fillStyle(color, 1);
+          graphics.fillRect(x, y, 1, 1);
+        }
+      });
+    });
+
+    graphics.generateTexture(key, width, rows.length);
+    graphics.destroy();
+  }
+
+  private makeFloorTexture(key: string, base: number, alt: number): void {
+    if (this.textures.exists(key)) {
+      return;
+    }
+
+    const graphics = this.add.graphics();
+    graphics.fillStyle(base, 1);
+    graphics.fillRect(0, 0, 8, 8);
+    graphics.fillStyle(alt, 1);
+    graphics.fillRect(0, 0, 4, 4);
+    graphics.fillRect(4, 4, 4, 4);
+    graphics.fillStyle(0xffffff, 0.05);
+    graphics.fillRect(1, 1, 1, 1);
+    graphics.fillRect(6, 5, 1, 1);
+    graphics.generateTexture(key, 8, 8);
+    graphics.destroy();
   }
 
   private makeTexture(key: string, size: number, paint: (graphics: Phaser.GameObjects.Graphics, center: number) => void): void {
@@ -389,7 +630,7 @@ export class CombatScene extends Phaser.Scene {
 
   private playExplosion(x: number, y: number, scale: number): void {
     const boom = this.add.sprite(x, y, "boom-1");
-    boom.setScale(scale);
+    boom.setScale(scale * 3.4);
     boom.setDepth(13);
     boom.setBlendMode(Phaser.BlendModes.ADD);
     boom.play("explosion");
@@ -419,23 +660,18 @@ export class CombatScene extends Phaser.Scene {
       )
       .setStrokeStyle(2, this.roomTheme.accent, 0.55);
 
-    const grid = this.add.grid(
+    const floor = this.add.tileSprite(
       ARENA.x + ARENA.width / 2,
       ARENA.y + ARENA.height / 2,
       ARENA.width,
       ARENA.height,
-      64,
-      64,
-      this.roomTheme.gridFill,
-      0.4,
-      this.roomTheme.gridStroke,
-      0.4
+      `floor-${this.roomTheme.id}`
     );
-    grid.setAltFillStyle(this.roomTheme.gridAlt, 0.4);
-    grid.setDepth(0);
+    floor.setTileScale(4);
+    floor.setDepth(0);
 
     this.add
-      .particles(0, 0, "fx-soft", {
+      .particles(0, 0, "fx-pixel", {
         emitZone: {
           type: "random" as const,
           // Phaser's RandomZoneSource typing rejects Geom shapes even though the runtime supports them.
@@ -450,7 +686,7 @@ export class CombatScene extends Phaser.Scene {
         speedY: { min: -16, max: -6 },
         speedX: { min: -5, max: 5 },
         alpha: { start: 0.2, end: 0 },
-        scale: { start: 0.9, end: 0.25 },
+        scale: { start: 2.5, end: 1 },
         frequency: 240,
         tint: this.roomTheme.particle,
         blendMode: "ADD"
@@ -458,10 +694,10 @@ export class CombatScene extends Phaser.Scene {
       .setDepth(2);
 
     this.hitEmitter = this.add
-      .particles(0, 0, "fx-soft", {
+      .particles(0, 0, "fx-pixel", {
         speed: { min: 60, max: 190 },
         lifespan: { min: 200, max: 380 },
-        scale: { start: 0.8, end: 0 },
+        scale: { start: 3, end: 0 },
         alpha: { start: 0.9, end: 0 },
         emitting: false,
         tint: 0xf7d06e,
@@ -470,10 +706,10 @@ export class CombatScene extends Phaser.Scene {
       .setDepth(12);
 
     this.sparkEmitter = this.add
-      .particles(0, 0, "fx-soft", {
+      .particles(0, 0, "fx-pixel", {
         speed: { min: 70, max: 220 },
         lifespan: { min: 240, max: 420 },
-        scale: { start: 0.9, end: 0 },
+        scale: { start: 3, end: 0 },
         alpha: { start: 0.9, end: 0 },
         emitting: false,
         tint: 0x8be9fd,
@@ -484,12 +720,12 @@ export class CombatScene extends Phaser.Scene {
 
   private createPlayer(): void {
     this.player = this.physics.add.image(ARENA.x + ARENA.width / 2, ARENA.y + ARENA.height - 120, "ship-player");
-    this.player.setScale(0.42);
+    this.player.setScale(3);
     this.applyRoundBody(this.player, 0.75);
     this.player.setCollideWorldBounds(true);
     this.player.setDepth(10);
     this.playerThruster = this.add.sprite(this.player.x, this.player.y, "thruster-a");
-    this.playerThruster.setScale(0.5);
+    this.playerThruster.setScale(3);
     this.playerThruster.setDepth(9);
     this.playerThruster.setBlendMode(Phaser.BlendModes.ADD);
     this.playerThruster.play("thruster-burn");
@@ -507,11 +743,11 @@ export class CombatScene extends Phaser.Scene {
 
     const tailAngle = this.player.rotation + Math.PI / 2;
     this.playerThruster.setPosition(
-      this.player.x + Math.cos(tailAngle) * 26,
-      this.player.y + Math.sin(tailAngle) * 26
+      this.player.x + Math.cos(tailAngle) * 32,
+      this.player.y + Math.sin(tailAngle) * 32
     );
     this.playerThruster.setRotation(this.player.rotation);
-    this.playerThruster.setScale(this.dashRemainingMs > 0 ? 0.8 : 0.5);
+    this.playerThruster.setScale(this.dashRemainingMs > 0 ? 4.5 : 3);
   }
 
   private createObstacles(): void {
@@ -545,8 +781,11 @@ export class CombatScene extends Phaser.Scene {
         const y = ARENA.y + 80 + this.roomRng() * (ARENA.height - 220);
         const nearPlayerSpawn =
           Phaser.Math.Distance.Between(x, y, ARENA.x + ARENA.width / 2, ARENA.y + ARENA.height - 120) < 150;
+        const nearOtherObstacle = this.obstaclePoints.some(
+          (point) => Phaser.Math.Distance.Between(x, y, point.x, point.y) < 96
+        );
 
-        if (!nearPlayerSpawn) {
+        if (!nearPlayerSpawn && !nearOtherObstacle) {
           this.addObstacle("meteor", x, y, 24);
         }
       }
@@ -564,10 +803,8 @@ export class CombatScene extends Phaser.Scene {
     obstacle.setAlpha(0.9);
     obstacle.setDepth(4);
 
-    if (texture === "meteor") {
-      obstacle.setScale(0.62);
-      obstacle.refreshBody();
-    }
+    obstacle.setScale(texture === "meteor" ? 3.4 : 4);
+    obstacle.refreshBody();
 
     const body = obstacle.body as Phaser.Physics.Arcade.StaticBody;
 
@@ -578,7 +815,7 @@ export class CombatScene extends Phaser.Scene {
         obstacle.displayHeight / 2 - circleRadius - 2
       );
     } else {
-      body.setSize(124, 44);
+      body.setSize(88, 36);
     }
 
     this.obstaclePoints.push({ x, y });
@@ -656,10 +893,10 @@ export class CombatScene extends Phaser.Scene {
       boss: "ship-boss"
     };
     const scales: Record<EnemyKind, number> = {
-      chaser: 0.45,
-      shooter: 0.45,
-      anomaly: 0.5,
-      boss: 0.95
+      chaser: 3,
+      shooter: 3,
+      anomaly: 3,
+      boss: 4.5
     };
     const sprite = this.physics.add.image(x, y, textures[kind]);
     sprite.setScale(scales[kind]);
@@ -1045,7 +1282,7 @@ export class CombatScene extends Phaser.Scene {
 
     const direction = this.getAimVector();
     const projectile = this.physics.add.image(this.player.x, this.player.y, "bolt-player");
-    projectile.setScale(0.9);
+    projectile.setScale(3);
     this.applyRoundBody(projectile, 1);
     projectile.setVelocity(direction.x * PLAYER.attackSpeed, direction.y * PLAYER.attackSpeed);
     projectile.setRotation(Math.atan2(direction.y, direction.x) + Math.PI / 2);
@@ -1084,7 +1321,7 @@ export class CombatScene extends Phaser.Scene {
     [-MEMORY_SKILLS.echoSpreadRad, 0, MEMORY_SKILLS.echoSpreadRad].forEach((offset) => {
       const direction = new Phaser.Math.Vector2(Math.cos(baseAngle + offset), Math.sin(baseAngle + offset));
       const projectile = this.physics.add.image(this.player.x, this.player.y, "bolt-player");
-      projectile.setScale(0.9);
+      projectile.setScale(3);
       this.applyRoundBody(projectile, 1);
       projectile.setVelocity(direction.x * PLAYER.attackSpeed, direction.y * PLAYER.attackSpeed);
       projectile.setRotation(baseAngle + offset + Math.PI / 2);
@@ -1137,7 +1374,7 @@ export class CombatScene extends Phaser.Scene {
 
   private spawnDashGhost(): void {
     const ghost = this.add.image(this.player.x, this.player.y, "ship-player");
-    ghost.setScale(0.42);
+    ghost.setScale(3);
     ghost.setRotation(this.player.rotation);
     ghost.setAlpha(0.35);
     ghost.setDepth(9);
@@ -1483,7 +1720,7 @@ export class CombatScene extends Phaser.Scene {
     damage: number
   ): void {
     const projectile = this.physics.add.image(x, y, "orb-enemy");
-    projectile.setScale(0.45);
+    projectile.setScale(3);
     this.applyRoundBody(projectile, 0.8);
     projectile.setVelocity(direction.x * speed, direction.y * speed);
     projectile.setDepth(9);
