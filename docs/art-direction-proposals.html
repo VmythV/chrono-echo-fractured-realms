@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chrono Echo 画风方向提案</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0d1017; color: #d8e0ea; font-family: "PingFang SC", "Microsoft YaHei", Inter, sans-serif; line-height: 1.7; padding: 48px 24px 96px; }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  h1 { font-size: 34px; color: #f5f1e6; margin-bottom: 8px; }
+  .sub { color: #8fa3b5; margin-bottom: 48px; font-size: 15px; }
+  .card { background: #131826; border: 1px solid #232c3f; border-radius: 14px; padding: 32px; margin-bottom: 40px; }
+  .card h2 { font-size: 24px; color: #f5f1e6; margin-bottom: 4px; }
+  .tagline { color: #8fa3b5; font-size: 14px; margin-bottom: 20px; }
+  .mock { width: 100%; border-radius: 10px; display: block; margin-bottom: 20px; }
+  .palette { display: flex; gap: 8px; margin-bottom: 20px; }
+  .chip { width: 56px; height: 32px; border-radius: 6px; border: 1px solid rgba(255,255,255,.15); position: relative; }
+  .chip span { position: absolute; top: 36px; left: 0; font-size: 10px; color: #6f8497; white-space: nowrap; }
+  .palette { margin-bottom: 40px; }
+  .meta { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 32px; font-size: 14px; }
+  .meta dt { color: #8be9fd; font-weight: 600; margin-bottom: 2px; }
+  .meta dd { margin-bottom: 12px; color: #c3cedb; }
+  .cost { display: inline-block; padding: 2px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+  .cost.low { background: #16351f; color: #8fd694; }
+  .cost.mid { background: #37301a; color: #f7d06e; }
+  .cost.high { background: #3a1d1a; color: #f18f6f; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 12px; }
+  th, td { border: 1px solid #232c3f; padding: 10px 14px; text-align: left; }
+  th { background: #1a2133; color: #8be9fd; }
+  .rec { border-color: #8be9fd55; box-shadow: 0 0 0 1px #8be9fd33; }
+  .badge { display: inline-block; background: #0f3c45; color: #8be9fd; font-size: 12px; padding: 2px 10px; border-radius: 20px; margin-left: 10px; vertical-align: middle; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Chrono Echo: Fractured Realms — 画风方向提案</h1>
+  <p class="sub">以下五个方向的小样均为同一战斗场景（玩家 + 追击者 + 射手 + 弹道 + 障碍）的风格化模拟。每个方案附色板、落地路径、工作量与风险。确定方向后按阶段实施。</p>
+
+  <!-- A 像素街机 -->
+  <div class="card rec">
+    <h2>方案 A：16-bit 像素街机<span class="badge">主推荐</span></h2>
+    <p class="tagline">复古 CRT 街机感，色块干脆、动画帧感强，是网页休闲 Roguelike 被验证最多的吸量画风（吸血鬼幸存者一类）。</p>
+    <svg class="mock" viewBox="0 0 560 300" xmlns="http://www.w3.org/2000/svg">
+      <rect width="560" height="300" fill="#1a1c2c"/>
+      <g fill="#29366f">
+        <rect x="0" y="0" width="560" height="300" opacity="0"/>
+        <g opacity=".35">
+          <rect x="40" y="40" width="16" height="16"/><rect x="120" y="88" width="16" height="16"/><rect x="472" y="56" width="16" height="16"/><rect x="392" y="200" width="16" height="16"/><rect x="72" y="224" width="16" height="16"/><rect x="504" y="248" width="16" height="16"/>
+        </g>
+      </g>
+      <g>
+        <rect x="196" y="96" width="48" height="40" fill="#5d275d"/><rect x="204" y="88" width="32" height="8" fill="#7d3b7d"/>
+        <rect x="360" y="176" width="48" height="40" fill="#5d275d"/><rect x="368" y="168" width="32" height="8" fill="#7d3b7d"/>
+      </g>
+      <g shape-rendering="crispEdges">
+        <g>
+          <rect x="264" y="196" width="32" height="24" fill="#41a6f6"/><rect x="272" y="188" width="16" height="8" fill="#73eff7"/><rect x="256" y="212" width="8" height="8" fill="#41a6f6"/><rect x="296" y="212" width="8" height="8" fill="#41a6f6"/>
+          <rect x="272" y="222" width="6" height="10" fill="#ffcd75"/><rect x="282" y="222" width="6" height="10" fill="#ef7d57"/>
+        </g>
+        <g>
+          <rect x="150" y="80" width="28" height="24" fill="#b13e53"/><rect x="158" y="72" width="12" height="8" fill="#ef7d57"/><rect x="144" y="92" width="6" height="12" fill="#b13e53"/><rect x="178" y="92" width="6" height="12" fill="#b13e53"/>
+          <rect x="146" y="64" width="36" height="4" fill="#38b764"/>
+        </g>
+        <g>
+          <rect x="420" y="96" width="28" height="24" fill="#ffcd75"/><rect x="428" y="88" width="12" height="8" fill="#f4f4f4"/>
+          <rect x="416" y="80" width="36" height="4" fill="#38b764"/>
+        </g>
+        <rect x="300" y="160" width="10" height="4" fill="#73eff7"/><rect x="318" y="148" width="10" height="4" fill="#73eff7"/><rect x="336" y="136" width="10" height="4" fill="#73eff7"/>
+        <rect x="392" y="128" width="8" height="8" fill="#ef7d57"/>
+        <g fill="#a7f070" opacity=".9"><rect x="234" y="140" width="4" height="4"/><rect x="242" y="132" width="4" height="4"/><rect x="238" y="148" width="4" height="4"/></g>
+      </g>
+      <g opacity=".14" fill="#000"><rect y="0" width="560" height="2"/><rect y="6" width="560" height="2"/><rect y="12" width="560" height="2"/><rect y="18" width="560" height="2"/><rect y="24" width="560" height="2"/><rect y="30" width="560" height="2"/><rect y="36" width="560" height="2"/><rect y="42" width="560" height="2"/><rect y="48" width="560" height="2"/><rect y="54" width="560" height="2"/><rect y="60" width="560" height="2"/><rect y="66" width="560" height="2"/><rect y="72" width="560" height="2"/><rect y="78" width="560" height="2"/><rect y="84" width="560" height="2"/><rect y="90" width="560" height="2"/><rect y="96" width="560" height="2"/><rect y="102" width="560" height="2"/><rect y="108" width="560" height="2"/><rect y="114" width="560" height="2"/><rect y="120" width="560" height="2"/><rect y="126" width="560" height="2"/><rect y="132" width="560" height="2"/><rect y="138" width="560" height="2"/><rect y="144" width="560" height="2"/><rect y="150" width="560" height="2"/><rect y="156" width="560" height="2"/><rect y="162" width="560" height="2"/><rect y="168" width="560" height="2"/><rect y="174" width="560" height="2"/><rect y="180" width="560" height="2"/><rect y="186" width="560" height="2"/><rect y="192" width="560" height="2"/><rect y="198" width="560" height="2"/><rect y="204" width="560" height="2"/><rect y="210" width="560" height="2"/><rect y="216" width="560" height="2"/><rect y="222" width="560" height="2"/><rect y="228" width="560" height="2"/><rect y="234" width="560" height="2"/><rect y="240" width="560" height="2"/><rect y="246" width="560" height="2"/><rect y="252" width="560" height="2"/><rect y="258" width="560" height="2"/><rect y="264" width="560" height="2"/><rect y="270" width="560" height="2"/><rect y="276" width="560" height="2"/><rect y="282" width="560" height="2"/><rect y="288" width="560" height="2"/><rect y="294" width="560" height="2"/></g>
+    </svg>
+    <div class="palette">
+      <div class="chip" style="background:#1a1c2c"><span>#1a1c2c</span></div>
+      <div class="chip" style="background:#5d275d"><span>#5d275d</span></div>
+      <div class="chip" style="background:#b13e53"><span>#b13e53</span></div>
+      <div class="chip" style="background:#ef7d57"><span>#ef7d57</span></div>
+      <div class="chip" style="background:#ffcd75"><span>#ffcd75</span></div>
+      <div class="chip" style="background:#a7f070"><span>#a7f070</span></div>
+      <div class="chip" style="background:#41a6f6"><span>#41a6f6</span></div>
+      <div class="chip" style="background:#73eff7"><span>#73eff7</span></div>
+    </div>
+    <dl class="meta">
+      <div><dt>落地路径</dt><dd>Kenney CC0 像素包（Pixel Shmup、Tiny Battle 等）+ `pixelArt: true` 渲染 + 像素字体（Press Start 2P / 中文点阵字体回退）+ CRT 扫描线滤层。四主题战场换成像素 tile 地板。</dd></div>
+      <div><dt>工作量</dt><dd><span class="cost mid">中</span> 约 2-3 个阶段：素材替换、tile 战场、UI 像素化。</dd></div>
+      <div><dt>优势</dt><dd>吸量画风，打击感与帧动画天然匹配；CC0 素材充足；辨识度和"想玩"评分最高。</dd></div>
+      <div><dt>风险</dt><dd>中文像素字体可读性需要调优；现有 Orbitron 标题字需换风格。</dd></div>
+    </dl>
+  </div>
+
+  <!-- B 霓虹线框 -->
+  <div class="card rec">
+    <h2>方案 B：霓虹时空线框（Tron / Geometry Wars）<span class="badge">低成本备选</span></h2>
+    <p class="tagline">纯发光几何线框 + 透视网格 + 强烈辉光，与"时间裂隙"主题天然契合，是当前底子的极致强化版。</p>
+    <svg class="mock" viewBox="0 0 560 300" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <filter id="glowB" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="3.2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        <linearGradient id="bgB" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#05060f"/><stop offset="1" stop-color="#120a2a"/></linearGradient>
+      </defs>
+      <rect width="560" height="300" fill="url(#bgB)"/>
+      <g stroke="#4b2c8f" stroke-width="1" opacity=".6">
+        <line x1="0" y1="300" x2="280" y2="130"/><line x1="80" y1="300" x2="285" y2="130"/><line x1="160" y1="300" x2="290" y2="130"/><line x1="240" y1="300" x2="295" y2="130"/><line x1="320" y1="300" x2="300" y2="130"/><line x1="400" y1="300" x2="305" y2="130"/><line x1="480" y1="300" x2="310" y2="130"/><line x1="560" y1="300" x2="315" y2="130"/>
+        <line x1="0" y1="290" x2="560" y2="290"/><line x1="0" y1="262" x2="560" y2="262"/><line x1="0" y1="238" x2="560" y2="238"/><line x1="0" y1="218" x2="560" y2="218"/><line x1="0" y1="202" x2="560" y2="202"/><line x1="0" y1="188" x2="560" y2="188"/>
+      </g>
+      <circle cx="297" cy="118" r="30" fill="none" stroke="#ff3df0" stroke-width="2" filter="url(#glowB)" opacity=".9"/>
+      <circle cx="297" cy="118" r="18" fill="none" stroke="#7b5bff" stroke-width="1.6" filter="url(#glowB)" opacity=".8"/>
+      <g filter="url(#glowB)">
+        <path d="M268 232 L288 200 L308 232 L288 222 Z" fill="none" stroke="#12f7ff" stroke-width="2.4"/>
+        <path d="M150 96 L176 110 L150 124 L158 110 Z" fill="none" stroke="#ff3df0" stroke-width="2.2"/>
+        <rect x="414" y="92" width="30" height="30" transform="rotate(45 429 107)" fill="none" stroke="#ffe95c" stroke-width="2.2"/>
+        <line x1="300" y1="182" x2="312" y2="164" stroke="#12f7ff" stroke-width="3"/>
+        <line x1="322" y1="150" x2="334" y2="132" stroke="#12f7ff" stroke-width="3"/>
+        <circle cx="392" cy="140" r="5" fill="none" stroke="#ff9d5c" stroke-width="2"/>
+        <circle cx="204" cy="170" r="16" fill="none" stroke="#7b5bff" stroke-width="2" stroke-dasharray="6 5"/>
+      </g>
+    </svg>
+    <div class="palette">
+      <div class="chip" style="background:#05060f"><span>#05060f</span></div>
+      <div class="chip" style="background:#120a2a"><span>#120a2a</span></div>
+      <div class="chip" style="background:#12f7ff"><span>#12f7ff</span></div>
+      <div class="chip" style="background:#ff3df0"><span>#ff3df0</span></div>
+      <div class="chip" style="background:#7b5bff"><span>#7b5bff</span></div>
+      <div class="chip" style="background:#ffe95c"><span>#ffe95c</span></div>
+    </div>
+    <dl class="meta">
+      <div><dt>落地路径</dt><dd>全程序生成（回到无外部素材路线）：线框贴图 + WebGL 辉光滤镜（Phaser 4 filters）+ 透视网格背景 + 拖尾粒子。四主题改为四种霓虹主色。</dd></div>
+      <div><dt>工作量</dt><dd><span class="cost low">低-中</span> 约 1-2 个阶段，主要是贴图重绘与滤镜调优。</dd></div>
+      <div><dt>优势</dt><dd>与时间主题契合度最高；成本最低；弹幕清晰度极好；Geometry Wars 式爽快感。</dd></div>
+      <div><dt>风险</dt><dd>长时间游玩视觉疲劳；风格已较常见于独立弹幕游戏。</dd></div>
+    </dl>
+  </div>
+
+  <!-- C 卡通糖果 -->
+  <div class="card">
+    <h2>方案 C：明快卡通糖果风</h2>
+    <p class="tagline">高饱和亮色 + 圆润厚描边 + Q 弹挤压拉伸动画，休闲游戏受众最广的画风。</p>
+    <svg class="mock" viewBox="0 0 560 300" xmlns="http://www.w3.org/2000/svg">
+      <defs><linearGradient id="bgC" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3d5a99"/><stop offset="1" stop-color="#2ec4b6"/></linearGradient></defs>
+      <rect width="560" height="300" fill="url(#bgC)"/>
+      <circle cx="90" cy="60" r="26" fill="#ffffff" opacity=".25"/><circle cx="470" cy="48" r="18" fill="#ffffff" opacity=".2"/><circle cx="380" cy="250" r="30" fill="#ffffff" opacity=".12"/>
+      <ellipse cx="286" cy="238" rx="34" ry="10" fill="#011627" opacity=".25"/>
+      <g stroke="#011627" stroke-width="5" stroke-linejoin="round">
+        <circle cx="286" cy="206" r="28" fill="#41a6f6"/>
+        <circle cx="278" cy="200" r="4.5" fill="#011627" stroke="none"/><circle cx="296" cy="200" r="4.5" fill="#011627" stroke="none"/>
+        <path d="M278 214 Q286 220 294 214" fill="none" stroke-width="4"/>
+        <path d="M262 190 L252 174 M310 190 L320 174" stroke-width="6" stroke-linecap="round"/>
+      </g>
+      <g stroke="#011627" stroke-width="5" stroke-linejoin="round">
+        <circle cx="160" cy="104" r="24" fill="#e71d36"/>
+        <path d="M148 92 L142 78 M172 92 L178 78" stroke-width="6" stroke-linecap="round"/>
+        <circle cx="153" cy="100" r="4" fill="#ffffff" stroke="none"/><circle cx="169" cy="100" r="4" fill="#ffffff" stroke="none"/>
+        <circle cx="154" cy="101" r="2" fill="#011627" stroke="none"/><circle cx="170" cy="101" r="2" fill="#011627" stroke="none"/>
+      </g>
+      <g stroke="#011627" stroke-width="5" stroke-linejoin="round">
+        <rect x="404" y="86" width="46" height="42" rx="12" fill="#ff9f1c"/>
+        <circle cx="420" cy="104" r="4" fill="#011627" stroke="none"/><circle cx="436" cy="104" r="4" fill="#011627" stroke="none"/>
+      </g>
+      <g fill="#fdfffc" stroke="#011627" stroke-width="4"><circle cx="316" cy="164" r="8"/><circle cx="342" cy="140" r="8"/></g>
+      <circle cx="392" cy="146" r="9" fill="#e71d36" stroke="#011627" stroke-width="4"/>
+      <g stroke="#011627" stroke-width="4"><circle cx="216" cy="168" r="20" fill="#8ac926"/></g>
+      <path d="M120 260 q20 -14 40 0 q20 14 40 0" stroke="#fdfffc" stroke-width="5" fill="none" opacity=".5" stroke-linecap="round"/>
+    </svg>
+    <div class="palette">
+      <div class="chip" style="background:#2ec4b6"><span>#2ec4b6</span></div>
+      <div class="chip" style="background:#41a6f6"><span>#41a6f6</span></div>
+      <div class="chip" style="background:#ff9f1c"><span>#ff9f1c</span></div>
+      <div class="chip" style="background:#e71d36"><span>#e71d36</span></div>
+      <div class="chip" style="background:#8ac926"><span>#8ac926</span></div>
+      <div class="chip" style="background:#fdfffc"><span>#fdfffc</span></div>
+      <div class="chip" style="background:#011627"><span>#011627</span></div>
+    </div>
+    <dl class="meta">
+      <div><dt>落地路径</dt><dd>需要成套卡通素材：Kenney Shape Characters / itch CC0 卡通包起步，角色表情与挤压拉伸 tween；UI 全面圆角亮色化；背景改为明亮渐变主题。</dd></div>
+      <div><dt>工作量</dt><dd><span class="cost high">高</span> 约 3-4 个阶段：素材面广（角色、UI、背景全换），且现有暗色 UI 体系需重做。</dd></div>
+      <div><dt>优势</dt><dd>受众最广、传播分享友好；表情与 Q 弹动画让敌人有性格。</dd></div>
+      <div><dt>风险</dt><dd>与"时间裂隙"的紧张感有冲突；免费素材难凑成统一套，可能需要 AI 生成或委托。</dd></div>
+    </dl>
+  </div>
+
+  <!-- D 水墨剪影 -->
+  <div class="card">
+    <h2>方案 D：宣纸水墨剪影</h2>
+    <p class="tagline">米白纸底 + 黑色剪影 + 朱砂单彩点睛，飞白粒子与墨迹拖尾，艺术辨识度极高。</p>
+    <svg class="mock" viewBox="0 0 560 300" xmlns="http://www.w3.org/2000/svg">
+      <rect width="560" height="300" fill="#f2ecdc"/>
+      <g fill="#1a1712" opacity=".06"><circle cx="80" cy="70" r="60"/><circle cx="480" cy="220" r="90"/></g>
+      <path d="M0 268 Q140 250 280 264 T560 260 L560 300 L0 300 Z" fill="#1a1712" opacity=".85"/>
+      <g fill="#1a1712">
+        <path d="M270 232 L288 192 L306 232 Q288 222 270 232 Z"/>
+        <path d="M146 92 Q166 84 178 102 Q170 122 148 118 Q138 104 146 92 Z"/>
+        <rect x="408" y="88" width="42" height="38" rx="6"/>
+      </g>
+      <circle cx="288" cy="204" r="5" fill="#d43d2a"/>
+      <circle cx="160" cy="103" r="4" fill="#d43d2a"/>
+      <circle cx="429" cy="107" r="4" fill="#d43d2a"/>
+      <g stroke="#1a1712" stroke-width="3" stroke-linecap="round"><line x1="306" y1="168" x2="318" y2="150"/><line x1="330" y1="134" x2="342" y2="116"/></g>
+      <circle cx="386" cy="142" r="6" fill="#d43d2a" opacity=".9"/>
+      <g fill="#1a1712" opacity=".5"><circle cx="236" cy="150" r="2.4"/><circle cx="246" cy="140" r="1.8"/><circle cx="228" cy="142" r="1.5"/></g>
+      <path d="M60 40 q60 18 120 2" stroke="#1a1712" stroke-width="2.5" fill="none" opacity=".35" stroke-linecap="round"/>
+      <circle cx="500" cy="52" r="22" fill="none" stroke="#d43d2a" stroke-width="3" opacity=".8"/>
+    </svg>
+    <div class="palette">
+      <div class="chip" style="background:#f2ecdc"><span>#f2ecdc</span></div>
+      <div class="chip" style="background:#1a1712"><span>#1a1712</span></div>
+      <div class="chip" style="background:#d43d2a"><span>#d43d2a</span></div>
+      <div class="chip" style="background:#8a8374"><span>#8a8374</span></div>
+    </div>
+    <dl class="meta">
+      <div><dt>落地路径</dt><dd>程序生成剪影贴图（矢量路径）+ 墨迹粒子 + 纸纹理背景；四主题改为四季/四种纸色墨调；中文书法字体点题。</dd></div>
+      <div><dt>工作量</dt><dd><span class="cost mid">中</span> 约 2 个阶段，主要是剪影造型设计与粒子墨感调优。</dd></div>
+      <div><dt>优势</dt><dd>独一无二的辨识度；与中文语境契合；浅色底在白天环境更舒适。</dd></div>
+      <div><dt>风险</dt><dd>弹幕密集时黑色剪影互相遮混；"想玩欲望"上偏文艺，可能不如像素/卡通直接。</dd></div>
+    </dl>
+  </div>
+
+  <!-- E 星云歌剧 -->
+  <div class="card">
+    <h2>方案 E：星云太空歌剧（现状深化）</h2>
+    <p class="tagline">保留 Kenney 飞船底子，把"黑底网格"升级为星云渐变 + 视差星空 + 行星装饰，成本最低的观感升级。</p>
+    <svg class="mock" viewBox="0 0 560 300" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="nebE1" cx=".3" cy=".3" r=".8"><stop offset="0" stop-color="#3d2a6e"/><stop offset="1" stop-color="#0b0e1d"/></radialGradient>
+        <radialGradient id="nebE2" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#175a5a" stop-opacity=".55"/><stop offset="1" stop-color="#175a5a" stop-opacity="0"/></radialGradient>
+        <filter id="glowE" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+      <rect width="560" height="300" fill="url(#nebE1)"/>
+      <ellipse cx="420" cy="80" rx="220" ry="120" fill="url(#nebE2)"/>
+      <g fill="#ffffff"><circle cx="60" cy="40" r="1.4"/><circle cx="120" cy="90" r="1"/><circle cx="200" cy="30" r="1.6"/><circle cx="330" cy="60" r="1"/><circle cx="410" cy="26" r="1.3"/><circle cx="500" cy="70" r="1"/><circle cx="70" cy="180" r="1"/><circle cx="250" cy="130" r="1.2"/><circle cx="460" cy="160" r="1.4"/><circle cx="530" cy="230" r="1"/><circle cx="150" cy="250" r="1.2"/><circle cx="360" cy="270" r="1"/></g>
+      <circle cx="492" cy="52" r="26" fill="#c2743f"/><ellipse cx="492" cy="52" rx="38" ry="7" fill="none" stroke="#e8b06e" stroke-width="2.4" opacity=".8"/>
+      <g filter="url(#glowE)">
+        <path d="M270 236 L288 198 L306 236 L288 226 Z" fill="#7fd4ff" stroke="#d9f4ff" stroke-width="1.6"/>
+        <path d="M288 240 l-5 12 l5 -4 l5 4 Z" fill="#ffd166"/>
+        <path d="M146 92 L180 108 L146 124 L156 108 Z" fill="#ff6b5d" stroke="#ffc2b8" stroke-width="1.4"/>
+        <rect x="410" y="90" width="34" height="34" rx="10" fill="#68c46a" stroke="#c6f0c2" stroke-width="1.4"/>
+        <line x1="306" y1="172" x2="316" y2="152" stroke="#9beaff" stroke-width="4" stroke-linecap="round"/>
+        <line x1="328" y1="136" x2="338" y2="116" stroke="#9beaff" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="388" cy="142" r="6" fill="#ff9d5c"/>
+        <circle cx="212" cy="166" r="15" fill="#6f5aa8" opacity=".9"/>
+      </g>
+    </svg>
+    <div class="palette">
+      <div class="chip" style="background:#0b0e1d"><span>#0b0e1d</span></div>
+      <div class="chip" style="background:#3d2a6e"><span>#3d2a6e</span></div>
+      <div class="chip" style="background:#7fd4ff"><span>#7fd4ff</span></div>
+      <div class="chip" style="background:#ff6b5d"><span>#ff6b5d</span></div>
+      <div class="chip" style="background:#ffd166"><span>#ffd166</span></div>
+      <div class="chip" style="background:#c2743f"><span>#c2743f</span></div>
+    </div>
+    <dl class="meta">
+      <div><dt>落地路径</dt><dd>保留全部现有素材：新增星云渐变背景贴图（程序生成）、双层视差星空、行星/空间站装饰物（Kenney 包内已有）、网格弱化为微光。</dd></div>
+      <div><dt>工作量</dt><dd><span class="cost low">低</span> 1 个阶段即可完成。</dd></div>
+      <div><dt>优势</dt><dd>零素材更换风险，最快见效；与现有飞船完全一致。</dd></div>
+      <div><dt>风险</dt><dd>提升幅度有限——本质是"更好看的现状"，不是新画风。</dd></div>
+    </dl>
+  </div>
+
+  <!-- 对比 -->
+  <div class="card">
+    <h2>横向对比与建议</h2>
+    <table>
+      <tr><th>方案</th><th>想玩欲望</th><th>主题契合</th><th>成本</th><th>素材风险</th></tr>
+      <tr><td>A 像素街机</td><td>高</td><td>中高</td><td>中</td><td>低（CC0 充足）</td></tr>
+      <tr><td>B 霓虹线框</td><td>中高</td><td>高</td><td>低-中</td><td>无（纯程序生成）</td></tr>
+      <tr><td>C 卡通糖果</td><td>高</td><td>低</td><td>高</td><td>高（难凑整套）</td></tr>
+      <tr><td>D 水墨剪影</td><td>中</td><td>中</td><td>中</td><td>无（纯程序生成）</td></tr>
+      <tr><td>E 星云歌剧</td><td>中</td><td>中高</td><td>低</td><td>无</td></tr>
+    </table>
+    <p style="margin-top:20px; color:#c3cedb; font-size:14px;">
+      建议：想要"最想点开玩"的效果选 <strong style="color:#8be9fd">A 像素街机</strong>；想要最贴合时间主题、投入最小、见效快选 <strong style="color:#8be9fd">B 霓虹线框</strong>。两者也可组合（像素素材 + 霓虹辉光调色）。确定方向后我按阶段实施：先出一个战斗房的完整风格样张给你确认，再全面铺开。
+    </p>
+  </div>
+</div>
+</body>
+</html>
