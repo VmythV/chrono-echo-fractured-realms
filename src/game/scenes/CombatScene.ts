@@ -60,9 +60,16 @@ type RewindSnapshot = {
 };
 
 const ARENA = {
-  x: 100,
+  x: 248,
   y: 70,
-  width: 1080,
+  width: 1010,
+  height: 580
+};
+
+const HUD_PANEL = {
+  x: 10,
+  y: 70,
+  width: 228,
   height: 580
 };
 
@@ -145,9 +152,8 @@ export class CombatScene extends Phaser.Scene {
   private bossVariant: BossVariant = "warden";
   private freezeDurationLimitMs = TIME_SKILLS.freezeDurationMs;
   private player!: ArcadeImage;
+  private playerThruster!: Phaser.GameObjects.Sprite;
   private roomTheme: TimelineTheme = TIMELINE_THEMES.city;
-  private hudBg!: Phaser.GameObjects.Rectangle;
-  private hudAlpha = 1;
   private hitEmitter!: Phaser.GameObjects.Particles.ParticleEmitter;
   private sparkEmitter!: Phaser.GameObjects.Particles.ParticleEmitter;
   private dashGhostTimerMs = 0;
@@ -212,6 +218,11 @@ export class CombatScene extends Phaser.Scene {
     this.load.image("bolt-player", "assets/kenney/laserBlue07.png");
     this.load.image("orb-enemy", "assets/kenney/laserRed08.png");
     this.load.image("meteor", "assets/kenney/meteorGrey_big3.png");
+    this.load.image("thruster-a", "assets/kenney/fire16.png");
+    this.load.image("thruster-b", "assets/kenney/fire17.png");
+    this.load.image("boom-1", "assets/kenney/laserRed09.png");
+    this.load.image("boom-2", "assets/kenney/laserRed10.png");
+    this.load.image("boom-3", "assets/kenney/laserRed11.png");
   }
 
   init(data: { nodeId?: string } = {}): void {
@@ -286,6 +297,7 @@ export class CombatScene extends Phaser.Scene {
   create(): void {
     fadeInScene(this);
     this.roomRng = createRng(hashString(`${getRun().seed}:${this.nodeId}`));
+    this.createAnimations();
     this.createGeneratedTextures();
     this.createArena();
     this.createObstacles();
@@ -312,6 +324,7 @@ export class CombatScene extends Phaser.Scene {
     this.recordRewindSnapshot(time, delta);
     this.updatePlayer(delta);
     this.updateAimLine();
+    this.updateThruster();
     this.updateEnemies(delta);
     this.updateProjectiles(delta);
     this.checkProjectileHits();
@@ -352,6 +365,34 @@ export class CombatScene extends Phaser.Scene {
     paint(graphics, size / 2);
     graphics.generateTexture(key, size, size);
     graphics.destroy();
+  }
+
+  private createAnimations(): void {
+    if (!this.anims.exists("thruster-burn")) {
+      this.anims.create({
+        key: "thruster-burn",
+        frames: [{ key: "thruster-a" }, { key: "thruster-b" }],
+        frameRate: 14,
+        repeat: -1
+      });
+    }
+
+    if (!this.anims.exists("explosion")) {
+      this.anims.create({
+        key: "explosion",
+        frames: [{ key: "boom-1" }, { key: "boom-2" }, { key: "boom-3" }],
+        frameRate: 20
+      });
+    }
+  }
+
+  private playExplosion(x: number, y: number, scale: number): void {
+    const boom = this.add.sprite(x, y, "boom-1");
+    boom.setScale(scale);
+    boom.setDepth(13);
+    boom.setBlendMode(Phaser.BlendModes.ADD);
+    boom.play("explosion");
+    boom.once("animationcomplete", () => boom.destroy());
   }
 
   private applyRoundBody(sprite: ArcadeImage, coverage: number): void {
@@ -446,6 +487,30 @@ export class CombatScene extends Phaser.Scene {
     this.applyRoundBody(this.player, 0.75);
     this.player.setCollideWorldBounds(true);
     this.player.setDepth(10);
+    this.playerThruster = this.add.sprite(this.player.x, this.player.y, "thruster-a");
+    this.playerThruster.setScale(0.5);
+    this.playerThruster.setDepth(9);
+    this.playerThruster.setBlendMode(Phaser.BlendModes.ADD);
+    this.playerThruster.play("thruster-burn");
+    this.playerThruster.setVisible(false);
+  }
+
+  private updateThruster(): void {
+    const velocity = this.player.body?.velocity;
+    const moving = Boolean(velocity && velocity.lengthSq() > 100) || this.dashRemainingMs > 0;
+    this.playerThruster.setVisible(moving && this.roomState === "playing");
+
+    if (!moving) {
+      return;
+    }
+
+    const tailAngle = this.player.rotation + Math.PI / 2;
+    this.playerThruster.setPosition(
+      this.player.x + Math.cos(tailAngle) * 26,
+      this.player.y + Math.sin(tailAngle) * 26
+    );
+    this.playerThruster.setRotation(this.player.rotation);
+    this.playerThruster.setScale(this.dashRemainingMs > 0 ? 0.8 : 0.5);
   }
 
   private createObstacles(): void {
@@ -679,9 +744,10 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private createHud(): void {
-    const extraSkillLines = Number(this.hasEchoAttack) + Number(this.hasTimeAnchor);
-    this.hudBg = this.add.rectangle(16, 14, 292, 250 + extraSkillLines * 24, 0x10151c, 0.9).setOrigin(0, 0).setDepth(19);
-    this.hudAlpha = 1;
+    const panel = this.add.rectangle(HUD_PANEL.x, HUD_PANEL.y, HUD_PANEL.width, HUD_PANEL.height, 0x10151c, 0.92);
+    panel.setOrigin(0, 0);
+    panel.setStrokeStyle(1, 0x263746, 1);
+    panel.setDepth(19);
     this.combatHud = this.add.graphics();
     this.combatHud.setDepth(20);
     this.enemyHud = this.add.graphics();
@@ -696,11 +762,12 @@ export class CombatScene extends Phaser.Scene {
     this.rewindTrail = this.add.graphics();
     this.rewindTrail.setDepth(4);
 
-    this.hudText = this.add.text(24, 20, "", {
+    this.hudText = this.add.text(22, 84, "", {
       color: "#e7edf2",
       fontFamily: "Inter, Arial, sans-serif",
-      fontSize: "17px",
-      lineSpacing: 6
+      fontSize: "16px",
+      lineSpacing: 8,
+      wordWrap: { width: 204 }
     });
     this.hudText.setDepth(20);
 
@@ -1119,6 +1186,7 @@ export class CombatScene extends Phaser.Scene {
 
           if (enemy.health <= 0) {
             this.sparkEmitter.explode(16, enemy.sprite.x, enemy.sprite.y);
+            this.playExplosion(enemy.sprite.x, enemy.sprite.y, 0.9);
             this.showFloatingText(t("status.break"), enemy.sprite.x, enemy.sprite.y, "#8be9fd");
             enemy.sprite.destroy();
           }
@@ -1443,6 +1511,7 @@ export class CombatScene extends Phaser.Scene {
           if (enemy.health <= 0) {
             playSfx("enemyBreak");
             this.sparkEmitter.explode(16, enemy.sprite.x, enemy.sprite.y);
+            this.playExplosion(enemy.sprite.x, enemy.sprite.y, enemy.kind === "boss" ? 1.7 : 0.9);
             this.showFloatingText(t("status.break"), enemy.sprite.x, enemy.sprite.y, "#8be9fd");
             enemy.sprite.destroy();
           } else {
@@ -1511,6 +1580,9 @@ export class CombatScene extends Phaser.Scene {
     if (this.playerHealth <= 0) {
       this.roomState = "lost";
       this.player.setVelocity(0, 0);
+      this.playExplosion(this.player.x, this.player.y, 1.2);
+      this.player.setVisible(false);
+      this.playerThruster.setVisible(false);
       playSfx("defeat");
       setPlayerHealth(0);
       failRun("summary.playerDefeated");
@@ -1583,16 +1655,6 @@ export class CombatScene extends Phaser.Scene {
       t("hud.controls")
     );
     this.hudText.setText(hudLines);
-    this.updateHudFade();
-  }
-
-  private updateHudFade(): void {
-    const nearHud = this.player.x < 340 && this.player.y < this.hudBg.y + this.hudBg.height + 60;
-    const target = nearHud && this.roomState === "playing" ? 0.16 : 1;
-    this.hudAlpha += (target - this.hudAlpha) * 0.12;
-    this.hudBg.setAlpha(0.9 * this.hudAlpha);
-    this.hudText.setAlpha(this.hudAlpha);
-    this.combatHud.setAlpha(this.hudAlpha);
   }
 
   private getCombatSkillState(): string {
@@ -1646,26 +1708,26 @@ export class CombatScene extends Phaser.Scene {
 
   private drawCombatHud(): void {
     this.combatHud.clear();
-    this.drawBar(this.combatHud, 168, 31, 78, 9, this.playerHealth / this.playerMaxHealth, 0x6edbd6);
+    this.drawBar(this.combatHud, 138, 89, 80, 8, this.playerHealth / this.playerMaxHealth, 0x6edbd6);
     this.drawBar(
       this.combatHud,
-      180,
-      88,
-      66,
+      138,
+      145,
+      80,
       7,
       1 - this.freezeCooldownMs / this.freezeCooldownLimitMs,
       0x8be9fd
     );
     this.drawBar(
       this.combatHud,
-      180,
-      115,
-      66,
+      138,
+      173,
+      80,
       7,
       1 - this.rewindCooldownMs / this.rewindCooldownLimitMs,
       0x8fd694
     );
-    this.drawBar(this.combatHud, 180, 132, 66, 7, 1 - this.dashCooldownMs / PLAYER.dashCooldownMs, 0xf7d06e);
+    this.drawBar(this.combatHud, 138, 201, 80, 7, 1 - this.dashCooldownMs / PLAYER.dashCooldownMs, 0xf7d06e);
   }
 
   private drawEnemyHud(): void {

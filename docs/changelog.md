@@ -78,6 +78,10 @@
 - Added the Orbitron display font (OFL) for scene titles with load-before-boot and system fallback.
 - Added Kenney Space Shooter Redux (CC0) sprites for the player, all enemies, both projectiles, and meteor obstacles.
 - Added HUD proximity fade in combat and main menu ambient animation (pulsing nodes, drifting particles).
+- Added Stage 10D HUD sidebar and animations execution record.
+- Added a dedicated left HUD sidebar so the battlefield is never covered (replaces the proximity fade).
+- Added player engine thruster and kill explosion frame animations from the Kenney pack.
+- Added a project `README.md` with features, controls, development, testing, and license credits.
 
 ### Changed
 
