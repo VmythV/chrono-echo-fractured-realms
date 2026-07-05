@@ -1,8 +1,8 @@
 import Phaser from "phaser";
 import { isTranslationKey, t } from "../../core/i18n";
 import { formatCorruptionState } from "../../core/meta/corruption";
-import { applyReward, completeNode, getNodeById, getRewards, getRun } from "../../core/run/run-manager";
-import { getRuleSlotText } from "../../core/run/reward-catalog";
+import { applyReward, completeNode, getNodeById, getRewards, getRun, spendShards } from "../../core/run/run-manager";
+import { getRuleSlotText, SHOP_PRICES } from "../../core/run/reward-catalog";
 import type { RewardContext, RewardKind } from "../../core/run/run-state";
 import { playSfx } from "../audio/sfx";
 
@@ -60,29 +60,42 @@ export class RewardScene extends Phaser.Scene {
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "16px"
     });
+    this.add.text(64, 172, t("shards.label", { count: run.shards }), {
+      color: "#d5b65f",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "16px"
+    });
+
+    const isShop = this.context === "shop";
 
     choices.forEach((choice, index) => {
       const x = 300 + index * 320;
-      const card = this.add.rectangle(x, 370, 260, 240, 0x18222c, 1);
-      card.setStrokeStyle(2, 0x5a7288, 1);
-      card.setInteractive({ useHandCursor: true });
-      card.on("pointerover", () => card.setStrokeStyle(3, 0x8be9fd, 1));
-      card.on("pointerout", () => card.setStrokeStyle(2, 0x5a7288, 1));
-      card.on("pointerup", () => this.chooseReward(choice.id));
+      const price = SHOP_PRICES[choice.kind];
+      const affordable = !isShop || run.shards >= price;
+      const card = this.add.rectangle(x, 370, 260, 240, affordable ? 0x18222c : 0x131a22, 1);
+      card.setStrokeStyle(2, affordable ? 0x5a7288 : 0x2f4053, 1);
+
+      if (affordable) {
+        card.setInteractive({ useHandCursor: true });
+        card.on("pointerover", () => card.setStrokeStyle(3, 0x8be9fd, 1));
+        card.on("pointerout", () => card.setStrokeStyle(2, 0x5a7288, 1));
+        card.on("pointerup", () => this.chooseReward(choice.id, isShop ? price : 0));
+      }
 
       const titleKey = `reward.${choice.id}.title`;
       const descriptionKey = `reward.${choice.id}.desc`;
+      const dimmedColor = affordable ? undefined : "#5a7288";
 
       this.add.text(x, 280, t(`kind.${choice.kind}`), {
         align: "center",
-        color: REWARD_KIND_COLORS[choice.kind],
+        color: dimmedColor ?? REWARD_KIND_COLORS[choice.kind],
         fontFamily: "Inter, Arial, sans-serif",
         fontSize: "14px"
       }).setOrigin(0.5, 0.5);
 
       this.add.text(x, 326, isTranslationKey(titleKey) ? t(titleKey) : choice.title, {
         align: "center",
-        color: "#f7f3e8",
+        color: dimmedColor ?? "#f7f3e8",
         fontFamily: "Inter, Arial, sans-serif",
         fontSize: "22px",
         wordWrap: { width: 210 }
@@ -90,24 +103,58 @@ export class RewardScene extends Phaser.Scene {
 
       this.add.text(x, 394, isTranslationKey(descriptionKey) ? t(descriptionKey) : choice.description, {
         align: "center",
-        color: "#cbd7e2",
+        color: dimmedColor ?? "#cbd7e2",
         fontFamily: "Inter, Arial, sans-serif",
         fontSize: "16px",
         lineSpacing: 6,
         wordWrap: { width: 210 }
       }).setOrigin(0.5, 0.5);
 
-      this.add.text(x, 468, t("reward.choose"), {
+      const actionText = isShop
+        ? affordable
+          ? `${t("shop.buy")} (${t("shop.price", { value: price })})`
+          : t("shop.notEnough")
+        : t("reward.choose");
+      this.add.text(x, 468, actionText, {
         align: "center",
-        color: "#8be9fd",
+        color: affordable ? "#8be9fd" : "#f18f6f",
         fontFamily: "Inter, Arial, sans-serif",
         fontSize: "15px"
       }).setOrigin(0.5, 0.5);
     });
+
+    if (isShop) {
+      this.drawLeaveButton();
+    }
   }
 
-  private chooseReward(rewardId: string): void {
+  private drawLeaveButton(): void {
+    const button = this.add.rectangle(640, 590, 190, 44, 0x18222c, 1);
+    button.setStrokeStyle(2, 0x5a7288, 1);
+    button.setInteractive({ useHandCursor: true });
+    button.on("pointerover", () => button.setStrokeStyle(3, 0x8be9fd, 1));
+    button.on("pointerout", () => button.setStrokeStyle(2, 0x5a7288, 1));
+    button.on("pointerup", () => {
+      playSfx("uiClick");
+      completeNode(this.nodeId);
+      this.scene.start("MapScene");
+    });
+
+    this.add.text(640, 590, t("shop.leave"), {
+      align: "center",
+      color: "#cbd7e2",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "16px"
+    }).setOrigin(0.5, 0.5);
+  }
+
+  private chooseReward(rewardId: string, price: number): void {
     playSfx("uiClick");
+
+    if (price > 0 && !spendShards(price)) {
+      return;
+    }
+
     applyReward(rewardId, this.context);
     completeNode(this.nodeId);
     this.scene.start("MapScene");

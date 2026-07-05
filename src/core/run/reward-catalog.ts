@@ -4,6 +4,13 @@ import type { RewardChoice, RewardContext, RunState, TemporalRuleId } from "./ru
 export const MAX_TEMPORAL_RULES = 5;
 export const MAX_TEMPORAL_RULE_STACKS = 2;
 
+export const SHOP_PRICES: Record<RewardChoice["kind"], number> = {
+  Recovery: 20,
+  Upgrade: 30,
+  Corrupted: 35,
+  Rule: 45
+};
+
 type RewardDefinition = RewardChoice & {
   fallback?: boolean;
 };

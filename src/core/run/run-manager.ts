@@ -50,6 +50,7 @@ export function startNewRun(): RunState {
       rewindCooldownReductionMs: 0,
       rewindShieldDurationMs: 0
     },
+    shards: 0,
     corruption: 0,
     activeRules: [],
     appliedResidues: [],
@@ -143,6 +144,29 @@ export function failRun(reason: string): void {
   const run = getRun();
   run.result = "lost";
   run.summaryReason = reason;
+}
+
+const SHARD_REWARDS: Partial<Record<NodeType, number>> = {
+  combat: 15,
+  elite: 25,
+  boss: 40
+};
+
+export function awardCombatShards(nodeType: NodeType): number {
+  const amount = SHARD_REWARDS[nodeType] ?? 0;
+  getRun().shards += amount;
+  return amount;
+}
+
+export function spendShards(amount: number): boolean {
+  const run = getRun();
+
+  if (run.shards < amount) {
+    return false;
+  }
+
+  run.shards -= amount;
+  return true;
 }
 
 export function setPlayerHealth(health: number): void {

@@ -37,6 +37,7 @@ export type RunState = {
   map: RunNode[][];
   bossNode: RunNode;
   player: PlayerRunState;
+  shards: number;
   corruption: number;
   activeRules: TemporalRuleInstance[];
   appliedResidues: ResidueInstance[];

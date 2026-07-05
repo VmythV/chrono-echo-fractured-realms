@@ -45,6 +45,10 @@
 - Added SettingsScene with difficulty, language, sound, and volume controls.
 - Added three difficulty levels that scale enemy health and damage.
 - Added an i18n module with full English, Chinese, and Spanish translations for all player-facing text.
+- Added Stage 7B events and economy execution record.
+- Added Time Shards currency earned from combat wins and shown on map, event, shop, and summary screens.
+- Added EventScene with the first five paradox events offering benefit-plus-cost choices.
+- Added shop pricing with per-kind prices, disabled unaffordable cards, and a Leave button.
 
 ### Changed
 

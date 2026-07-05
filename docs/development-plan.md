@@ -286,6 +286,7 @@
 当前执行记录：
 
 - `docs/stage-7a-settings-difficulty-language.md`
+- `docs/stage-7b-events-and-economy.md`
 
 ## 11. Development Checkpoints
 

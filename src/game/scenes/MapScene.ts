@@ -46,6 +46,11 @@ export class MapScene extends Phaser.Scene {
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "18px"
     });
+    this.add.text(250, 72, t("shards.label", { count: run.shards }), {
+      color: "#d5b65f",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "18px"
+    });
     this.add.text(40, 132, t("map.rules", { slots: getRuleSlotText(run), list: this.formatRules() }), {
       color: "#cbd7e2",
       fontFamily: "Inter, Arial, sans-serif",
@@ -134,6 +139,11 @@ export class MapScene extends Phaser.Scene {
 
     if (node.type === "combat" || node.type === "elite" || node.type === "boss") {
       this.scene.start("CombatScene", { nodeId: node.id });
+      return;
+    }
+
+    if (node.type === "event") {
+      this.scene.start("EventScene", { nodeId: node.id });
       return;
     }
 

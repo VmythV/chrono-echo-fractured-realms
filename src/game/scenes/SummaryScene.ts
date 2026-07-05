@@ -43,6 +43,7 @@ export class SummaryScene extends Phaser.Scene {
       t("summary.rewardsTaken", { value: run.rewardsTaken.length }),
       t("summary.finalHealth", { current: run.player.health, max: run.player.maxHealth }),
       t("summary.attackBonus", { value: run.player.attackDamageBonus }),
+      t("summary.shards", { value: run.shards }),
       t("summary.corruption", { value: formatCorruptionState(run.corruption) }),
       t("summary.ruleSlots", { value: getRuleSlotText(run) }),
       t("summary.skills", { value: this.formatSkillUpgrades() }),

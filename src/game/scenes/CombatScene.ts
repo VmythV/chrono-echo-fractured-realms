@@ -9,6 +9,7 @@ import {
 import { getDifficultyModifiers, type DifficultyModifiers } from "../../core/meta/difficulty";
 import { loadSettings } from "../../core/meta/settings";
 import {
+  awardCombatShards,
   completeNode,
   failRun,
   getNodeById,
@@ -848,14 +849,16 @@ export class CombatScene extends Phaser.Scene {
       this.player.setVelocity(0, 0);
       playSfx("victory");
       setPlayerHealth(this.playerHealth);
+      const shardsGained = awardCombatShards(this.nodeType);
+      const shardsLine = shardsGained > 0 ? `\n${t("result.shardsGained", { value: shardsGained })}` : "";
 
       if (this.nodeType === "boss") {
         completeNode(this.nodeId);
-        this.showResultPanel(t("result.bossTitle"), t("result.bossBody"), t("result.summaryAction"), "summary");
+        this.showResultPanel(t("result.bossTitle"), t("result.bossBody") + shardsLine, t("result.summaryAction"), "summary");
       } else {
         this.showResultPanel(
           this.nodeType === "elite" ? t("result.eliteTitle") : t("result.nodeTitle"),
-          t("result.winBody"),
+          t("result.winBody") + shardsLine,
           t("result.rewardAction"),
           "reward"
         );
