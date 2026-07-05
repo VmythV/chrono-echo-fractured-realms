@@ -62,6 +62,7 @@ export const en = {
   "node.rest": "Rest",
   "node.boss": "Boss",
   "node.bossName": "Fracture Warden",
+  "node.bossName2": "Glitch Warden",
   "node.short.combat": "COM",
   "node.short.elite": "ELT",
   "node.short.event": "EVT",
@@ -95,7 +96,7 @@ export const en = {
 
   "result.lostTitle": "Timeline Collapsed",
   "result.lostBody": "The run ends here. Your actions become Time Residue for the next timeline.",
-  "result.bossTitle": "Fracture Warden Defeated",
+  "result.bossTitle": "{name} Defeated",
   "result.bossBody": "The route is complete. Review this run before starting another timeline.",
   "result.eliteTitle": "Elite Stabilized",
   "result.nodeTitle": "Node Stabilized",
@@ -145,7 +146,7 @@ export const en = {
 
   "summary.wonTitle": "Run Complete",
   "summary.runEnded": "The run has ended.",
-  "summary.bossDefeated": "Fracture Warden defeated.",
+  "summary.bossDefeated": "The boss of this timeline was defeated.",
   "summary.playerDefeated": "The player was defeated inside a time fracture.",
   "summary.nodesCleared": "Nodes cleared: {value}",
   "summary.rewardsTaken": "Rewards taken: {value}",
@@ -214,5 +215,11 @@ export const en = {
   "residue.merchantMemory.title": "Merchant Memory",
   "residue.merchantMemory.desc": "Next runs start with 6 extra max health.",
   "residue.corruptedSignal.title": "Corrupted Signal",
-  "residue.corruptedSignal.desc": "Next run starts with 6 extra attack damage."
+  "residue.corruptedSignal.desc": "Next run starts with 6 extra attack damage.",
+  "residue.shardMemory.title": "Shard Memory",
+  "residue.shardMemory.desc": "Next run starts with 20 shards.",
+  "residue.eliteTrophy.title": "Elite Trophy",
+  "residue.eliteTrophy.desc": "Next run starts with 8 extra max health.",
+  "residue.overclockedFreeze.title": "Overclocked Freeze",
+  "residue.overclockedFreeze.desc": "Next runs: Time Freeze cooldown -1 second, freeze duration -0.3 seconds."
 } as const;

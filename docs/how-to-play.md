@@ -22,9 +22,11 @@ Each run is a short trip through a fractured timeline. Pick a route on the Time 
 
 1. Main Menu: press `Start Run`. The Timeline State panel shows what your past runs left behind.
 2. Time Tree: click a highlighted node to enter it. Node types: Combat, Elite, Event, Shop, Rest, Boss.
-3. Combat: clear all enemies in the room. After winning, pick one of three rewards.
-4. Boss: defeat the Fracture Warden to complete the run.
-5. Summary: review your build and the Time Residue this run generated, then return to the menu or start again.
+3. Combat: clear all enemies in the room. Winning grants Time Shards and a choice of one reward. Deeper rooms add the Anomaly, an enemy that blinks near you and fires after a short windup.
+4. Event: a paradox event with two choices. Most pair a benefit with a cost; some cost shards.
+5. Shop: spend Time Shards on priced rewards, or leave without buying.
+6. Boss: defeat the Fracture Warden to complete the run. At 50 or more corruption the boss becomes the Glitch Warden, with ring barrages you must weave through.
+7. Summary: review your build and the Time Residue this run generated, then return to the menu or start again.
 
 ## 4. Builds
 

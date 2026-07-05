@@ -8,7 +8,10 @@ export type ResidueId =
   | "frozenTimeline"
   | "recallTrace"
   | "merchantMemory"
-  | "corruptedSignal";
+  | "corruptedSignal"
+  | "shardMemory"
+  | "eliteTrophy"
+  | "overclockedFreeze";
 
 export type RunNode = {
   id: string;
@@ -23,6 +26,7 @@ export type PlayerRunState = {
   maxHealth: number;
   attackDamageBonus: number;
   freezeCooldownReductionMs: number;
+  freezeDurationBonusMs: number;
   freezeImpactDamage: number;
   freezeRadiusBonus: number;
   rewindCooldownReductionMs: number;

@@ -64,6 +64,7 @@ export const es: Record<keyof typeof en, string> = {
   "node.rest": "Descanso",
   "node.boss": "Jefe",
   "node.bossName": "Guardián de la Fractura",
+  "node.bossName2": "Guardián Corrupto",
   "node.short.combat": "COM",
   "node.short.elite": "ELI",
   "node.short.event": "EVE",
@@ -97,7 +98,7 @@ export const es: Record<keyof typeof en, string> = {
 
   "result.lostTitle": "Línea temporal colapsada",
   "result.lostBody": "La partida termina aquí. Tus acciones se convierten en residuo temporal para la próxima línea.",
-  "result.bossTitle": "Guardián de la Fractura derrotado",
+  "result.bossTitle": "{name} derrotado",
   "result.bossBody": "La ruta está completa. Revisa esta partida antes de iniciar otra línea temporal.",
   "result.eliteTitle": "Élite estabilizada",
   "result.nodeTitle": "Nodo estabilizado",
@@ -147,7 +148,7 @@ export const es: Record<keyof typeof en, string> = {
 
   "summary.wonTitle": "Partida completada",
   "summary.runEnded": "La partida ha terminado.",
-  "summary.bossDefeated": "Guardián de la Fractura derrotado.",
+  "summary.bossDefeated": "El jefe de esta línea temporal fue derrotado.",
   "summary.playerDefeated": "El jugador cayó dentro de una fractura temporal.",
   "summary.nodesCleared": "Nodos superados: {value}",
   "summary.rewardsTaken": "Recompensas obtenidas: {value}",
@@ -216,5 +217,11 @@ export const es: Record<keyof typeof en, string> = {
   "residue.merchantMemory.title": "Memoria del mercader",
   "residue.merchantMemory.desc": "Las próximas partidas empiezan con 6 de vida máxima extra.",
   "residue.corruptedSignal.title": "Señal corrupta",
-  "residue.corruptedSignal.desc": "La próxima partida empieza con 6 de daño de ataque extra."
+  "residue.corruptedSignal.desc": "La próxima partida empieza con 6 de daño de ataque extra.",
+  "residue.shardMemory.title": "Memoria de fragmentos",
+  "residue.shardMemory.desc": "La próxima partida empieza con 20 fragmentos.",
+  "residue.eliteTrophy.title": "Trofeo de élite",
+  "residue.eliteTrophy.desc": "La próxima partida empieza con 8 de vida máxima extra.",
+  "residue.overclockedFreeze.title": "Congelación sobrecargada",
+  "residue.overclockedFreeze.desc": "Próximas partidas: enfriamiento de Congelación -1 segundo, duración de congelación -0,3 segundos."
 };

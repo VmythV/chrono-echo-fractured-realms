@@ -49,6 +49,12 @@
 - Added Time Shards currency earned from combat wins and shown on map, event, shop, and summary screens.
 - Added EventScene with the first five paradox events offering benefit-plus-cost choices.
 - Added shop pricing with per-kind prices, disabled unaffordable cards, and a Leave button.
+- Added Stage 7C combat content execution record.
+- Added the Anomaly enemy that blinks near the player and fires after a short windup.
+- Added the Glitch Warden boss variant that appears at 50 or more corruption with ring and burst attacks.
+- Added Shard Memory, Elite Trophy, and Overclocked Freeze residues.
+- Added a `freezeDurationBonusMs` player stat so residues can modify Time Freeze duration.
+- Added a `window.__chronoEchoDebug` handle for automated run-state verification.
 
 ### Changed
 

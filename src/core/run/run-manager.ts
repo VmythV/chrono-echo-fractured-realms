@@ -45,6 +45,7 @@ export function startNewRun(): RunState {
       maxHealth: 100,
       attackDamageBonus: 0,
       freezeCooldownReductionMs: 0,
+      freezeDurationBonusMs: 0,
       freezeImpactDamage: 0,
       freezeRadiusBonus: 0,
       rewindCooldownReductionMs: 0,

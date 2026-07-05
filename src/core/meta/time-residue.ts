@@ -71,6 +71,36 @@ const RESIDUE_DEFINITIONS: Record<ResidueId, ResidueDefinition> = {
     apply: (run, stacks) => {
       run.player.attackDamageBonus += 6 * stacks;
     }
+  },
+  shardMemory: {
+    id: "shardMemory",
+    title: "Shard Memory",
+    description: "Next run starts with 20 shards.",
+    durationRuns: 1,
+    apply: (run, stacks) => {
+      run.shards += 20 * stacks;
+    }
+  },
+  eliteTrophy: {
+    id: "eliteTrophy",
+    title: "Elite Trophy",
+    description: "Next run starts with 8 extra max health.",
+    durationRuns: 1,
+    apply: (run, stacks) => {
+      const bonusHealth = 8 * stacks;
+      run.player.maxHealth += bonusHealth;
+      run.player.health += bonusHealth;
+    }
+  },
+  overclockedFreeze: {
+    id: "overclockedFreeze",
+    title: "Overclocked Freeze",
+    description: "Next runs: Time Freeze cooldown -1 second, freeze duration -0.3 seconds.",
+    durationRuns: 2,
+    apply: (run, stacks) => {
+      run.player.freezeCooldownReductionMs += 1000 * stacks;
+      run.player.freezeDurationBonusMs -= 300 * stacks;
+    }
   }
 };
 
@@ -164,6 +194,18 @@ function generateResidues(run: RunState): ResidueInstance[] {
 
   if (run.corruption >= 50) {
     residueIds.push("corruptedSignal");
+  }
+
+  if (run.shards >= 30) {
+    residueIds.push("shardMemory");
+  }
+
+  if (run.counters.elitesDefeated >= 2) {
+    residueIds.push("eliteTrophy");
+  }
+
+  if (run.counters.timeFreezeCasts >= 5) {
+    residueIds.push("overclockedFreeze");
   }
 
   if (run.counters.timeFreezeCasts >= 2) {

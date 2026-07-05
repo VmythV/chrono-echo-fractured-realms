@@ -64,6 +64,7 @@ export const zh: Record<keyof typeof en, string> = {
   "node.rest": "休息",
   "node.boss": "首领",
   "node.bossName": "裂隙守卫",
+  "node.bossName2": "错乱守卫",
   "node.short.combat": "战",
   "node.short.elite": "精",
   "node.short.event": "事",
@@ -97,7 +98,7 @@ export const zh: Record<keyof typeof en, string> = {
 
   "result.lostTitle": "时间线崩塌",
   "result.lostBody": "这一局到此为止。你的行动将化作下一条时间线的时间残响。",
-  "result.bossTitle": "裂隙守卫已被击败",
+  "result.bossTitle": "{name}已被击败",
   "result.bossBody": "路线已完成。开始新的时间线之前，先回顾这一局。",
   "result.eliteTitle": "精英已稳定",
   "result.nodeTitle": "节点已稳定",
@@ -147,7 +148,7 @@ export const zh: Record<keyof typeof en, string> = {
 
   "summary.wonTitle": "通关成功",
   "summary.runEnded": "这一局已结束。",
-  "summary.bossDefeated": "裂隙守卫已被击败。",
+  "summary.bossDefeated": "本时间线的首领已被击败。",
   "summary.playerDefeated": "玩家在时间裂隙中倒下了。",
   "summary.nodesCleared": "通过节点：{value}",
   "summary.rewardsTaken": "获得奖励：{value}",
@@ -216,5 +217,11 @@ export const zh: Record<keyof typeof en, string> = {
   "residue.merchantMemory.title": "商人记忆",
   "residue.merchantMemory.desc": "接下来的局开局最大生命 +6。",
   "residue.corruptedSignal.title": "腐化信号",
-  "residue.corruptedSignal.desc": "下一局开局攻击力 +6。"
+  "residue.corruptedSignal.desc": "下一局开局攻击力 +6。",
+  "residue.shardMemory.title": "碎片记忆",
+  "residue.shardMemory.desc": "下一局开局获得 20 碎片。",
+  "residue.eliteTrophy.title": "精英战利",
+  "residue.eliteTrophy.desc": "下一局开局最大生命 +8。",
+  "residue.overclockedFreeze.title": "超频冻结",
+  "residue.overclockedFreeze.desc": "接下来的局：时间冻结冷却 -1 秒，冻结持续 -0.3 秒。"
 };

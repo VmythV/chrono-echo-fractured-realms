@@ -287,6 +287,7 @@
 
 - `docs/stage-7a-settings-difficulty-language.md`
 - `docs/stage-7b-events-and-economy.md`
+- `docs/stage-7c-combat-content.md`
 
 ## 11. Development Checkpoints
 

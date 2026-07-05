@@ -151,7 +151,11 @@ export class MapScene extends Phaser.Scene {
   }
 
   private getNodeLabel(node: RunNode): string {
-    return node.type === "boss" ? t("node.bossName") : t(`node.${node.type}`);
+    if (node.type === "boss") {
+      return getRun().corruption >= 50 ? t("node.bossName2") : t("node.bossName");
+    }
+
+    return t(`node.${node.type}`);
   }
 
   private drawStartOverButton(): void {

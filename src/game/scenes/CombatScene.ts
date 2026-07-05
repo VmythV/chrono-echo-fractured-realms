@@ -23,8 +23,9 @@ import { playSfx } from "../audio/sfx";
 
 type ArcadeImage = Phaser.Physics.Arcade.Image;
 
-type EnemyKind = "chaser" | "shooter" | "boss";
+type EnemyKind = "chaser" | "shooter" | "anomaly" | "boss";
 type ResultMode = "reward" | "summary";
+type BossVariant = "warden" | "glitch";
 
 type EnemyState = {
   sprite: ArcadeImage;
@@ -35,6 +36,8 @@ type EnemyState = {
   fireCooldownMs: number;
   fireElapsedMs: number;
   frozenMs: number;
+  windupMs: number;
+  attackCycle: number;
 };
 
 type ProjectileState = {
@@ -85,6 +88,9 @@ const TIME_SKILLS = {
 export class CombatScene extends Phaser.Scene {
   private nodeId = "";
   private nodeType: NodeType = "combat";
+  private nodeDepth = 0;
+  private bossVariant: BossVariant = "warden";
+  private freezeDurationLimitMs = TIME_SKILLS.freezeDurationMs;
   private player!: ArcadeImage;
   private aimLine!: Phaser.GameObjects.Line;
   private freezePreview!: Phaser.GameObjects.Arc;
@@ -132,6 +138,9 @@ export class CombatScene extends Phaser.Scene {
     const node = data.nodeId ? getNodeById(data.nodeId) : undefined;
     this.nodeId = node?.id ?? "prototype-combat";
     this.nodeType = node?.type ?? "combat";
+    this.nodeDepth = node?.depth ?? 0;
+    this.bossVariant = run.corruption >= 50 ? "glitch" : "warden";
+    this.freezeDurationLimitMs = Math.max(800, TIME_SKILLS.freezeDurationMs + run.player.freezeDurationBonusMs);
     this.enemies = [];
     this.projectiles = [];
     this.snapshots = [];
@@ -196,6 +205,7 @@ export class CombatScene extends Phaser.Scene {
     this.makeCircleTexture("player-core", 18, 0x6edbd6, 0x122a33);
     this.makeCircleTexture("chaser-core", 18, 0xe06f5d, 0x341815);
     this.makeCircleTexture("shooter-core", 18, 0xd5b65f, 0x352b13);
+    this.makeCircleTexture("anomaly-core", 18, 0x9a8cf0, 0x241a45);
     this.makeCircleTexture("boss-core", 30, 0xb57be8, 0x2d1838);
     this.makeCircleTexture("player-shot", 6, 0x8be9fd, 0x0f3c45);
     this.makeCircleTexture("enemy-shot", 7, 0xf18f6f, 0x4a1f17);
@@ -264,30 +274,56 @@ export class CombatScene extends Phaser.Scene {
     }
 
     this.spawnEnemy("chaser", ARENA.x + 210, ARENA.y + 250);
-    this.spawnEnemy("chaser", ARENA.x + ARENA.width - 210, ARENA.y + 265);
+    this.spawnEnemy(this.nodeDepth >= 3 ? "anomaly" : "chaser", ARENA.x + ARENA.width - 210, ARENA.y + 265);
     this.spawnEnemy("shooter", ARENA.x + ARENA.width / 2, ARENA.y + 100);
 
     if (this.nodeType === "elite") {
-      this.spawnEnemy("chaser", ARENA.x + ARENA.width / 2, ARENA.y + 330);
+      this.spawnEnemy("anomaly", ARENA.x + ARENA.width / 2, ARENA.y + 330);
     }
   }
 
   private spawnEnemy(kind: EnemyKind, x: number, y: number): void {
-    const texture = kind === "boss" ? "boss-core" : kind === "chaser" ? "chaser-core" : "shooter-core";
-    const sprite = this.physics.add.image(x, y, texture);
+    const textures: Record<EnemyKind, string> = {
+      chaser: "chaser-core",
+      shooter: "shooter-core",
+      anomaly: "anomaly-core",
+      boss: "boss-core"
+    };
+    const sprite = this.physics.add.image(x, y, textures[kind]);
     sprite.setCircle(kind === "boss" ? 30 : 18, 3, 3);
     sprite.setCollideWorldBounds(true);
     sprite.setDepth(8);
+
+    const speeds: Record<EnemyKind, number> = {
+      chaser: 145,
+      shooter: 95,
+      anomaly: 40,
+      boss: this.bossVariant === "glitch" ? 84 : 68
+    };
+    const fireCooldowns: Record<EnemyKind, number> = {
+      chaser: 0,
+      shooter: 1300,
+      anomaly: 2400,
+      boss: this.bossVariant === "glitch" ? 1500 : 1150
+    };
+    const initialElapsed: Record<EnemyKind, number> = {
+      chaser: 0,
+      shooter: 500,
+      anomaly: 1400,
+      boss: 500
+    };
 
     this.enemies.push({
       sprite,
       kind,
       health: this.getEnemyHealth(kind),
       maxHealth: this.getEnemyHealth(kind),
-      speed: kind === "boss" ? 68 : kind === "chaser" ? 145 : 95,
-      fireCooldownMs: kind === "boss" ? 1150 : kind === "shooter" ? 1300 : 0,
-      fireElapsedMs: kind === "boss" || kind === "shooter" ? 500 : 0,
-      frozenMs: 0
+      speed: speeds[kind],
+      fireCooldownMs: fireCooldowns[kind],
+      fireElapsedMs: initialElapsed[kind],
+      frozenMs: 0,
+      windupMs: 0,
+      attackCycle: 0
     });
   }
 
@@ -295,7 +331,8 @@ export class CombatScene extends Phaser.Scene {
     const baseHealth: Record<EnemyKind, number> = {
       chaser: 48,
       shooter: 62,
-      boss: 220
+      anomaly: 54,
+      boss: this.bossVariant === "glitch" ? 260 : 220
     };
     const eliteMultiplier = this.nodeType === "elite" && kind !== "boss" ? 1.25 : 1;
 
@@ -544,7 +581,7 @@ export class CombatScene extends Phaser.Scene {
 
       const distance = Phaser.Math.Distance.Between(center.x, center.y, enemy.sprite.x, enemy.sprite.y);
       if (distance <= this.freezeRadius) {
-        enemy.frozenMs = TIME_SKILLS.freezeDurationMs;
+        enemy.frozenMs = this.freezeDurationLimitMs;
         enemy.sprite.setTint(0x8be9fd);
         enemy.sprite.setVelocity(0, 0);
 
@@ -564,7 +601,7 @@ export class CombatScene extends Phaser.Scene {
       if (projectile.owner === "enemy") {
         const distance = Phaser.Math.Distance.Between(center.x, center.y, projectile.sprite.x, projectile.sprite.y);
         if (distance <= this.freezeRadius) {
-          projectile.frozenMs = TIME_SKILLS.freezeDurationMs;
+          projectile.frozenMs = this.freezeDurationLimitMs;
           projectile.storedVelocity = new Phaser.Math.Vector2(
             projectile.sprite.body?.velocity.x ?? 0,
             projectile.sprite.body?.velocity.y ?? 0
@@ -634,6 +671,11 @@ export class CombatScene extends Phaser.Scene {
         return;
       }
 
+      if (enemy.kind === "anomaly") {
+        this.updateAnomaly(enemy, delta);
+        return;
+      }
+
       this.updateShooter(enemy, delta);
     });
   }
@@ -650,7 +692,82 @@ export class CombatScene extends Phaser.Scene {
     enemy.fireElapsedMs += delta;
     if (enemy.fireElapsedMs >= enemy.fireCooldownMs) {
       enemy.fireElapsedMs = 0;
-      this.fireBossBurst(enemy);
+
+      if (this.bossVariant === "glitch" && enemy.attackCycle % 2 === 0) {
+        this.fireBossRing(enemy);
+      } else {
+        this.fireBossBurst(enemy);
+      }
+
+      enemy.attackCycle += 1;
+    }
+  }
+
+  private updateAnomaly(enemy: EnemyState, delta: number): void {
+    if (enemy.windupMs > 0) {
+      enemy.sprite.setVelocity(0, 0);
+      enemy.windupMs -= delta;
+
+      if (enemy.windupMs <= 0) {
+        this.fireEnemyShot(enemy, 300, 8);
+      }
+      return;
+    }
+
+    this.physics.moveToObject(enemy.sprite, this.player, enemy.speed);
+
+    enemy.fireElapsedMs += delta;
+    if (enemy.fireElapsedMs >= enemy.fireCooldownMs) {
+      enemy.fireElapsedMs = 0;
+      this.blinkAnomaly(enemy);
+    }
+  }
+
+  private blinkAnomaly(enemy: EnemyState): void {
+    this.playBlinkPulse(enemy.sprite.x, enemy.sprite.y);
+
+    const margin = 46;
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 240 + Math.random() * 80;
+    const targetX = Phaser.Math.Clamp(
+      this.player.x + Math.cos(angle) * distance,
+      ARENA.x + margin,
+      ARENA.x + ARENA.width - margin
+    );
+    const targetY = Phaser.Math.Clamp(
+      this.player.y + Math.sin(angle) * distance,
+      ARENA.y + margin,
+      ARENA.y + ARENA.height - margin
+    );
+
+    enemy.sprite.setPosition(targetX, targetY);
+    enemy.sprite.setVelocity(0, 0);
+    enemy.windupMs = 350;
+    this.playBlinkPulse(targetX, targetY);
+    playSfx("blink");
+  }
+
+  private playBlinkPulse(x: number, y: number): void {
+    const pulse = this.add.circle(x, y, 26);
+    pulse.setStrokeStyle(2, 0x9a8cf0, 0.85);
+    pulse.setFillStyle(0x9a8cf0, 0.1);
+    pulse.setDepth(6);
+    this.tweens.add({
+      targets: pulse,
+      alpha: 0,
+      scale: 1.5,
+      duration: 300,
+      ease: "Quad.easeOut",
+      onComplete: () => pulse.destroy()
+    });
+  }
+
+  private fireBossRing(enemy: EnemyState): void {
+    const shots = 8;
+    for (let index = 0; index < shots; index++) {
+      const angle = (Math.PI * 2 * index) / shots;
+      const direction = new Phaser.Math.Vector2(Math.cos(angle), Math.sin(angle));
+      this.spawnEnemyProjectile(enemy.sprite.x, enemy.sprite.y, direction, 210, this.getEnemyDamage(6));
     }
   }
 
@@ -854,7 +971,13 @@ export class CombatScene extends Phaser.Scene {
 
       if (this.nodeType === "boss") {
         completeNode(this.nodeId);
-        this.showResultPanel(t("result.bossTitle"), t("result.bossBody") + shardsLine, t("result.summaryAction"), "summary");
+        const bossName = t(this.bossVariant === "glitch" ? "node.bossName2" : "node.bossName");
+        this.showResultPanel(
+          t("result.bossTitle", { name: bossName }),
+          t("result.bossBody") + shardsLine,
+          t("result.summaryAction"),
+          "summary"
+        );
       } else {
         this.showResultPanel(
           this.nodeType === "elite" ? t("result.eliteTitle") : t("result.nodeTitle"),
@@ -974,7 +1097,7 @@ export class CombatScene extends Phaser.Scene {
       this.drawBar(this.enemyHud, barX, barY, 48, 5, enemy.health / enemy.maxHealth, 0xf18f6f);
 
       if (enemy.frozenMs > 0) {
-        const frozenRatio = enemy.frozenMs / TIME_SKILLS.freezeDurationMs;
+        const frozenRatio = enemy.frozenMs / this.freezeDurationLimitMs;
         this.enemyHud.lineStyle(2, 0x8be9fd, 0.65);
         this.enemyHud.strokeCircle(enemy.sprite.x, enemy.sprite.y, 26);
         this.drawBar(this.enemyHud, barX, barY - 7, 48, 4, frozenRatio, 0x8be9fd);

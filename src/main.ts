@@ -4,6 +4,7 @@ import { CombatScene } from "./game/scenes/CombatScene";
 import { EventScene } from "./game/scenes/EventScene";
 import { MainMenuScene } from "./game/scenes/MainMenuScene";
 import { MapScene } from "./game/scenes/MapScene";
+import { getRun } from "./core/run/run-manager";
 import { RewardScene } from "./game/scenes/RewardScene";
 import { SettingsScene } from "./game/scenes/SettingsScene";
 import { SummaryScene } from "./game/scenes/SummaryScene";
@@ -85,3 +86,4 @@ game.events.once(Phaser.Core.Events.READY, () => {
 });
 
 (window as Window & { __chronoEchoGame?: Phaser.Game }).__chronoEchoGame = game;
+(window as Window & { __chronoEchoDebug?: { getRun: typeof getRun } }).__chronoEchoDebug = { getRun };
