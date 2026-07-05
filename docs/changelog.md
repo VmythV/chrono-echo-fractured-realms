@@ -62,6 +62,8 @@
 - Added Stage 9A run persistence and pause execution record.
 - Added run snapshots saved at the time tree with a Continue Run entry on the main menu.
 - Added an ESC pause panel in combat with resume and main menu actions.
+- Added Stage 9B smoke tests execution record and `docs/testing.md`.
+- Added a committed Playwright smoke suite in `tests/e2e-smoke.mjs` with an `npm run test:e2e` script.
 
 ### Changed
 
