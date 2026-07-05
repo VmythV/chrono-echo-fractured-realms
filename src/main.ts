@@ -81,19 +81,26 @@ window.addEventListener("unhandledrejection", (event) => {
   showErrorOverlay(event.reason instanceof Error ? event.reason.message : String(event.reason));
 });
 
-function patchTextResolution(): void {
-  if (RENDER_SCALE === 1) {
-    return;
-  }
-
-  // Phaser 4 has no game-wide text resolution setting; default every text to the render scale.
+function patchTextDefaults(): void {
+  // Phaser 4 has no game-wide text defaults. This patch gives every text object:
+  // 1. resolution = RENDER_SCALE for crisp glyphs on high-DPI displays;
+  // 2. useAdvancedWrap on wrapped text so CJK strings without spaces still break at width.
   const factory = Phaser.GameObjects.GameObjectFactory.prototype as unknown as {
     text: (x: number, y: number, text: string | string[], style?: Phaser.Types.GameObjects.Text.TextStyle) => Phaser.GameObjects.Text;
   };
   const baseText = factory.text;
 
   factory.text = function (this: unknown, x, y, text, style) {
-    return baseText.call(this, x, y, text, { resolution: RENDER_SCALE, ...style });
+    const merged: Phaser.Types.GameObjects.Text.TextStyle = {
+      ...(RENDER_SCALE !== 1 ? { resolution: RENDER_SCALE } : {}),
+      ...style
+    };
+
+    if (merged.wordWrap?.width && merged.wordWrap.useAdvancedWrap === undefined) {
+      merged.wordWrap = { ...merged.wordWrap, useAdvancedWrap: true };
+    }
+
+    return baseText.call(this, x, y, text, merged);
   };
 }
 
@@ -107,7 +114,7 @@ async function boot(): Promise<void> {
     // The display font is optional; system fallbacks keep the game playable.
   }
 
-  patchTextResolution();
+  patchTextDefaults();
   const game = new Phaser.Game(config);
 
   game.events.once(Phaser.Core.Events.READY, () => {

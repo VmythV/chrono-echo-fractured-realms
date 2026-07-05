@@ -106,3 +106,4 @@
 - Changed the combat arena from 780x560 to 1080x580 with the HUD floating over the battlefield.
 - Changed reward cards to 272x292 with tighter typography so long shop descriptions stay inside the frame.
 - Changed the run summary to top-anchored dynamic layout so the reason line and stats never overlap.
+- Fixed CJK text overflowing wrapped bounds by defaulting all wrapped text to advanced word wrap.
