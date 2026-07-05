@@ -3,7 +3,7 @@ import { t } from "../../core/i18n";
 import { formatCorruptionCombatEffect, formatCorruptionState } from "../../core/meta/corruption";
 import { loadSettings } from "../../core/meta/settings";
 import { getResidueDescription, getResidueTitle } from "../../core/meta/time-residue";
-import { getCurrentAvailableNodes, getRun, selectNode, startNewRun } from "../../core/run/run-manager";
+import { getCurrentAvailableNodes, getRun, saveRunSnapshot, selectNode, startNewRun } from "../../core/run/run-manager";
 import { getRuleSlotText } from "../../core/run/reward-catalog";
 import type { NodeType, RunNode } from "../../core/run/run-state";
 import { playSfx } from "../audio/sfx";
@@ -29,6 +29,8 @@ export class MapScene extends Phaser.Scene {
       this.scene.start("SummaryScene");
       return;
     }
+
+    saveRunSnapshot();
 
     this.add.rectangle(640, 360, 1280, 720, 0x10151c);
     this.add.text(40, 28, t("map.title"), {

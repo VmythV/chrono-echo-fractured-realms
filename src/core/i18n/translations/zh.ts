@@ -23,6 +23,7 @@ export const zh: Record<keyof typeof en, string> = {
   "menu.noRuns": "暂无记录。",
   "menu.historyLine": "{index}. {result} / {nodes} 节点 / 腐化 {corruption}",
   "menu.startRun": "开始一局",
+  "menu.continueRun": "继续冒险",
   "menu.memoryTree": "记忆之树",
   "menu.memories": "记忆：{count}",
   "menu.settings": "设置",
@@ -97,6 +98,10 @@ export const zh: Record<keyof typeof en, string> = {
   "status.break": "击碎",
   "status.storedBonus": "蓄能 +{value}",
   "status.splitBonus": "瞬息 +{value}",
+
+  "pause.title": "已暂停",
+  "pause.hint": "进度在时间树处保存。现在离开将回到上一个检查点。",
+  "pause.resume": "继续",
 
   "result.lostTitle": "时间线崩塌",
   "result.lostBody": "这一局到此为止。你的行动将化作下一条时间线的时间残响。",

@@ -145,6 +145,8 @@ export class CombatScene extends Phaser.Scene {
   private snapshotElapsedMs = 0;
   private roomState: "playing" | "won" | "lost" = "playing";
   private resultMode: ResultMode = "reward";
+  private paused = false;
+  private pausePanelElements: Array<Phaser.GameObjects.Rectangle | Phaser.GameObjects.Text> = [];
 
   constructor() {
     super("CombatScene");
@@ -193,6 +195,8 @@ export class CombatScene extends Phaser.Scene {
     this.snapshotElapsedMs = 0;
     this.roomState = "playing";
     this.resultMode = "reward";
+    this.paused = false;
+    this.pausePanelElements = [];
   }
 
   create(): void {
@@ -207,6 +211,10 @@ export class CombatScene extends Phaser.Scene {
   }
 
   update(time: number, delta: number): void {
+    if (this.paused) {
+      return;
+    }
+
     if (this.roomState !== "playing") {
       this.updateHud();
       return;
@@ -407,6 +415,7 @@ export class CombatScene extends Phaser.Scene {
     this.statusText.setDepth(20);
 
     this.createResultPanel();
+    this.createPausePanel();
   }
 
   private createInput(): void {
@@ -427,10 +436,90 @@ export class CombatScene extends Phaser.Scene {
     }) as typeof this.keys;
 
     this.input.keyboard.addCapture("W,A,S,D,Q,E,R,F,SPACE");
+    this.input.keyboard.on("keydown-ESC", () => this.togglePause());
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
-      if (pointer.leftButtonDown()) {
+      if (pointer.leftButtonDown() && !this.paused) {
         this.tryFirePlayerShot();
       }
+    });
+  }
+
+  private togglePause(): void {
+    if (this.roomState !== "playing") {
+      return;
+    }
+
+    this.paused = !this.paused;
+
+    if (this.paused) {
+      this.physics.world.pause();
+    } else {
+      this.physics.world.resume();
+    }
+
+    this.setPausePanelVisible(this.paused);
+  }
+
+  private createPausePanel(): void {
+    const panel = this.add.rectangle(640, 360, 400, 240, 0x10151c, 0.95);
+    panel.setStrokeStyle(2, 0x5a7288, 1);
+    panel.setDepth(40);
+
+    const title = this.add.text(640, 296, t("pause.title"), {
+      align: "center",
+      color: "#f7f3e8",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "28px"
+    }).setOrigin(0.5, 0.5).setDepth(41);
+
+    const hint = this.add.text(640, 338, t("pause.hint"), {
+      align: "center",
+      color: "#8fa3b5",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "14px",
+      wordWrap: { width: 340 }
+    }).setOrigin(0.5, 0.5).setDepth(41);
+
+    const resumeButton = this.add.rectangle(640, 392, 200, 42, 0x263746, 1);
+    resumeButton.setStrokeStyle(2, 0x8be9fd, 0.9);
+    resumeButton.setDepth(41);
+    resumeButton.setInteractive({ useHandCursor: true });
+    resumeButton.on("pointerup", () => {
+      playSfx("uiClick");
+      this.togglePause();
+    });
+
+    const resumeText = this.add.text(640, 392, t("pause.resume"), {
+      align: "center",
+      color: "#e7edf2",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "16px"
+    }).setOrigin(0.5, 0.5).setDepth(42);
+
+    const menuButton = this.add.rectangle(640, 446, 200, 42, 0x18222c, 1);
+    menuButton.setStrokeStyle(2, 0x5a7288, 1);
+    menuButton.setDepth(41);
+    menuButton.setInteractive({ useHandCursor: true });
+    menuButton.on("pointerup", () => {
+      playSfx("uiClick");
+      this.physics.world.resume();
+      this.scene.start("MainMenuScene");
+    });
+
+    const menuText = this.add.text(640, 446, t("summary.mainMenu"), {
+      align: "center",
+      color: "#cbd7e2",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "16px"
+    }).setOrigin(0.5, 0.5).setDepth(42);
+
+    this.pausePanelElements = [panel, title, hint, resumeButton, resumeText, menuButton, menuText];
+    this.setPausePanelVisible(false);
+  }
+
+  private setPausePanelVisible(visible: boolean): void {
+    this.pausePanelElements.forEach((element) => {
+      element.setVisible(visible);
     });
   }
 

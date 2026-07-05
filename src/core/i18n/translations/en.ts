@@ -21,6 +21,7 @@ export const en = {
   "menu.noRuns": "No recorded runs.",
   "menu.historyLine": "{index}. {result} / {nodes} nodes / corruption {corruption}",
   "menu.startRun": "Start Run",
+  "menu.continueRun": "Continue Run",
   "menu.memoryTree": "Memory Tree",
   "menu.memories": "Memories: {count}",
   "menu.settings": "Settings",
@@ -95,6 +96,10 @@ export const en = {
   "status.break": "Break",
   "status.storedBonus": "Stored +{value}",
   "status.splitBonus": "Split +{value}",
+
+  "pause.title": "Paused",
+  "pause.hint": "Progress is saved at the time tree. Leaving now returns to the last checkpoint.",
+  "pause.resume": "Resume",
 
   "result.lostTitle": "Timeline Collapsed",
   "result.lostBody": "The run ends here. Your actions become Time Residue for the next timeline.",

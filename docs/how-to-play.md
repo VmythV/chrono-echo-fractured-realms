@@ -18,6 +18,7 @@ Each run is a short trip through a fractured timeline. Pick a route on the Time 
 | E | Time Rewind: return to your position a few seconds ago and recover part of recent damage |
 | R | Echo Attack (after unlocking it in the Memory Tree): fire a fan of three echo bolts. Also confirms result panels |
 | F | Time Anchor (after unlocking it in the Memory Tree): place an anchor, press again to return to it |
+| Esc | Pause during combat |
 
 ## 3. Run Flow
 
@@ -57,6 +58,10 @@ The main menu `Settings` button opens the settings screen:
 - Sound: On / Off and Volume: Low / Normal / High.
 
 Settings are stored locally and survive `Reset Save`. `Reset Save` clears residues, run history, and corruption records.
+
+## 6b. Leaving And Returning
+
+Your run is checkpointed every time you reach the Time Tree. If you close the tab or reload, the main menu offers `Continue Run`. Reloading during a combat, event, or shop returns you to the Time Tree from before that node. Dying ends the run for good.
 
 ## 7. Requirements
 

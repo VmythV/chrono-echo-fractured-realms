@@ -59,6 +59,9 @@
 - Added Memories meta currency earned at run end and shown in the menu, memory tree, and summary.
 - Added MemoryScene with five permanent unlock nodes across three branches.
 - Added the Echo Attack (R) and Time Anchor (F) unlockable active skills with sounds and HUD rows.
+- Added Stage 9A run persistence and pause execution record.
+- Added run snapshots saved at the time tree with a Continue Run entry on the main menu.
+- Added an ESC pause panel in combat with resume and main menu actions.
 
 ### Changed
 

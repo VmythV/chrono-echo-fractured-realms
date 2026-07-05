@@ -27,6 +27,7 @@
 | Stage 6 | Web 可玩版本 | UI、音画反馈、打包、说明 |
 | Stage 7 | 适配不同人群和内容扩充 | 设置页、难度、多语言、事件、经济、战斗内容 |
 | Stage 8 | 局外记忆树 | 记忆货币、永久节点、新主动技能 |
+| Stage 9 | 稳定性与可维护性 | 断点续玩、暂停、冒烟测试 |
 
 ## 3. Stage 0: Baseline
 
@@ -312,7 +313,30 @@
 
 - `docs/stage-8-memory-tree.md`
 
-## 12. Development Checkpoints
+## 12. Stage 9: Stability And Maintainability
+
+目标：
+
+- 消除"刷新丢整局"这一最大真实体验风险，并让验证可回归。
+
+范围：
+
+- 局内快照与 Continue Run。
+- 战斗 ESC 暂停。
+- 提交到仓库的 Playwright 冒烟测试与 npm 脚本。
+
+验收标准：
+
+- 刷新后可以从时间树检查点继续，死亡后不可继续。
+- 暂停可靠冻结战斗并可恢复。
+- `npm run test:e2e` 可在本地一键回归核心流程。
+
+当前执行记录：
+
+- `docs/stage-9a-run-persistence-pause.md`
+- `docs/stage-9b-smoke-tests.md`
+
+## 13. Development Checkpoints
 
 每个开发阶段结束前检查：
 

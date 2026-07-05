@@ -23,6 +23,7 @@ export const es: Record<keyof typeof en, string> = {
   "menu.noRuns": "Sin partidas registradas.",
   "menu.historyLine": "{index}. {result} / {nodes} nodos / corrupción {corruption}",
   "menu.startRun": "Iniciar partida",
+  "menu.continueRun": "Continuar partida",
   "menu.memoryTree": "Árbol de memoria",
   "menu.memories": "Recuerdos: {count}",
   "menu.settings": "Ajustes",
@@ -97,6 +98,10 @@ export const es: Record<keyof typeof en, string> = {
   "status.break": "Ruptura",
   "status.storedBonus": "Acumulado +{value}",
   "status.splitBonus": "Instante +{value}",
+
+  "pause.title": "En pausa",
+  "pause.hint": "El progreso se guarda en el árbol temporal. Salir ahora vuelve al último punto de control.",
+  "pause.resume": "Reanudar",
 
   "result.lostTitle": "Línea temporal colapsada",
   "result.lostBody": "La partida termina aquí. Tus acciones se convierten en residuo temporal para la próxima línea.",

@@ -3,7 +3,7 @@ import { t } from "../../core/i18n";
 import { formatCorruptionState } from "../../core/meta/corruption";
 import { clearSaveData, loadSaveData, type SaveData } from "../../core/meta/save-state";
 import { formatResidues } from "../../core/meta/time-residue";
-import { startNewRun } from "../../core/run/run-manager";
+import { clearRunSnapshot, hasResumableRun, resumeSavedRun, startNewRun } from "../../core/run/run-manager";
 import { playSfx } from "../audio/sfx";
 
 type MenuButtonVariant = "primary" | "secondary";
@@ -147,10 +147,32 @@ export class MainMenuScene extends Phaser.Scene {
   }
 
   private drawActions(): void {
-    this.createButton(76, 294, 230, 48, t("menu.startRun"), "primary", () => this.startRun());
-    this.createButton(76, 362, 230, 42, t("menu.memoryTree"), "secondary", () => this.scene.start("MemoryScene"));
-    this.createButton(76, 430, 230, 42, t("menu.settings"), "secondary", () => this.scene.start("SettingsScene"));
-    this.createButton(76, 498, 230, 42, t("menu.resetSave"), "secondary", () => this.resetSave());
+    const resumable = hasResumableRun();
+    let y = 294;
+
+    if (resumable) {
+      this.createButton(76, y, 230, 48, t("menu.continueRun"), "primary", () => this.continueRun());
+      y += 68;
+    }
+
+    this.createButton(76, y, 230, resumable ? 42 : 48, t("menu.startRun"), resumable ? "secondary" : "primary", () =>
+      this.startRun()
+    );
+    y += resumable ? 60 : 68;
+    this.createButton(76, y, 230, 42, t("menu.memoryTree"), "secondary", () => this.scene.start("MemoryScene"));
+    y += 60;
+    this.createButton(76, y, 230, 42, t("menu.settings"), "secondary", () => this.scene.start("SettingsScene"));
+    y += 60;
+    this.createButton(76, y, 230, 42, t("menu.resetSave"), "secondary", () => this.resetSave());
+  }
+
+  private continueRun(): void {
+    if (resumeSavedRun()) {
+      this.scene.start("MapScene");
+      return;
+    }
+
+    this.scene.restart();
   }
 
   private createButton(
@@ -190,6 +212,7 @@ export class MainMenuScene extends Phaser.Scene {
 
   private resetSave(): void {
     clearSaveData();
+    clearRunSnapshot();
     this.scene.restart();
   }
 }

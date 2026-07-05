@@ -25,7 +25,73 @@ const NODE_PATTERN: NodeType[][] = [
 
 let activeRun: RunState | null = null;
 
+const RUN_SNAPSHOT_KEY = "chrono-echo-run-v1";
+
+export function saveRunSnapshot(): void {
+  if (!activeRun || activeRun.result !== "running" || typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(RUN_SNAPSHOT_KEY, JSON.stringify(activeRun));
+}
+
+export function clearRunSnapshot(): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.removeItem(RUN_SNAPSHOT_KEY);
+}
+
+export function hasResumableRun(): boolean {
+  return readRunSnapshot() !== null;
+}
+
+export function resumeSavedRun(): boolean {
+  const snapshot = readRunSnapshot();
+
+  if (!snapshot) {
+    return false;
+  }
+
+  activeRun = snapshot;
+  return true;
+}
+
+function readRunSnapshot(): RunState | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  const raw = window.localStorage.getItem(RUN_SNAPSHOT_KEY);
+
+  if (!raw) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<RunState>;
+
+    if (
+      parsed.result !== "running" ||
+      typeof parsed.seed !== "string" ||
+      !Array.isArray(parsed.map) ||
+      !parsed.player ||
+      !parsed.bossNode
+    ) {
+      clearRunSnapshot();
+      return null;
+    }
+
+    return parsed as RunState;
+  } catch {
+    clearRunSnapshot();
+    return null;
+  }
+}
+
 export function startNewRun(): RunState {
+  clearRunSnapshot();
   const seed = `run-${Date.now()}`;
   const map = generateTimeTree();
   activeRun = {
@@ -140,6 +206,7 @@ export function completeNode(nodeId: string): void {
     run.result = "won";
     run.summaryReason = "summary.bossDefeated";
     run.counters.bossDefeated = true;
+    clearRunSnapshot();
     return;
   }
 
@@ -150,6 +217,7 @@ export function failRun(reason: string): void {
   const run = getRun();
   run.result = "lost";
   run.summaryReason = reason;
+  clearRunSnapshot();
 }
 
 const SHARD_REWARDS: Partial<Record<NodeType, number>> = {
