@@ -25,20 +25,20 @@ export class SummaryScene extends Phaser.Scene {
     const generatedResidues = finalizeRunResidues(run);
 
     this.add.rectangle(640, 360, 1280, 720, 0x10151c);
-    this.add.text(640, 160, won ? t("summary.wonTitle") : t("result.lostTitle"), {
+    this.add.text(640, 96, won ? t("summary.wonTitle") : t("result.lostTitle"), {
       align: "center",
       color: "#f7f3e8",
       fontFamily: DISPLAY_FONT,
-      fontSize: "42px"
+      fontSize: "40px"
     }).setOrigin(0.5, 0.5);
 
     const summaryReason = isTranslationKey(run.summaryReason) ? t(run.summaryReason) : run.summaryReason;
-    this.add.text(640, 220, summaryReason || t("summary.runEnded"), {
+    this.add.text(640, 150, summaryReason || t("summary.runEnded"), {
       align: "center",
       color: "#cbd7e2",
       fontFamily: "Inter, Arial, sans-serif",
-      fontSize: "18px",
-      wordWrap: { width: 560 }
+      fontSize: "17px",
+      wordWrap: { width: 720 }
     }).setOrigin(0.5, 0.5);
 
     const stats = [
@@ -55,23 +55,23 @@ export class SummaryScene extends Phaser.Scene {
       t("summary.memoriesEarned", { value: run.memoriesEarned })
     ];
 
-    this.add.text(640, 342, stats.join("\n"), {
+    const statsText = this.add.text(640, 190, stats.join("\n"), {
       align: "center",
       color: "#e7edf2",
       fontFamily: "Inter, Arial, sans-serif",
-      fontSize: "16px",
-      lineSpacing: 6,
+      fontSize: "15px",
+      lineSpacing: 5,
       wordWrap: { width: 840 }
-    }).setOrigin(0.5, 0.5);
+    }).setOrigin(0.5, 0);
 
-    this.add.text(640, 500, this.formatGeneratedResidueDetails(), {
+    this.add.text(640, statsText.y + statsText.height + 14, this.formatGeneratedResidueDetails(), {
       align: "center",
       color: "#cbd7e2",
       fontFamily: "Inter, Arial, sans-serif",
-      fontSize: "14px",
+      fontSize: "13px",
       lineSpacing: 5,
       wordWrap: { width: 760 }
-    }).setOrigin(0.5, 0.5);
+    }).setOrigin(0.5, 0);
 
     this.createButton(522, 590, t("summary.startNewRun"), 0x263746, 0x8be9fd, () => this.startNextRun());
     this.createButton(758, 590, t("summary.mainMenu"), 0x18222c, 0x5a7288, () => transitionTo(this, "MainMenuScene"));

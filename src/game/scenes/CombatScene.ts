@@ -40,6 +40,7 @@ type EnemyState = {
   frozenMs: number;
   windupMs: number;
   attackCycle: number;
+  chargeMs: number;
   baseTint?: number;
 };
 
@@ -721,6 +722,7 @@ export class CombatScene extends Phaser.Scene {
       frozenMs: 0,
       windupMs: 0,
       attackCycle: 0,
+      chargeMs: 0,
       baseTint:
         kind === "anomaly" ? 0xb9a8ff : kind === "boss" && this.bossVariant === "glitch" ? 0xc77bf0 : undefined
     });
@@ -1291,7 +1293,36 @@ export class CombatScene extends Phaser.Scene {
     });
   }
 
+  private isBossEnraged(enemy: EnemyState): boolean {
+    return enemy.health <= enemy.maxHealth / 2;
+  }
+
   private updateBoss(enemy: EnemyState, delta: number): void {
+    if (enemy.chargeMs > 0) {
+      enemy.chargeMs -= delta;
+
+      if (enemy.chargeMs <= 0) {
+        enemy.sprite.setVelocity(0, 0);
+      }
+      return;
+    }
+
+    if (enemy.windupMs > 0) {
+      enemy.sprite.setVelocity(0, 0);
+      enemy.windupMs -= delta;
+
+      if (enemy.windupMs <= 0) {
+        const direction = new Phaser.Math.Vector2(
+          this.player.x - enemy.sprite.x,
+          this.player.y - enemy.sprite.y
+        ).normalize();
+        enemy.sprite.setVelocity(direction.x * 430, direction.y * 430);
+        enemy.chargeMs = 550;
+        playSfx("dash");
+      }
+      return;
+    }
+
     const distance = Phaser.Math.Distance.Between(enemy.sprite.x, enemy.sprite.y, this.player.x, this.player.y);
 
     if (distance > 280) {
@@ -1304,8 +1335,19 @@ export class CombatScene extends Phaser.Scene {
     if (enemy.fireElapsedMs >= enemy.fireCooldownMs) {
       enemy.fireElapsedMs = 0;
 
-      if (this.bossVariant === "glitch" && enemy.attackCycle % 2 === 0) {
-        this.fireBossRing(enemy);
+      if (this.bossVariant === "glitch") {
+        if (enemy.attackCycle % 2 === 0) {
+          if (this.isBossEnraged(enemy)) {
+            this.blinkAnomaly(enemy);
+            enemy.windupMs = 0;
+          }
+          this.fireBossRing(enemy);
+        } else {
+          this.fireBossBurst(enemy);
+        }
+      } else if (this.isBossEnraged(enemy) && enemy.attackCycle % 3 === 2) {
+        this.playBlinkPulse(enemy.sprite.x, enemy.sprite.y);
+        enemy.windupMs = 450;
       } else {
         this.fireBossBurst(enemy);
       }
@@ -1321,6 +1363,14 @@ export class CombatScene extends Phaser.Scene {
 
       if (enemy.windupMs <= 0) {
         this.fireEnemyShot(enemy, 300, 8);
+
+        if (this.nodeType === "elite") {
+          this.time.delayedCall(140, () => {
+            if (enemy.sprite.active && enemy.frozenMs <= 0 && this.roomState === "playing") {
+              this.fireEnemyShot(enemy, 300, 8);
+            }
+          });
+        }
       }
       return;
     }
@@ -1374,11 +1424,14 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private fireBossRing(enemy: EnemyState): void {
-    const shots = 8;
+    const enraged = this.isBossEnraged(enemy);
+    const shots = enraged ? 12 : 8;
+    const speed = enraged ? 235 : 210;
+
     for (let index = 0; index < shots; index++) {
       const angle = (Math.PI * 2 * index) / shots;
       const direction = new Phaser.Math.Vector2(Math.cos(angle), Math.sin(angle));
-      this.spawnEnemyProjectile(enemy.sprite.x, enemy.sprite.y, direction, 210, this.getEnemyDamage(6));
+      this.spawnEnemyProjectile(enemy.sprite.x, enemy.sprite.y, direction, speed, this.getEnemyDamage(6));
     }
   }
 
@@ -1403,15 +1456,20 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private fireEnemyShot(enemy: EnemyState, speed: number, damage: number): void {
-    const direction = new Phaser.Math.Vector2(this.player.x - enemy.sprite.x, this.player.y - enemy.sprite.y);
-    direction.normalize();
+    const baseAngle = Phaser.Math.Angle.Between(enemy.sprite.x, enemy.sprite.y, this.player.x, this.player.y);
+    const offsets = this.nodeType === "elite" && enemy.kind === "shooter" ? [-0.24, 0, 0.24] : [0];
 
-    this.spawnEnemyProjectile(enemy.sprite.x, enemy.sprite.y, direction, speed, this.getEnemyDamage(damage));
+    offsets.forEach((offset) => {
+      const direction = new Phaser.Math.Vector2(Math.cos(baseAngle + offset), Math.sin(baseAngle + offset));
+      this.spawnEnemyProjectile(enemy.sprite.x, enemy.sprite.y, direction, speed, this.getEnemyDamage(damage));
+    });
   }
 
   private fireBossBurst(enemy: EnemyState): void {
     const baseAngle = Phaser.Math.Angle.Between(enemy.sprite.x, enemy.sprite.y, this.player.x, this.player.y);
-    [-0.32, 0, 0.32].forEach((offset) => {
+    const offsets = this.isBossEnraged(enemy) ? [-0.5, -0.25, 0, 0.25, 0.5] : [-0.32, 0, 0.32];
+
+    offsets.forEach((offset) => {
       const direction = new Phaser.Math.Vector2(Math.cos(baseAngle + offset), Math.sin(baseAngle + offset));
       this.spawnEnemyProjectile(enemy.sprite.x, enemy.sprite.y, direction, 260, this.getEnemyDamage(7));
     });

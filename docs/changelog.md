@@ -82,6 +82,9 @@
 - Added a dedicated left HUD sidebar so the battlefield is never covered (replaces the proximity fade).
 - Added player engine thruster and kill explosion frame animations from the Kenney pack.
 - Added a project `README.md` with features, controls, development, testing, and license credits.
+- Added Stage 10E route trace, boss phases, and UI fixes execution record.
+- Added a route trace line on the time tree connecting visited nodes in order.
+- Added enraged phases: Warden 5-shot bursts and telegraphed charges, Glitch Warden 12-shot rings with blinks, elite Shooter 3-shot fans, elite Anomaly double shots.
 
 ### Changed
 
@@ -101,3 +104,5 @@
 - Changed the main menu Sound and Volume buttons into a Settings entry that opens SettingsScene.
 - Changed residue, rule, corruption, and node text rendering to translate by id so saved data never shows a stale language.
 - Changed the combat arena from 780x560 to 1080x580 with the HUD floating over the battlefield.
+- Changed reward cards to 272x292 with tighter typography so long shop descriptions stay inside the frame.
+- Changed the run summary to top-anchored dynamic layout so the reason line and stats never overlap.

@@ -3,7 +3,14 @@ import { t } from "../../core/i18n";
 import { formatCorruptionCombatEffect, formatCorruptionState } from "../../core/meta/corruption";
 import { loadSettings } from "../../core/meta/settings";
 import { getResidueDescription, getResidueTitle } from "../../core/meta/time-residue";
-import { getCurrentAvailableNodes, getRun, saveRunSnapshot, selectNode, startNewRun } from "../../core/run/run-manager";
+import {
+  getCurrentAvailableNodes,
+  getNodeById,
+  getRun,
+  saveRunSnapshot,
+  selectNode,
+  startNewRun
+} from "../../core/run/run-manager";
 import { getRuleSlotText } from "../../core/run/reward-catalog";
 import type { NodeType, RunNode } from "../../core/run/run-state";
 import { playSfx } from "../audio/sfx";
@@ -69,9 +76,58 @@ export class MapScene extends Phaser.Scene {
       wordWrap: { width: 780 }
     });
 
+    this.drawRouteTrace();
     this.drawMap();
     this.drawTimelineReport();
     this.drawStartOverButton();
+  }
+
+  private drawRouteTrace(): void {
+    const run = getRun();
+    this.data.set("routeSegments", 0);
+    const points = run.selectedNodeIds
+      .map((nodeId) => this.getNodePosition(nodeId))
+      .filter((point): point is { x: number; y: number } => point !== null);
+
+    if (points.length < 2) {
+      return;
+    }
+
+    const trace = this.add.graphics();
+    trace.lineStyle(3, 0x8be9fd, 0.4);
+    trace.beginPath();
+    points.forEach((point, index) => {
+      if (index === 0) {
+        trace.moveTo(point.x, point.y);
+      } else {
+        trace.lineTo(point.x, point.y);
+      }
+    });
+    trace.strokePath();
+
+    points.forEach((point) => {
+      trace.fillStyle(0x8be9fd, 0.5);
+      trace.fillCircle(point.x, point.y, 5);
+    });
+
+    this.data.set("routeSegments", points.length - 1);
+  }
+
+  private getNodePosition(nodeId: string): { x: number; y: number } | null {
+    const run = getRun();
+    const node = getNodeById(nodeId);
+
+    if (!node) {
+      return null;
+    }
+
+    const x = 120 + node.depth * 135;
+
+    if (node.type === "boss") {
+      return { x, y: 360 };
+    }
+
+    return { x, y: this.getNodeY(run.map[node.depth]?.length ?? 1, node.lane) };
   }
 
   private drawMap(): void {

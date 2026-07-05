@@ -361,6 +361,7 @@
 - `docs/stage-10b-arena-variety-transitions.md`
 - `docs/stage-10c-hidpi-font-sprites.md`
 - `docs/stage-10d-hud-sidebar-animations.md`
+- `docs/stage-10e-route-boss-ui-fixes.md`
 
 ## 14. Development Checkpoints
 

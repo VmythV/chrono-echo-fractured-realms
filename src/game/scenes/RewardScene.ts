@@ -75,7 +75,7 @@ export class RewardScene extends Phaser.Scene {
       const x = 300 + index * 320;
       const price = SHOP_PRICES[choice.kind];
       const affordable = !isShop || run.shards >= price;
-      const card = this.add.rectangle(x, 370, 260, 240, affordable ? 0x18222c : 0x131a22, 1);
+      const card = this.add.rectangle(x, 372, 272, 292, affordable ? 0x18222c : 0x131a22, 1);
       card.setStrokeStyle(2, affordable ? 0x5a7288 : 0x2f4053, 1);
 
       if (affordable) {
@@ -89,28 +89,28 @@ export class RewardScene extends Phaser.Scene {
       const descriptionKey = `reward.${choice.id}.desc`;
       const dimmedColor = affordable ? undefined : "#5a7288";
 
-      this.add.text(x, 280, t(`kind.${choice.kind}`), {
+      this.add.text(x, 250, t(`kind.${choice.kind}`), {
         align: "center",
         color: dimmedColor ?? REWARD_KIND_COLORS[choice.kind],
         fontFamily: "Inter, Arial, sans-serif",
         fontSize: "14px"
       }).setOrigin(0.5, 0.5);
 
-      this.add.text(x, 326, isTranslationKey(titleKey) ? t(titleKey) : choice.title, {
+      this.add.text(x, 296, isTranslationKey(titleKey) ? t(titleKey) : choice.title, {
         align: "center",
         color: dimmedColor ?? "#f7f3e8",
         fontFamily: "Inter, Arial, sans-serif",
-        fontSize: "22px",
-        wordWrap: { width: 210 }
+        fontSize: "21px",
+        wordWrap: { width: 236 }
       }).setOrigin(0.5, 0.5);
 
-      this.add.text(x, 394, isTranslationKey(descriptionKey) ? t(descriptionKey) : choice.description, {
+      this.add.text(x, 392, isTranslationKey(descriptionKey) ? t(descriptionKey) : choice.description, {
         align: "center",
         color: dimmedColor ?? "#cbd7e2",
         fontFamily: "Inter, Arial, sans-serif",
-        fontSize: "16px",
-        lineSpacing: 6,
-        wordWrap: { width: 210 }
+        fontSize: "15px",
+        lineSpacing: 5,
+        wordWrap: { width: 232 }
       }).setOrigin(0.5, 0.5);
 
       const actionText = isShop
@@ -118,11 +118,11 @@ export class RewardScene extends Phaser.Scene {
           ? `${t("shop.buy")} (${t("shop.price", { value: price })})`
           : t("shop.notEnough")
         : t("reward.choose");
-      this.add.text(x, 468, actionText, {
+      this.add.text(x, 494, actionText, {
         align: "center",
         color: affordable ? "#8be9fd" : "#f18f6f",
         fontFamily: "Inter, Arial, sans-serif",
-        fontSize: "15px"
+        fontSize: "14px"
       }).setOrigin(0.5, 0.5);
     });
 
