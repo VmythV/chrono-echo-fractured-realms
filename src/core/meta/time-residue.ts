@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { createRunHistoryEntry, loadSaveData, saveSaveData } from "./save-state";
 import type { ResidueId, ResidueInstance, RunState } from "../run/run-state";
 
@@ -133,15 +134,23 @@ export function finalizeRunResidues(run: RunState): ResidueInstance[] {
 
 export function formatResidues(residues: ResidueInstance[]): string {
   if (residues.length === 0) {
-    return "None";
+    return t("common.none");
   }
 
   return residues
     .map((residue) => {
       const stacks = residue.stacks > 1 ? ` x${residue.stacks}` : "";
-      return `${residue.title}${stacks}`;
+      return `${getResidueTitle(residue)}${stacks}`;
     })
     .join(" / ");
+}
+
+export function getResidueTitle(residue: ResidueInstance): string {
+  return t(`residue.${residue.id}.title`);
+}
+
+export function getResidueDescription(residue: ResidueInstance): string {
+  return t(`residue.${residue.id}.desc`);
 }
 
 function generateResidues(run: RunState): ResidueInstance[] {

@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { isTranslationKey, t } from "../../core/i18n";
 import { formatCorruptionState } from "../../core/meta/corruption";
 import { applyReward, completeNode, getNodeById, getRewards, getRun } from "../../core/run/run-manager";
 import { getRuleSlotText } from "../../core/run/reward-catalog";
@@ -34,7 +35,9 @@ export class RewardScene extends Phaser.Scene {
     const run = getRun();
     const node = getNodeById(this.nodeId);
     const choices = getRewards(this.context);
-    const title = node ? `${node.label} Choice` : "Timeline Choice";
+    const title = node
+      ? t("reward.title", { label: node.type === "boss" ? t("node.bossName") : t(`node.${node.type}`) })
+      : t("reward.fallbackTitle");
 
     this.add.rectangle(640, 360, 1280, 720, 0x10151c);
     this.add.text(64, 46, title, {
@@ -42,17 +45,17 @@ export class RewardScene extends Phaser.Scene {
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "32px"
     });
-    this.add.text(64, 92, `Health ${run.player.health}/${run.player.maxHealth}`, {
+    this.add.text(64, 92, t("common.health", { current: run.player.health, max: run.player.maxHealth }), {
       color: "#cbd7e2",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "18px"
     });
-    this.add.text(64, 120, `Rule slots ${getRuleSlotText(run)}`, {
+    this.add.text(64, 120, t("reward.ruleSlots", { value: getRuleSlotText(run) }), {
       color: "#cbd7e2",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "16px"
     });
-    this.add.text(64, 146, `Corruption ${formatCorruptionState(run.corruption)}`, {
+    this.add.text(64, 146, t("reward.corruption", { value: formatCorruptionState(run.corruption) }), {
       color: "#cbd7e2",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "16px"
@@ -67,14 +70,17 @@ export class RewardScene extends Phaser.Scene {
       card.on("pointerout", () => card.setStrokeStyle(2, 0x5a7288, 1));
       card.on("pointerup", () => this.chooseReward(choice.id));
 
-      this.add.text(x, 280, choice.kind, {
+      const titleKey = `reward.${choice.id}.title`;
+      const descriptionKey = `reward.${choice.id}.desc`;
+
+      this.add.text(x, 280, t(`kind.${choice.kind}`), {
         align: "center",
         color: REWARD_KIND_COLORS[choice.kind],
         fontFamily: "Inter, Arial, sans-serif",
         fontSize: "14px"
       }).setOrigin(0.5, 0.5);
 
-      this.add.text(x, 326, choice.title, {
+      this.add.text(x, 326, isTranslationKey(titleKey) ? t(titleKey) : choice.title, {
         align: "center",
         color: "#f7f3e8",
         fontFamily: "Inter, Arial, sans-serif",
@@ -82,7 +88,7 @@ export class RewardScene extends Phaser.Scene {
         wordWrap: { width: 210 }
       }).setOrigin(0.5, 0.5);
 
-      this.add.text(x, 394, choice.description, {
+      this.add.text(x, 394, isTranslationKey(descriptionKey) ? t(descriptionKey) : choice.description, {
         align: "center",
         color: "#cbd7e2",
         fontFamily: "Inter, Arial, sans-serif",
@@ -91,7 +97,7 @@ export class RewardScene extends Phaser.Scene {
         wordWrap: { width: 210 }
       }).setOrigin(0.5, 0.5);
 
-      this.add.text(x, 468, "Choose", {
+      this.add.text(x, 468, t("reward.choose"), {
         align: "center",
         color: "#8be9fd",
         fontFamily: "Inter, Arial, sans-serif",

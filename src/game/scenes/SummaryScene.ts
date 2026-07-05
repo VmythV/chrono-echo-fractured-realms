@@ -1,6 +1,12 @@
 import Phaser from "phaser";
+import { isTranslationKey, t } from "../../core/i18n";
 import { formatCorruptionState } from "../../core/meta/corruption";
-import { finalizeRunResidues, formatResidues } from "../../core/meta/time-residue";
+import {
+  finalizeRunResidues,
+  formatResidues,
+  getResidueDescription,
+  getResidueTitle
+} from "../../core/meta/time-residue";
 import { getRun, startNewRun } from "../../core/run/run-manager";
 import { getRuleSlotText } from "../../core/run/reward-catalog";
 import { playSfx } from "../audio/sfx";
@@ -16,14 +22,15 @@ export class SummaryScene extends Phaser.Scene {
     const generatedResidues = finalizeRunResidues(run);
 
     this.add.rectangle(640, 360, 1280, 720, 0x10151c);
-    this.add.text(640, 160, won ? "Run Complete" : "Timeline Collapsed", {
+    this.add.text(640, 160, won ? t("summary.wonTitle") : t("result.lostTitle"), {
       align: "center",
       color: "#f7f3e8",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "42px"
     }).setOrigin(0.5, 0.5);
 
-    this.add.text(640, 220, run.summaryReason || "The run has ended.", {
+    const summaryReason = isTranslationKey(run.summaryReason) ? t(run.summaryReason) : run.summaryReason;
+    this.add.text(640, 220, summaryReason || t("summary.runEnded"), {
       align: "center",
       color: "#cbd7e2",
       fontFamily: "Inter, Arial, sans-serif",
@@ -32,15 +39,15 @@ export class SummaryScene extends Phaser.Scene {
     }).setOrigin(0.5, 0.5);
 
     const stats = [
-      `Nodes cleared: ${run.completedNodeIds.length}`,
-      `Rewards taken: ${run.rewardsTaken.length}`,
-      `Final health: ${run.player.health}/${run.player.maxHealth}`,
-      `Attack bonus: +${run.player.attackDamageBonus}`,
-      `Corruption: ${formatCorruptionState(run.corruption)}`,
-      `Rule slots: ${getRuleSlotText(run)}`,
-      `Skills: ${this.formatSkillUpgrades()}`,
-      `Rules: ${this.formatRules()}`,
-      `Generated residues: ${formatResidues(generatedResidues)}`
+      t("summary.nodesCleared", { value: run.completedNodeIds.length }),
+      t("summary.rewardsTaken", { value: run.rewardsTaken.length }),
+      t("summary.finalHealth", { current: run.player.health, max: run.player.maxHealth }),
+      t("summary.attackBonus", { value: run.player.attackDamageBonus }),
+      t("summary.corruption", { value: formatCorruptionState(run.corruption) }),
+      t("summary.ruleSlots", { value: getRuleSlotText(run) }),
+      t("summary.skills", { value: this.formatSkillUpgrades() }),
+      t("summary.rules", { value: this.formatRules() }),
+      t("summary.generatedResidues", { value: formatResidues(generatedResidues) })
     ];
 
     this.add.text(640, 342, stats.join("\n"), {
@@ -61,8 +68,8 @@ export class SummaryScene extends Phaser.Scene {
       wordWrap: { width: 760 }
     }).setOrigin(0.5, 0.5);
 
-    this.createButton(522, 590, "Start New Run", 0x263746, 0x8be9fd, () => this.startNextRun());
-    this.createButton(758, 590, "Main Menu", 0x18222c, 0x5a7288, () => this.scene.start("MainMenuScene"));
+    this.createButton(522, 590, t("summary.startNewRun"), 0x263746, 0x8be9fd, () => this.startNextRun());
+    this.createButton(758, 590, t("summary.mainMenu"), 0x18222c, 0x5a7288, () => this.scene.start("MainMenuScene"));
 
     this.input.keyboard?.once("keydown-R", () => this.startNextRun());
   }
@@ -102,11 +109,14 @@ export class SummaryScene extends Phaser.Scene {
     const rules = getRun().activeRules;
 
     if (rules.length === 0) {
-      return "None";
+      return t("common.none");
     }
 
     return rules
-      .map((rule) => (rule.stacks > 1 ? `${rule.title} x${rule.stacks}` : rule.title))
+      .map((rule) => {
+        const title = t(`reward.${rule.id}.title`);
+        return rule.stacks > 1 ? `${title} x${rule.stacks}` : title;
+      })
       .join(", ");
   }
 
@@ -115,27 +125,27 @@ export class SummaryScene extends Phaser.Scene {
     const upgrades: string[] = [];
 
     if (player.freezeRadiusBonus > 0) {
-      upgrades.push(`Freeze radius +${player.freezeRadiusBonus}`);
+      upgrades.push(t("skill.freezeRadius", { value: player.freezeRadiusBonus }));
     }
 
     if (player.freezeImpactDamage > 0) {
-      upgrades.push(`Freeze hit ${player.freezeImpactDamage}`);
+      upgrades.push(t("skill.freezeHit", { value: player.freezeImpactDamage }));
     }
 
     if (player.rewindShieldDurationMs > 0) {
-      upgrades.push(`Rewind shield ${Math.round(player.rewindShieldDurationMs / 100) / 10}s`);
+      upgrades.push(t("skill.rewindShield", { value: Math.round(player.rewindShieldDurationMs / 100) / 10 }));
     }
 
-    return upgrades.length > 0 ? upgrades.join(", ") : "Base";
+    return upgrades.length > 0 ? upgrades.join(", ") : t("common.base");
   }
 
   private formatGeneratedResidueDetails(): string {
     const residues = getRun().generatedResidues;
 
     if (residues.length === 0) {
-      return "No residue was generated.";
+      return t("summary.noResidue");
     }
 
-    return residues.map((residue) => `${residue.title}: ${residue.description}`).join("\n");
+    return residues.map((residue) => `${getResidueTitle(residue)}: ${getResidueDescription(residue)}`).join("\n");
   }
 }

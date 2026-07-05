@@ -1,11 +1,18 @@
+export type Language = "en" | "zh" | "es";
+export type Difficulty = "easy" | "normal" | "hard";
+
 export type GameSettings = {
   version: 1;
   sfxEnabled: boolean;
   sfxVolume: number;
+  difficulty: Difficulty;
+  language: Language;
 };
 
 const SETTINGS_KEY = "chrono-echo-settings-v1";
 const VOLUME_STEPS = [0.7, 1, 0.4] as const;
+const LANGUAGE_ORDER: Language[] = ["en", "zh", "es"];
+const DIFFICULTY_ORDER: Difficulty[] = ["normal", "hard", "easy"];
 
 let cachedSettings: GameSettings | null = null;
 
@@ -44,12 +51,34 @@ export function cycleSfxVolume(): GameSettings {
   return nextSettings;
 }
 
-export function formatVolumeLabel(volume: number): string {
+export function cycleLanguage(): GameSettings {
+  const settings = loadSettings();
+  const currentIndex = LANGUAGE_ORDER.indexOf(settings.language);
+  const nextSettings: GameSettings = {
+    ...settings,
+    language: LANGUAGE_ORDER[(currentIndex + 1) % LANGUAGE_ORDER.length]
+  };
+  saveSettings(nextSettings);
+  return nextSettings;
+}
+
+export function cycleDifficulty(): GameSettings {
+  const settings = loadSettings();
+  const currentIndex = DIFFICULTY_ORDER.indexOf(settings.difficulty);
+  const nextSettings: GameSettings = {
+    ...settings,
+    difficulty: DIFFICULTY_ORDER[(currentIndex + 1) % DIFFICULTY_ORDER.length]
+  };
+  saveSettings(nextSettings);
+  return nextSettings;
+}
+
+export function formatVolumeLabel(volume: number): "low" | "normal" | "high" {
   if (volume <= 0.4) {
-    return "Low";
+    return "low";
   }
 
-  return volume >= 1 ? "High" : "Normal";
+  return volume >= 1 ? "high" : "normal";
 }
 
 function readSettingsFromStorage(): GameSettings {
@@ -73,11 +102,21 @@ function readSettingsFromStorage(): GameSettings {
     return {
       version: 1,
       sfxEnabled: typeof parsed.sfxEnabled === "boolean" ? parsed.sfxEnabled : true,
-      sfxVolume: normalizeVolume(parsed.sfxVolume)
+      sfxVolume: normalizeVolume(parsed.sfxVolume),
+      difficulty: normalizeDifficulty(parsed.difficulty),
+      language: normalizeLanguage(parsed.language)
     };
   } catch {
     return createDefaultSettings();
   }
+}
+
+function normalizeDifficulty(value: unknown): Difficulty {
+  return DIFFICULTY_ORDER.includes(value as Difficulty) ? (value as Difficulty) : "normal";
+}
+
+function normalizeLanguage(value: unknown): Language {
+  return LANGUAGE_ORDER.includes(value as Language) ? (value as Language) : "en";
 }
 
 function normalizeVolume(value: unknown): number {
@@ -96,6 +135,8 @@ function createDefaultSettings(): GameSettings {
   return {
     version: 1,
     sfxEnabled: true,
-    sfxVolume: 0.7
+    sfxVolume: 0.7,
+    difficulty: "normal",
+    language: "en"
   };
 }

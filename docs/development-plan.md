@@ -25,6 +25,7 @@
 | Stage 4 | 构筑系统 | 技能升级、被动规则、基础平衡 |
 | Stage 5 | Time Residue 和腐化 | 局后影响、本地存档、腐化阈值 |
 | Stage 6 | Web 可玩版本 | UI、音画反馈、打包、说明 |
+| Stage 7 | 适配不同人群 | 设置页、难度、多语言 |
 
 ## 3. Stage 0: Baseline
 
@@ -264,7 +265,29 @@
 
 状态：完成。玩家说明见 `docs/how-to-play.md`。
 
-## 10. Development Checkpoints
+## 10. Stage 7: Accessibility And Localization
+
+目标：
+
+- 让游戏适配不同水平和不同语言的玩家。
+
+范围：
+
+- 独立设置页：难度、语言、音效、音量。
+- 三档难度，只调整敌人数值。
+- 英文、中文、西班牙文全量界面与内容文案。
+
+验收标准：
+
+- 设置立即生效并持久化，Reset Save 不影响设置。
+- 切换语言后所有玩家可见文案无混合语言。
+- 难度修正在战斗中可验证。
+
+当前执行记录：
+
+- `docs/stage-7a-settings-difficulty-language.md`
+
+## 11. Development Checkpoints
 
 每个开发阶段结束前检查：
 

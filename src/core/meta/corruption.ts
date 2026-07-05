@@ -1,48 +1,39 @@
+import { t } from "../i18n";
 import type { RunState } from "../run/run-state";
 
 export type CorruptionTierId = "stable" | "unstable" | "fractured" | "critical";
 
 export type CorruptionTier = {
   id: CorruptionTierId;
-  title: string;
   min: number;
   enemyHealthMultiplier: number;
   enemyDamageBonus: number;
-  description: string;
 };
 
 export const CORRUPTION_TIERS: CorruptionTier[] = [
   {
     id: "stable",
-    title: "Stable",
     min: 0,
     enemyHealthMultiplier: 1,
-    enemyDamageBonus: 0,
-    description: "No extra combat pressure."
+    enemyDamageBonus: 0
   },
   {
     id: "unstable",
-    title: "Unstable",
     min: 25,
     enemyHealthMultiplier: 1.08,
-    enemyDamageBonus: 1,
-    description: "Enemies gain 8% health and deal 1 extra damage."
+    enemyDamageBonus: 1
   },
   {
     id: "fractured",
-    title: "Fractured",
     min: 50,
     enemyHealthMultiplier: 1.16,
-    enemyDamageBonus: 2,
-    description: "Enemies gain 16% health and deal 2 extra damage."
+    enemyDamageBonus: 2
   },
   {
     id: "critical",
-    title: "Critical",
     min: 75,
     enemyHealthMultiplier: 1.25,
-    enemyDamageBonus: 3,
-    description: "Enemies gain 25% health and deal 3 extra damage."
+    enemyDamageBonus: 3
   }
 ];
 
@@ -56,19 +47,26 @@ export function getCorruptionTier(corruption: number): CorruptionTier {
   return [...CORRUPTION_TIERS].reverse().find((tier) => value >= tier.min) ?? CORRUPTION_TIERS[0];
 }
 
+export function getCorruptionTierTitle(tier: CorruptionTier): string {
+  return t(`corruption.${tier.id}`);
+}
+
 export function formatCorruptionState(corruption: number): string {
   const tier = getCorruptionTier(corruption);
-  return `${clampCorruption(corruption)}/100 ${tier.title}`;
+  return t("corruption.state", { value: clampCorruption(corruption), tier: getCorruptionTierTitle(tier) });
 }
 
 export function formatCorruptionCombatEffect(corruption: number): string {
   const tier = getCorruptionTier(corruption);
 
   if (tier.id === "stable") {
-    return tier.description;
+    return t("corruption.stableEffect");
   }
 
-  return `Enemy health x${tier.enemyHealthMultiplier.toFixed(2)}, enemy damage +${tier.enemyDamageBonus}.`;
+  return t("corruption.effect", {
+    multiplier: tier.enemyHealthMultiplier.toFixed(2),
+    bonus: tier.enemyDamageBonus
+  });
 }
 
 function clampCorruption(value: number): number {

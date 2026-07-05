@@ -1,9 +1,13 @@
 import Phaser from "phaser";
+import { t } from "../../core/i18n";
 import {
   formatCorruptionState,
   getCorruptionTier,
+  getCorruptionTierTitle,
   type CorruptionTier
 } from "../../core/meta/corruption";
+import { getDifficultyModifiers, type DifficultyModifiers } from "../../core/meta/difficulty";
+import { loadSettings } from "../../core/meta/settings";
 import {
   completeNode,
   failRun,
@@ -111,6 +115,7 @@ export class CombatScene extends Phaser.Scene {
   private rewindShieldMs = 0;
   private corruption = 0;
   private corruptionTier: CorruptionTier = getCorruptionTier(0);
+  private difficultyModifiers: DifficultyModifiers = getDifficultyModifiers("normal");
   private activeRules = new Map<TemporalRuleId, number>();
   private splitSecondReady = false;
   private snapshotElapsedMs = 0;
@@ -141,6 +146,7 @@ export class CombatScene extends Phaser.Scene {
     this.rewindShieldMs = 0;
     this.corruption = run.corruption;
     this.corruptionTier = getCorruptionTier(run.corruption);
+    this.difficultyModifiers = getDifficultyModifiers(loadSettings().difficulty);
     this.activeRules = new Map(run.activeRules.map((rule) => [rule.id, Math.max(1, rule.stacks)] as const));
     this.splitSecondReady = false;
     this.playerInvulnerableMs = 0;
@@ -292,7 +298,12 @@ export class CombatScene extends Phaser.Scene {
     };
     const eliteMultiplier = this.nodeType === "elite" && kind !== "boss" ? 1.25 : 1;
 
-    return Math.round(baseHealth[kind] * eliteMultiplier * this.corruptionTier.enemyHealthMultiplier);
+    return Math.round(
+      baseHealth[kind] *
+        eliteMultiplier *
+        this.corruptionTier.enemyHealthMultiplier *
+        this.difficultyModifiers.enemyHealthMultiplier
+    );
   }
 
   private createHud(): void {
@@ -467,7 +478,7 @@ export class CombatScene extends Phaser.Scene {
 
     if (this.getRuleStacks("fastTimeline") > 0) {
       this.attackElapsedMs = PLAYER.attackCooldownMs;
-      this.showStatus("Fast Timeline");
+      this.showStatus(t("reward.fastTimeline.title"));
     }
   }
 
@@ -483,7 +494,7 @@ export class CombatScene extends Phaser.Scene {
       const bonusDamage = 12 * this.getRuleStacks("splitSecond");
       damage += bonusDamage;
       this.splitSecondReady = false;
-      this.showFloatingText(`Split +${bonusDamage}`, this.player.x, this.player.y - 42, "#8be9fd");
+      this.showFloatingText(t("status.splitBonus", { value: bonusDamage }), this.player.x, this.player.y - 42, "#8be9fd");
     }
 
     const direction = this.getAimVector();
@@ -541,7 +552,7 @@ export class CombatScene extends Phaser.Scene {
           this.showFloatingText(`${this.freezeImpactDamage}`, enemy.sprite.x, enemy.sprite.y - 52, "#8be9fd");
 
           if (enemy.health <= 0) {
-            this.showFloatingText("Break", enemy.sprite.x, enemy.sprite.y, "#8be9fd");
+            this.showFloatingText(t("status.break"), enemy.sprite.x, enemy.sprite.y, "#8be9fd");
             enemy.sprite.destroy();
           }
         }
@@ -563,7 +574,7 @@ export class CombatScene extends Phaser.Scene {
       }
     });
 
-    this.showStatus(this.armSplitSecond() ? "Split Second Ready" : "Time Freeze");
+    this.showStatus(this.armSplitSecond() ? t("status.splitSecondReady") : t("status.timeFreeze"));
   }
 
   private tryTimeRewind(): void {
@@ -587,10 +598,16 @@ export class CombatScene extends Phaser.Scene {
     playSfx("rewind");
     if (this.rewindShieldLimitMs > 0) {
       this.rewindShieldMs = this.rewindShieldLimitMs;
-      this.showFloatingText("Shield", this.player.x, this.player.y - 46, "#8fd694");
+      this.showFloatingText(t("status.shield"), this.player.x, this.player.y - 46, "#8fd694");
     }
     this.playRewindPulse(snapshot.x, snapshot.y);
-    this.showStatus(this.armSplitSecond() ? "Split Second Ready" : this.rewindShieldMs > 0 ? "Borrowed Breath" : "Time Rewind");
+    this.showStatus(
+      this.armSplitSecond()
+        ? t("status.splitSecondReady")
+        : this.rewindShieldMs > 0
+          ? t("reward.borrowedBreath.title")
+          : t("status.timeRewind")
+    );
   }
 
   private updateEnemies(delta: number): void {
@@ -733,7 +750,12 @@ export class CombatScene extends Phaser.Scene {
 
           if (storedImpactBonus > 0) {
             damage += storedImpactBonus;
-            this.showFloatingText(`Stored +${storedImpactBonus}`, enemy.sprite.x, enemy.sprite.y - 52, "#8be9fd");
+            this.showFloatingText(
+              t("status.storedBonus", { value: storedImpactBonus }),
+              enemy.sprite.x,
+              enemy.sprite.y - 52,
+              "#8be9fd"
+            );
           }
 
           enemy.health -= damage;
@@ -748,7 +770,7 @@ export class CombatScene extends Phaser.Scene {
 
           if (enemy.health <= 0) {
             playSfx("enemyBreak");
-            this.showFloatingText("Break", enemy.sprite.x, enemy.sprite.y, "#8be9fd");
+            this.showFloatingText(t("status.break"), enemy.sprite.x, enemy.sprite.y, "#8be9fd");
             enemy.sprite.destroy();
           } else {
             playSfx("enemyHit");
@@ -779,7 +801,7 @@ export class CombatScene extends Phaser.Scene {
       this.rewindShieldMs = 0;
       this.playerInvulnerableMs = PLAYER.invulnerableAfterHitMs;
       playSfx("shieldBlock");
-      this.showFloatingText("Shield", this.player.x, this.player.y - 34, "#8fd694");
+      this.showFloatingText(t("status.shield"), this.player.x, this.player.y - 34, "#8fd694");
       this.player.setTint(0x8fd694);
       this.time.delayedCall(120, () => this.player.clearTint());
       return;
@@ -815,13 +837,8 @@ export class CombatScene extends Phaser.Scene {
       this.player.setVelocity(0, 0);
       playSfx("defeat");
       setPlayerHealth(0);
-      failRun("The player was defeated inside a time fracture.");
-      this.showResultPanel(
-        "Timeline Collapsed",
-        "The run ends here. The next version will turn this into Time Residue.",
-        "Run Summary",
-        "summary"
-      );
+      failRun("summary.playerDefeated");
+      this.showResultPanel(t("result.lostTitle"), t("result.lostBody"), t("result.summaryAction"), "summary");
       this.input.keyboard?.once("keydown-R", () => this.advanceAfterResult());
       return;
     }
@@ -834,17 +851,12 @@ export class CombatScene extends Phaser.Scene {
 
       if (this.nodeType === "boss") {
         completeNode(this.nodeId);
-        this.showResultPanel(
-          "Fracture Warden Defeated",
-          "The route is complete. Review this run before starting another timeline.",
-          "Run Summary",
-          "summary"
-        );
+        this.showResultPanel(t("result.bossTitle"), t("result.bossBody"), t("result.summaryAction"), "summary");
       } else {
         this.showResultPanel(
-          this.nodeType === "elite" ? "Elite Stabilized" : "Node Stabilized",
-          "Choose one reward, then return to the time tree.",
-          "Choose Reward",
+          this.nodeType === "elite" ? t("result.eliteTitle") : t("result.nodeTitle"),
+          t("result.winBody"),
+          t("result.rewardAction"),
           "reward"
         );
       }
@@ -861,15 +873,15 @@ export class CombatScene extends Phaser.Scene {
     const rewind = this.formatCooldown(this.rewindCooldownMs);
     const dash = this.formatCooldown(this.dashCooldownMs);
     this.hudText.setText([
-      `Health ${this.playerHealth}/${this.playerMaxHealth}`,
-      `Enemies ${this.enemies.length}`,
-      `Q Freeze ${freeze}`,
-      `E Rewind ${rewind}`,
-      `Space Dash ${dash}`,
-      `Corruption ${formatCorruptionState(this.corruption)}`,
+      t("common.health", { current: this.playerHealth, max: this.playerMaxHealth }),
+      t("hud.enemies", { count: this.enemies.length }),
+      t("hud.freeze", { value: freeze }),
+      t("hud.rewind", { value: rewind }),
+      t("hud.dash", { value: dash }),
+      t("hud.corruption", { value: formatCorruptionState(this.corruption) }),
       this.getCombatSkillState(),
       this.getCombatRuleState(),
-      "WASD move, mouse aim, left click attack"
+      t("hud.controls")
     ]);
   }
 
@@ -877,20 +889,22 @@ export class CombatScene extends Phaser.Scene {
     const skillStates: string[] = [];
 
     if (this.freezeRadius > TIME_SKILLS.freezeRadius) {
-      skillStates.push(`Freeze +${this.freezeRadius - TIME_SKILLS.freezeRadius}`);
+      skillStates.push(t("hud.freezeBonus", { value: this.freezeRadius - TIME_SKILLS.freezeRadius }));
     }
 
     if (this.freezeImpactDamage > 0) {
-      skillStates.push(`Hit ${this.freezeImpactDamage}`);
+      skillStates.push(t("hud.hitBonus", { value: this.freezeImpactDamage }));
     }
 
     if (this.rewindShieldMs > 0) {
-      skillStates.push(`Shield ${Math.ceil(this.rewindShieldMs / 1000)}s`);
+      skillStates.push(t("hud.shieldTime", { value: Math.ceil(this.rewindShieldMs / 1000) }));
     } else if (this.rewindShieldLimitMs > 0) {
-      skillStates.push("Shield ready");
+      skillStates.push(t("hud.shieldReady"));
     }
 
-    return skillStates.length > 0 ? `Skills ${skillStates.join(" / ")}` : "Skills base";
+    return t("hud.skills", {
+      value: skillStates.length > 0 ? skillStates.join(" / ") : t("common.base")
+    });
   }
 
   private armSplitSecond(): boolean {
@@ -903,14 +917,14 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private getCombatRuleState(): string {
-    const activeStates: string[] = [`Rules ${this.activeRules.size}/${MAX_TEMPORAL_RULES}`];
+    const activeStates: string[] = [t("hud.rules", { count: this.activeRules.size, max: MAX_TEMPORAL_RULES })];
 
     if (this.splitSecondReady) {
-      activeStates.push("Split ready");
+      activeStates.push(t("hud.splitReady"));
     }
 
     if (this.getRuleStacks("emergencyLoop") > 0 && this.playerHealth <= this.playerMaxHealth * 0.35) {
-      activeStates.push("Emergency loop");
+      activeStates.push(t("hud.emergencyLoop"));
     }
 
     return activeStates.join(" / ");
@@ -983,14 +997,15 @@ export class CombatScene extends Phaser.Scene {
 
   private formatCooldown(valueMs: number): string {
     if (valueMs <= 0) {
-      return "ready";
+      return t("common.ready");
     }
 
     return `${Math.ceil(valueMs / 1000)}s`;
   }
 
   private getEnemyDamage(baseDamage: number): number {
-    return baseDamage + this.corruptionTier.enemyDamageBonus;
+    const rawDamage = (baseDamage + this.corruptionTier.enemyDamageBonus) * this.difficultyModifiers.enemyDamageMultiplier;
+    return Math.max(1, Math.round(rawDamage));
   }
 
   private showCorruptionStatus(): void {
@@ -998,7 +1013,7 @@ export class CombatScene extends Phaser.Scene {
       return;
     }
 
-    this.showStatus(`Corruption ${this.corruptionTier.title}`);
+    this.showStatus(t("status.corruption", { tier: getCorruptionTierTitle(this.corruptionTier) }));
   }
 
   private showStatus(message: string): void {
@@ -1094,7 +1109,7 @@ export class CombatScene extends Phaser.Scene {
       this.advanceAfterResult();
     });
 
-    const restartText = this.add.text(640, 414, "Continue", {
+    const restartText = this.add.text(640, 414, t("common.continue"), {
       align: "center",
       color: "#e7edf2",
       fontFamily: "Inter, Arial, sans-serif",

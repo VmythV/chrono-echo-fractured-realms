@@ -131,7 +131,7 @@ export function completeNode(nodeId: string): void {
 
   if (node.type === "boss") {
     run.result = "won";
-    run.summaryReason = "Fracture Warden defeated.";
+    run.summaryReason = "summary.bossDefeated";
     run.counters.bossDefeated = true;
     return;
   }

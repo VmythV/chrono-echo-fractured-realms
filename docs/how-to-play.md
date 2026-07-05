@@ -43,7 +43,13 @@ Corrupted rewards appear when corruption is high: stronger effects with a corrup
 
 ## 6. Settings
 
-The main menu has `Sound: On/Off` and `Volume: Low/Normal/High`. Settings are stored locally and survive `Reset Save`. `Reset Save` clears residues, run history, and corruption records.
+The main menu `Settings` button opens the settings screen:
+
+- Difficulty: Relaxed / Standard / Intense. Relaxed lowers enemy health and damage; Intense raises both. Applies from the next combat room.
+- Language: English / 中文 / Español. All in-game text switches immediately.
+- Sound: On / Off and Volume: Low / Normal / High.
+
+Settings are stored locally and survive `Reset Save`. `Reset Save` clears residues, run history, and corruption records.
 
 ## 7. Requirements
 

@@ -4,6 +4,7 @@ import { CombatScene } from "./game/scenes/CombatScene";
 import { MainMenuScene } from "./game/scenes/MainMenuScene";
 import { MapScene } from "./game/scenes/MapScene";
 import { RewardScene } from "./game/scenes/RewardScene";
+import { SettingsScene } from "./game/scenes/SettingsScene";
 import { SummaryScene } from "./game/scenes/SummaryScene";
 
 const config: Phaser.Types.Core.GameConfig = {
@@ -34,7 +35,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: false
     }
   },
-  scene: [MainMenuScene, MapScene, CombatScene, RewardScene, SummaryScene]
+  scene: [MainMenuScene, SettingsScene, MapScene, CombatScene, RewardScene, SummaryScene]
 };
 
 function showErrorOverlay(message: string): void {

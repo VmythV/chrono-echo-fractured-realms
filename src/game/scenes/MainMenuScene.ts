@@ -1,13 +1,7 @@
 import Phaser from "phaser";
+import { t } from "../../core/i18n";
 import { formatCorruptionState } from "../../core/meta/corruption";
 import { clearSaveData, loadSaveData, type SaveData } from "../../core/meta/save-state";
-import {
-  cycleSfxVolume,
-  formatVolumeLabel,
-  loadSettings,
-  toggleSfxEnabled,
-  type GameSettings
-} from "../../core/meta/settings";
 import { formatResidues } from "../../core/meta/time-residue";
 import { startNewRun } from "../../core/run/run-manager";
 import { playSfx } from "../audio/sfx";
@@ -15,9 +9,6 @@ import { playSfx } from "../audio/sfx";
 type MenuButtonVariant = "primary" | "secondary";
 
 export class MainMenuScene extends Phaser.Scene {
-  private soundButtonText!: Phaser.GameObjects.Text;
-  private volumeButtonText!: Phaser.GameObjects.Text;
-
   constructor() {
     super("MainMenuScene");
   }
@@ -33,7 +24,7 @@ export class MainMenuScene extends Phaser.Scene {
   }
 
   private drawControlsHint(): void {
-    this.add.text(76, 612, "WASD move, mouse aim, left click attack\nSpace dash, Q time freeze, E time rewind", {
+    this.add.text(76, 612, t("menu.controlsHint"), {
       color: "#8fa3b5",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "15px",
@@ -85,7 +76,7 @@ export class MainMenuScene extends Phaser.Scene {
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "24px"
     });
-    this.add.text(76, 184, "A fractured timeline waits beneath the echo.", {
+    this.add.text(76, 184, t("menu.tagline"), {
       color: "#cbd7e2",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "18px",
@@ -96,17 +87,23 @@ export class MainMenuScene extends Phaser.Scene {
   private drawSaveSummary(saveData: SaveData): void {
     const latestRun = saveData.runHistory[0];
 
-    this.add.text(760, 82, "Timeline State", {
+    this.add.text(760, 82, t("menu.timelineState"), {
       color: "#f7f3e8",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "28px"
     });
 
+    const lastRunValue = latestRun
+      ? t("menu.lastRunValue", {
+          result: latestRun.result === "won" ? t("common.won") : t("common.lost"),
+          nodes: latestRun.nodesCleared
+        })
+      : t("common.none");
     const summaryLines = [
-      `Active residues: ${formatResidues(saveData.activeResidues)}`,
-      `Last run: ${latestRun ? `${latestRun.result}, ${latestRun.nodesCleared} nodes` : "None"}`,
-      `Last corruption: ${formatCorruptionState(saveData.lastRunCorruption)}`,
-      `Highest corruption: ${formatCorruptionState(saveData.highestCorruption)}`
+      t("menu.activeResidues", { value: formatResidues(saveData.activeResidues) }),
+      t("menu.lastRun", { value: lastRunValue }),
+      t("menu.lastCorruption", { value: formatCorruptionState(saveData.lastRunCorruption) }),
+      t("menu.highestCorruption", { value: formatCorruptionState(saveData.highestCorruption) })
     ];
 
     this.add.text(760, 134, summaryLines.join("\n"), {
@@ -121,7 +118,7 @@ export class MainMenuScene extends Phaser.Scene {
   }
 
   private drawRecentHistory(saveData: SaveData): void {
-    this.add.text(760, 316, "Recent Runs", {
+    this.add.text(760, 316, t("menu.recentRuns"), {
       color: "#f7f3e8",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "20px"
@@ -129,11 +126,15 @@ export class MainMenuScene extends Phaser.Scene {
 
     const historyLines =
       saveData.runHistory.length === 0
-        ? ["No recorded runs."]
-        : saveData.runHistory.slice(0, 4).map((entry, index) => {
-            const result = entry.result === "won" ? "Won" : "Lost";
-            return `${index + 1}. ${result} / ${entry.nodesCleared} nodes / corruption ${entry.corruption}`;
-          });
+        ? [t("menu.noRuns")]
+        : saveData.runHistory.slice(0, 4).map((entry, index) =>
+            t("menu.historyLine", {
+              index: index + 1,
+              result: entry.result === "won" ? t("common.won") : t("common.lost"),
+              nodes: entry.nodesCleared,
+              corruption: entry.corruption
+            })
+          );
 
     this.add.text(760, 356, historyLines.join("\n"), {
       color: "#cbd7e2",
@@ -145,34 +146,9 @@ export class MainMenuScene extends Phaser.Scene {
   }
 
   private drawActions(): void {
-    const settings = loadSettings();
-
-    this.createButton(76, 294, 230, 48, "Start Run", "primary", () => this.startRun());
-    this.createButton(76, 362, 230, 42, "Reset Save", "secondary", () => this.resetSave());
-    this.soundButtonText = this.createButton(76, 430, 230, 42, this.getSoundLabel(settings), "secondary", () =>
-      this.toggleSound()
-    );
-    this.volumeButtonText = this.createButton(76, 488, 230, 42, this.getVolumeLabel(settings), "secondary", () =>
-      this.cycleVolume()
-    );
-  }
-
-  private getSoundLabel(settings: GameSettings): string {
-    return `Sound: ${settings.sfxEnabled ? "On" : "Off"}`;
-  }
-
-  private getVolumeLabel(settings: GameSettings): string {
-    return `Volume: ${formatVolumeLabel(settings.sfxVolume)}`;
-  }
-
-  private toggleSound(): void {
-    const settings = toggleSfxEnabled();
-    this.soundButtonText.setText(this.getSoundLabel(settings));
-  }
-
-  private cycleVolume(): void {
-    const settings = cycleSfxVolume();
-    this.volumeButtonText.setText(this.getVolumeLabel(settings));
+    this.createButton(76, 294, 230, 48, t("menu.startRun"), "primary", () => this.startRun());
+    this.createButton(76, 362, 230, 42, t("menu.settings"), "secondary", () => this.scene.start("SettingsScene"));
+    this.createButton(76, 430, 230, 42, t("menu.resetSave"), "secondary", () => this.resetSave());
   }
 
   private createButton(

@@ -1,5 +1,8 @@
 import Phaser from "phaser";
+import { t } from "../../core/i18n";
 import { formatCorruptionCombatEffect, formatCorruptionState } from "../../core/meta/corruption";
+import { loadSettings } from "../../core/meta/settings";
+import { getResidueDescription, getResidueTitle } from "../../core/meta/time-residue";
 import { getCurrentAvailableNodes, getRun, selectNode, startNewRun } from "../../core/run/run-manager";
 import { getRuleSlotText } from "../../core/run/reward-catalog";
 import type { NodeType, RunNode } from "../../core/run/run-state";
@@ -28,28 +31,28 @@ export class MapScene extends Phaser.Scene {
     }
 
     this.add.rectangle(640, 360, 1280, 720, 0x10151c);
-    this.add.text(40, 28, "Time Tree", {
+    this.add.text(40, 28, t("map.title"), {
       color: "#f7f3e8",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "32px"
     });
-    this.add.text(40, 72, `Health ${run.player.health}/${run.player.maxHealth}`, {
+    this.add.text(40, 72, t("common.health", { current: run.player.health, max: run.player.maxHealth }), {
       color: "#cbd7e2",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "18px"
     });
-    this.add.text(40, 102, `Rewards ${run.rewardsTaken.length}`, {
+    this.add.text(40, 102, t("map.rewards", { count: run.rewardsTaken.length }), {
       color: "#cbd7e2",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "18px"
     });
-    this.add.text(40, 132, `Rules ${getRuleSlotText(run)} ${this.formatRules()}`, {
+    this.add.text(40, 132, t("map.rules", { slots: getRuleSlotText(run), list: this.formatRules() }), {
       color: "#cbd7e2",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "15px",
       wordWrap: { width: 780 }
     });
-    this.add.text(40, 158, `Skills ${this.formatSkillUpgrades()}`, {
+    this.add.text(40, 158, t("map.skills", { list: this.formatSkillUpgrades() }), {
       color: "#cbd7e2",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "15px",
@@ -101,14 +104,14 @@ export class MapScene extends Phaser.Scene {
     const circle = this.add.circle(x, y, radius, color, alpha);
     circle.setStrokeStyle(selected ? 4 : 2, selected ? 0xf7f3e8 : 0x2f4053, 1);
 
-    this.add.text(x, y - 4, this.shortLabel(node.type), {
+    this.add.text(x, y - 4, t(`node.short.${node.type}`), {
       align: "center",
       color: "#10151c",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: node.type === "boss" ? "14px" : "13px"
     }).setOrigin(0.5, 0.5).setAlpha(alpha);
 
-    this.add.text(x, y + radius + 18, node.label, {
+    this.add.text(x, y + radius + 18, this.getNodeLabel(node), {
       align: "center",
       color: available ? "#e7edf2" : "#6f8497",
       fontFamily: "Inter, Arial, sans-serif",
@@ -137,6 +140,10 @@ export class MapScene extends Phaser.Scene {
     this.scene.start("RewardScene", { nodeId: node.id, context: node.type });
   }
 
+  private getNodeLabel(node: RunNode): string {
+    return node.type === "boss" ? t("node.bossName") : t(`node.${node.type}`);
+  }
+
   private drawStartOverButton(): void {
     const button = this.add.rectangle(1148, 48, 156, 38, 0x263746, 1);
     button.setStrokeStyle(2, 0x5a7288, 1);
@@ -147,7 +154,7 @@ export class MapScene extends Phaser.Scene {
       this.scene.restart();
     });
 
-    this.add.text(1148, 48, "New Run", {
+    this.add.text(1148, 48, t("map.newRun"), {
       align: "center",
       color: "#e7edf2",
       fontFamily: "Inter, Arial, sans-serif",
@@ -157,7 +164,8 @@ export class MapScene extends Phaser.Scene {
 
   private drawTimelineReport(): void {
     const run = getRun();
-    const title = this.add.text(820, 88, "Timeline Report", {
+    const settings = loadSettings();
+    const title = this.add.text(820, 88, t("map.timelineReport"), {
       color: "#f7f3e8",
       fontFamily: "Inter, Arial, sans-serif",
       fontSize: "18px"
@@ -166,10 +174,11 @@ export class MapScene extends Phaser.Scene {
 
     const reportLines =
       run.appliedResidues.length === 0
-        ? ["No active residue."]
-        : run.appliedResidues.map((residue) => `${residue.title}: ${residue.description}`);
+        ? [t("map.noResidue")]
+        : run.appliedResidues.map((residue) => `${getResidueTitle(residue)}: ${getResidueDescription(residue)}`);
     const timelineLines = [
-      `Corruption: ${formatCorruptionState(run.corruption)}`,
+      t("map.difficulty", { value: t(`settings.difficulty.${settings.difficulty}`) }),
+      t("map.corruption", { value: formatCorruptionState(run.corruption) }),
       formatCorruptionCombatEffect(run.corruption),
       ...reportLines
     ];
@@ -191,28 +200,18 @@ export class MapScene extends Phaser.Scene {
     return 250 + index * 110;
   }
 
-  private shortLabel(type: NodeType): string {
-    const labels: Record<NodeType, string> = {
-      combat: "COM",
-      elite: "ELT",
-      event: "EVT",
-      shop: "SHP",
-      rest: "RST",
-      boss: "BOSS"
-    };
-
-    return labels[type];
-  }
-
   private formatRules(): string {
     const rules = getRun().activeRules;
 
     if (rules.length === 0) {
-      return "None";
+      return t("common.none");
     }
 
     return rules
-      .map((rule) => (rule.stacks > 1 ? `${rule.title} x${rule.stacks}` : rule.title))
+      .map((rule) => {
+        const title = t(`reward.${rule.id}.title`);
+        return rule.stacks > 1 ? `${title} x${rule.stacks}` : title;
+      })
       .join(" / ");
   }
 
@@ -221,17 +220,17 @@ export class MapScene extends Phaser.Scene {
     const upgrades: string[] = [];
 
     if (player.freezeRadiusBonus > 0) {
-      upgrades.push(`Freeze radius +${player.freezeRadiusBonus}`);
+      upgrades.push(t("skill.freezeRadius", { value: player.freezeRadiusBonus }));
     }
 
     if (player.freezeImpactDamage > 0) {
-      upgrades.push(`Freeze hit ${player.freezeImpactDamage}`);
+      upgrades.push(t("skill.freezeHit", { value: player.freezeImpactDamage }));
     }
 
     if (player.rewindShieldDurationMs > 0) {
-      upgrades.push(`Rewind shield ${Math.round(player.rewindShieldDurationMs / 100) / 10}s`);
+      upgrades.push(t("skill.rewindShield", { value: Math.round(player.rewindShieldDurationMs / 100) / 10 }));
     }
 
-    return upgrades.length > 0 ? upgrades.join(" / ") : "Base";
+    return upgrades.length > 0 ? upgrades.join(" / ") : t("common.base");
   }
 }
