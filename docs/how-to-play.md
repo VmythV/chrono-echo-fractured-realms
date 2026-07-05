@@ -16,7 +16,8 @@ Each run is a short trip through a fractured timeline. Pick a route on the Time 
 | Space | Dash (brief invulnerability) |
 | Q | Time Freeze: freeze enemies and enemy shots near the cursor |
 | E | Time Rewind: return to your position a few seconds ago and recover part of recent damage |
-| R | Confirm result panels |
+| R | Echo Attack (after unlocking it in the Memory Tree): fire a fan of three echo bolts. Also confirms result panels |
+| F | Time Anchor (after unlocking it in the Memory Tree): place an anchor, press again to return to it |
 
 ## 3. Run Flow
 
@@ -37,6 +38,10 @@ Rewards come in three kinds:
 - Recovery: restore health.
 
 Corrupted rewards appear when corruption is high: stronger effects with a corruption cost.
+
+## 4b. Memory Tree
+
+Every run earns Memories (1 per cleared node, +5 for winning). Spend them in the Memory Tree from the main menu to unlock permanent bonuses and two new active skills: Echo Attack (R) and Time Anchor (F). `Reset Save` also resets the Memory Tree.
 
 ## 5. Time Residue And Corruption
 

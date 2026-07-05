@@ -85,6 +85,16 @@ const TIME_SKILLS = {
   rewindRestoreRatio: 0.6
 };
 
+const MEMORY_SKILLS = {
+  echoCooldownMs: 7000,
+  echoSpreadRad: 0.22,
+  echoDamageRatio: 0.6,
+  anchorWindowMs: 5000,
+  anchorCooldownMs: 9000,
+  anchorExpiredCooldownMs: 4000,
+  anchorInvulnerableMs: 600
+};
+
 export class CombatScene extends Phaser.Scene {
   private nodeId = "";
   private nodeType: NodeType = "combat";
@@ -100,7 +110,7 @@ export class CombatScene extends Phaser.Scene {
   private hudText!: Phaser.GameObjects.Text;
   private statusText!: Phaser.GameObjects.Text;
   private resultPanelElements: Array<Phaser.GameObjects.Rectangle | Phaser.GameObjects.Text> = [];
-  private keys!: Record<"W" | "A" | "S" | "D" | "Q" | "E" | "SPACE", Phaser.Input.Keyboard.Key>;
+  private keys!: Record<"W" | "A" | "S" | "D" | "Q" | "E" | "R" | "F" | "SPACE", Phaser.Input.Keyboard.Key>;
   private enemies: EnemyState[] = [];
   private projectiles: ProjectileState[] = [];
   private snapshots: RewindSnapshot[] = [];
@@ -120,6 +130,13 @@ export class CombatScene extends Phaser.Scene {
   private rewindCooldownLimitMs = TIME_SKILLS.rewindCooldownMs;
   private rewindShieldLimitMs = 0;
   private rewindShieldMs = 0;
+  private hasEchoAttack = false;
+  private hasTimeAnchor = false;
+  private echoCooldownMs = 0;
+  private anchorCooldownMs = 0;
+  private anchorRemainingMs = 0;
+  private anchorPosition: Phaser.Math.Vector2 | null = null;
+  private anchorMarker: Phaser.GameObjects.Arc | null = null;
   private corruption = 0;
   private corruptionTier: CorruptionTier = getCorruptionTier(0);
   private difficultyModifiers: DifficultyModifiers = getDifficultyModifiers("normal");
@@ -154,6 +171,13 @@ export class CombatScene extends Phaser.Scene {
     this.rewindCooldownLimitMs = Math.max(6000, TIME_SKILLS.rewindCooldownMs - run.player.rewindCooldownReductionMs);
     this.rewindShieldLimitMs = run.player.rewindShieldDurationMs;
     this.rewindShieldMs = 0;
+    this.hasEchoAttack = run.player.hasEchoAttack;
+    this.hasTimeAnchor = run.player.hasTimeAnchor;
+    this.echoCooldownMs = 0;
+    this.anchorCooldownMs = 0;
+    this.anchorRemainingMs = 0;
+    this.anchorPosition = null;
+    this.anchorMarker = null;
     this.corruption = run.corruption;
     this.corruptionTier = getCorruptionTier(run.corruption);
     this.difficultyModifiers = getDifficultyModifiers(loadSettings().difficulty);
@@ -345,7 +369,8 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private createHud(): void {
-    this.add.rectangle(16, 14, 292, 250, 0x10151c, 0.9).setOrigin(0, 0).setDepth(19);
+    const extraSkillLines = Number(this.hasEchoAttack) + Number(this.hasTimeAnchor);
+    this.add.rectangle(16, 14, 292, 250 + extraSkillLines * 24, 0x10151c, 0.9).setOrigin(0, 0).setDepth(19);
     this.combatHud = this.add.graphics();
     this.combatHud.setDepth(20);
     this.enemyHud = this.add.graphics();
@@ -396,10 +421,12 @@ export class CombatScene extends Phaser.Scene {
       D: Phaser.Input.Keyboard.KeyCodes.D,
       Q: Phaser.Input.Keyboard.KeyCodes.Q,
       E: Phaser.Input.Keyboard.KeyCodes.E,
+      R: Phaser.Input.Keyboard.KeyCodes.R,
+      F: Phaser.Input.Keyboard.KeyCodes.F,
       SPACE: Phaser.Input.Keyboard.KeyCodes.SPACE
     }) as typeof this.keys;
 
-    this.input.keyboard.addCapture("W,A,S,D,Q,E,SPACE");
+    this.input.keyboard.addCapture("W,A,S,D,Q,E,R,F,SPACE");
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
       if (pointer.leftButtonDown()) {
         this.tryFirePlayerShot();
@@ -413,6 +440,17 @@ export class CombatScene extends Phaser.Scene {
     this.freezeCooldownMs = Math.max(0, this.freezeCooldownMs - delta);
     this.rewindCooldownMs = Math.max(0, this.rewindCooldownMs - delta);
     this.rewindShieldMs = Math.max(0, this.rewindShieldMs - delta);
+    this.echoCooldownMs = Math.max(0, this.echoCooldownMs - delta);
+    this.anchorCooldownMs = Math.max(0, this.anchorCooldownMs - delta);
+
+    if (this.anchorPosition) {
+      this.anchorRemainingMs -= delta;
+
+      if (this.anchorRemainingMs <= 0) {
+        this.clearAnchor();
+        this.anchorCooldownMs = MEMORY_SKILLS.anchorExpiredCooldownMs;
+      }
+    }
     if (this.getRuleStacks("emergencyLoop") > 0 && this.playerHealth <= this.playerMaxHealth * 0.35) {
       this.rewindCooldownMs = Math.max(0, this.rewindCooldownMs - delta * this.getRuleStacks("emergencyLoop"));
     }
@@ -448,6 +486,14 @@ export class CombatScene extends Phaser.Scene {
 
     if (Phaser.Input.Keyboard.JustDown(this.keys.E)) {
       this.tryTimeRewind();
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.keys.R)) {
+      this.tryEchoAttack();
+    }
+
+    if (Phaser.Input.Keyboard.JustDown(this.keys.F)) {
+      this.tryTimeAnchor();
     }
 
     if (Phaser.Input.Keyboard.JustDown(this.keys.SPACE)) {
@@ -559,6 +605,73 @@ export class CombatScene extends Phaser.Scene {
     }
 
     return vector.normalize();
+  }
+
+  private tryEchoAttack(): void {
+    if (!this.hasEchoAttack || this.echoCooldownMs > 0) {
+      return;
+    }
+
+    this.echoCooldownMs = MEMORY_SKILLS.echoCooldownMs;
+    const baseAngle = Math.atan2(this.getAimVector().y, this.getAimVector().x);
+    const echoDamage = Math.max(1, Math.round(this.attackDamage * MEMORY_SKILLS.echoDamageRatio));
+
+    [-MEMORY_SKILLS.echoSpreadRad, 0, MEMORY_SKILLS.echoSpreadRad].forEach((offset) => {
+      const direction = new Phaser.Math.Vector2(Math.cos(baseAngle + offset), Math.sin(baseAngle + offset));
+      const projectile = this.physics.add.image(this.player.x, this.player.y, "player-shot");
+      projectile.setCircle(6, 3, 3);
+      projectile.setVelocity(direction.x * PLAYER.attackSpeed, direction.y * PLAYER.attackSpeed);
+      projectile.setDepth(9);
+      projectile.setTint(0x9a8cf0);
+      this.projectiles.push({
+        sprite: projectile,
+        owner: "player",
+        damage: echoDamage,
+        frozenMs: 0,
+        lifespanMs: 900
+      });
+    });
+
+    playSfx("echo");
+    this.showStatus(t("status.echoAttack"));
+  }
+
+  private tryTimeAnchor(): void {
+    if (!this.hasTimeAnchor) {
+      return;
+    }
+
+    if (!this.anchorPosition) {
+      if (this.anchorCooldownMs > 0) {
+        return;
+      }
+
+      this.anchorPosition = new Phaser.Math.Vector2(this.player.x, this.player.y);
+      this.anchorRemainingMs = MEMORY_SKILLS.anchorWindowMs;
+      this.anchorMarker = this.add.circle(this.player.x, this.player.y, 22);
+      this.anchorMarker.setStrokeStyle(2, 0x8fd694, 0.8);
+      this.anchorMarker.setFillStyle(0x8fd694, 0.08);
+      this.anchorMarker.setDepth(5);
+      playSfx("anchorPlace");
+      this.showStatus(t("status.anchorSet"));
+      return;
+    }
+
+    this.player.setPosition(this.anchorPosition.x, this.anchorPosition.y);
+    this.player.setVelocity(0, 0);
+    this.playerInvulnerableMs = Math.max(this.playerInvulnerableMs, MEMORY_SKILLS.anchorInvulnerableMs);
+    this.playRewindPulse(this.anchorPosition.x, this.anchorPosition.y);
+    this.clearAnchor();
+    this.anchorCooldownMs = MEMORY_SKILLS.anchorCooldownMs;
+    playSfx("rewind");
+    this.showStatus(t("status.anchorReturn"));
+  }
+
+  private clearAnchor(): void {
+    this.anchorPosition = null;
+    this.anchorRemainingMs = 0;
+    this.anchorMarker?.destroy();
+    this.anchorMarker = null;
   }
 
   private tryTimeFreeze(): void {
@@ -998,17 +1111,33 @@ export class CombatScene extends Phaser.Scene {
     const freeze = this.formatCooldown(this.freezeCooldownMs);
     const rewind = this.formatCooldown(this.rewindCooldownMs);
     const dash = this.formatCooldown(this.dashCooldownMs);
-    this.hudText.setText([
+    const hudLines = [
       t("common.health", { current: this.playerHealth, max: this.playerMaxHealth }),
       t("hud.enemies", { count: this.enemies.length }),
       t("hud.freeze", { value: freeze }),
       t("hud.rewind", { value: rewind }),
-      t("hud.dash", { value: dash }),
+      t("hud.dash", { value: dash })
+    ];
+
+    if (this.hasEchoAttack) {
+      hudLines.push(t("hud.echo", { value: this.formatCooldown(this.echoCooldownMs) }));
+    }
+
+    if (this.hasTimeAnchor) {
+      hudLines.push(
+        t("hud.anchor", {
+          value: this.anchorPosition ? t("hud.anchorSetState") : this.formatCooldown(this.anchorCooldownMs)
+        })
+      );
+    }
+
+    hudLines.push(
       t("hud.corruption", { value: formatCorruptionState(this.corruption) }),
       this.getCombatSkillState(),
       this.getCombatRuleState(),
       t("hud.controls")
-    ]);
+    );
+    this.hudText.setText(hudLines);
   }
 
   private getCombatSkillState(): string {

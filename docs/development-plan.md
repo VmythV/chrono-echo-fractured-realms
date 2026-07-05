@@ -25,7 +25,8 @@
 | Stage 4 | 构筑系统 | 技能升级、被动规则、基础平衡 |
 | Stage 5 | Time Residue 和腐化 | 局后影响、本地存档、腐化阈值 |
 | Stage 6 | Web 可玩版本 | UI、音画反馈、打包、说明 |
-| Stage 7 | 适配不同人群 | 设置页、难度、多语言 |
+| Stage 7 | 适配不同人群和内容扩充 | 设置页、难度、多语言、事件、经济、战斗内容 |
+| Stage 8 | 局外记忆树 | 记忆货币、永久节点、新主动技能 |
 
 ## 3. Stage 0: Baseline
 
@@ -289,7 +290,29 @@
 - `docs/stage-7b-events-and-economy.md`
 - `docs/stage-7c-combat-content.md`
 
-## 11. Development Checkpoints
+## 11. Stage 8: Memory Tree
+
+目标：
+
+- 补上跨局成长的核心留存钩子。
+
+范围：
+
+- 记忆货币：每局结算按通过节点数入账，通关有加成。
+- 记忆之树：5 个永久节点、支线前置，含两个新主动技能（Echo Attack、Time Anchor）。
+- 新技能在战斗中以 R / F 键使用，HUD 按解锁状态显示。
+
+验收标准：
+
+- 解锁持久化，Reset Save 一并清空。
+- 解锁效果在下一局开局可见。
+- 新技能有冷却、音效和视觉反馈，不影响既有 Q/E 操作。
+
+当前执行记录：
+
+- `docs/stage-8-memory-tree.md`
+
+## 12. Development Checkpoints
 
 每个开发阶段结束前检查：
 

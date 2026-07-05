@@ -1,4 +1,5 @@
 import { t } from "../i18n";
+import { calculateRunMemories } from "./memory-tree";
 import { createRunHistoryEntry, loadSaveData, saveSaveData } from "./save-state";
 import type { ResidueId, ResidueInstance, RunState } from "../run/run-state";
 
@@ -154,6 +155,8 @@ export function finalizeRunResidues(run: RunState): ResidueInstance[] {
   );
   saveData.lastRunCorruption = run.corruption;
   saveData.highestCorruption = Math.max(saveData.highestCorruption, run.counters.highestCorruption, run.corruption);
+  run.memoriesEarned = calculateRunMemories(run);
+  saveData.memories += run.memoriesEarned;
   saveSaveData(saveData);
 
   run.generatedResidues = generatedResidues;

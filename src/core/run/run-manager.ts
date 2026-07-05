@@ -1,3 +1,4 @@
+import { applyMemoriesToRun } from "../meta/memory-tree";
 import { consumeResiduesForRun } from "../meta/time-residue";
 import { getRewardById, getRewardChoices } from "./reward-catalog";
 import type { NodeType, RewardChoice, RewardContext, RunNode, RunState } from "./run-state";
@@ -49,7 +50,9 @@ export function startNewRun(): RunState {
       freezeImpactDamage: 0,
       freezeRadiusBonus: 0,
       rewindCooldownReductionMs: 0,
-      rewindShieldDurationMs: 0
+      rewindShieldDurationMs: 0,
+      hasEchoAttack: false,
+      hasTimeAnchor: false
     },
     shards: 0,
     corruption: 0,
@@ -69,8 +72,10 @@ export function startNewRun(): RunState {
     rewardsTaken: [],
     result: "running",
     summaryReason: "",
-    summaryRecorded: false
+    summaryRecorded: false,
+    memoriesEarned: 0
   };
+  applyMemoriesToRun(activeRun);
   consumeResiduesForRun(activeRun);
 
   return activeRun;

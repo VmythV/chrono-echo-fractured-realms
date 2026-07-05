@@ -6,6 +6,8 @@ export type SfxName =
   | "playerHurt"
   | "shieldBlock"
   | "dash"
+  | "echo"
+  | "anchorPlace"
   | "blink"
   | "enemyHit"
   | "enemyBreak"
@@ -29,6 +31,11 @@ const SFX_LIBRARY: Record<SfxName, ToneSpec[]> = {
   playerHurt: [{ wave: "sawtooth", startFreq: 220, endFreq: 90, durationMs: 220, peak: 0.28 }],
   shieldBlock: [{ wave: "triangle", startFreq: 520, endFreq: 780, durationMs: 150, peak: 0.22 }],
   dash: [{ wave: "sine", startFreq: 330, endFreq: 750, durationMs: 120, peak: 0.16 }],
+  echo: [
+    { wave: "square", startFreq: 760, endFreq: 380, durationMs: 80, peak: 0.1 },
+    { wave: "square", startFreq: 620, endFreq: 310, durationMs: 80, peak: 0.08, delayMs: 70 }
+  ],
+  anchorPlace: [{ wave: "sine", startFreq: 200, endFreq: 340, durationMs: 180, peak: 0.2 }],
   blink: [
     { wave: "sine", startFreq: 700, endFreq: 240, durationMs: 110, peak: 0.12 },
     { wave: "sine", startFreq: 240, endFreq: 700, durationMs: 110, peak: 0.12, delayMs: 110 }

@@ -4,6 +4,7 @@ import { CombatScene } from "./game/scenes/CombatScene";
 import { EventScene } from "./game/scenes/EventScene";
 import { MainMenuScene } from "./game/scenes/MainMenuScene";
 import { MapScene } from "./game/scenes/MapScene";
+import { MemoryScene } from "./game/scenes/MemoryScene";
 import { getRun } from "./core/run/run-manager";
 import { RewardScene } from "./game/scenes/RewardScene";
 import { SettingsScene } from "./game/scenes/SettingsScene";
@@ -37,7 +38,7 @@ const config: Phaser.Types.Core.GameConfig = {
       debug: false
     }
   },
-  scene: [MainMenuScene, SettingsScene, MapScene, CombatScene, EventScene, RewardScene, SummaryScene]
+  scene: [MainMenuScene, SettingsScene, MemoryScene, MapScene, CombatScene, EventScene, RewardScene, SummaryScene]
 };
 
 function showErrorOverlay(message: string): void {

@@ -31,6 +31,8 @@ export type PlayerRunState = {
   freezeRadiusBonus: number;
   rewindCooldownReductionMs: number;
   rewindShieldDurationMs: number;
+  hasEchoAttack: boolean;
+  hasTimeAnchor: boolean;
 };
 
 export type RunState = {
@@ -51,6 +53,7 @@ export type RunState = {
   result: "running" | "won" | "lost";
   summaryReason: string;
   summaryRecorded: boolean;
+  memoriesEarned: number;
 };
 
 export type RewardChoice = {

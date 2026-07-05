@@ -103,7 +103,8 @@ export class MainMenuScene extends Phaser.Scene {
       t("menu.activeResidues", { value: formatResidues(saveData.activeResidues) }),
       t("menu.lastRun", { value: lastRunValue }),
       t("menu.lastCorruption", { value: formatCorruptionState(saveData.lastRunCorruption) }),
-      t("menu.highestCorruption", { value: formatCorruptionState(saveData.highestCorruption) })
+      t("menu.highestCorruption", { value: formatCorruptionState(saveData.highestCorruption) }),
+      t("menu.memories", { count: saveData.memories })
     ];
 
     this.add.text(760, 134, summaryLines.join("\n"), {
@@ -147,8 +148,9 @@ export class MainMenuScene extends Phaser.Scene {
 
   private drawActions(): void {
     this.createButton(76, 294, 230, 48, t("menu.startRun"), "primary", () => this.startRun());
-    this.createButton(76, 362, 230, 42, t("menu.settings"), "secondary", () => this.scene.start("SettingsScene"));
-    this.createButton(76, 430, 230, 42, t("menu.resetSave"), "secondary", () => this.resetSave());
+    this.createButton(76, 362, 230, 42, t("menu.memoryTree"), "secondary", () => this.scene.start("MemoryScene"));
+    this.createButton(76, 430, 230, 42, t("menu.settings"), "secondary", () => this.scene.start("SettingsScene"));
+    this.createButton(76, 498, 230, 42, t("menu.resetSave"), "secondary", () => this.resetSave());
   }
 
   private createButton(

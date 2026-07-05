@@ -48,7 +48,8 @@ export class SummaryScene extends Phaser.Scene {
       t("summary.ruleSlots", { value: getRuleSlotText(run) }),
       t("summary.skills", { value: this.formatSkillUpgrades() }),
       t("summary.rules", { value: this.formatRules() }),
-      t("summary.generatedResidues", { value: formatResidues(generatedResidues) })
+      t("summary.generatedResidues", { value: formatResidues(generatedResidues) }),
+      t("summary.memoriesEarned", { value: run.memoriesEarned })
     ];
 
     this.add.text(640, 342, stats.join("\n"), {

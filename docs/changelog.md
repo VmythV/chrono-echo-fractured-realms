@@ -55,6 +55,10 @@
 - Added Shard Memory, Elite Trophy, and Overclocked Freeze residues.
 - Added a `freezeDurationBonusMs` player stat so residues can modify Time Freeze duration.
 - Added a `window.__chronoEchoDebug` handle for automated run-state verification.
+- Added Stage 8 memory tree execution record.
+- Added Memories meta currency earned at run end and shown in the menu, memory tree, and summary.
+- Added MemoryScene with five permanent unlock nodes across three branches.
+- Added the Echo Attack (R) and Time Anchor (F) unlockable active skills with sounds and HUD rows.
 
 ### Changed
 

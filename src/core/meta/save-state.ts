@@ -1,5 +1,9 @@
 import type { ResidueInstance } from "../run/run-state";
 
+export type MemoryNodeId = "vitality" | "sharpness" | "merchantPact" | "echoAttack" | "timeAnchor";
+
+const MEMORY_NODE_IDS: MemoryNodeId[] = ["vitality", "sharpness", "merchantPact", "echoAttack", "timeAnchor"];
+
 export type RunHistoryEntry = {
   seed: string;
   result: "won" | "lost";
@@ -16,6 +20,8 @@ export type SaveData = {
   runHistory: RunHistoryEntry[];
   highestCorruption: number;
   lastRunCorruption: number;
+  memories: number;
+  unlockedMemories: MemoryNodeId[];
 };
 
 const SAVE_KEY = "chrono-echo-save-v1";
@@ -44,7 +50,11 @@ export function loadSaveData(): SaveData {
       activeResidues: parsed.activeResidues,
       runHistory: parsed.runHistory.slice(0, MAX_RUN_HISTORY).map(normalizeRunHistoryEntry),
       highestCorruption: normalizeCorruptionValue(parsed.highestCorruption),
-      lastRunCorruption: normalizeCorruptionValue(parsed.lastRunCorruption)
+      lastRunCorruption: normalizeCorruptionValue(parsed.lastRunCorruption),
+      memories: typeof parsed.memories === "number" ? Math.max(0, Math.round(parsed.memories)) : 0,
+      unlockedMemories: Array.isArray(parsed.unlockedMemories)
+        ? parsed.unlockedMemories.filter((id): id is MemoryNodeId => MEMORY_NODE_IDS.includes(id as MemoryNodeId))
+        : []
     };
   } catch {
     return createDefaultSaveData();
@@ -98,7 +108,9 @@ function createDefaultSaveData(): SaveData {
     activeResidues: [],
     runHistory: [],
     highestCorruption: 0,
-    lastRunCorruption: 0
+    lastRunCorruption: 0,
+    memories: 0,
+    unlockedMemories: []
   };
 }
 
