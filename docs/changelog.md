@@ -64,6 +64,11 @@
 - Added an ESC pause panel in combat with resume and main menu actions.
 - Added Stage 9B smoke tests execution record and `docs/testing.md`.
 - Added a committed Playwright smoke suite in `tests/e2e-smoke.mjs` with an `npm run test:e2e` script.
+- Added Stage 10A visual identity execution record.
+- Added timeline-themed arenas (Ancient, City, Future, Corrupted) with ambient drifting particles.
+- Added glow-baked shapes for the player, all enemies, both boss variants, and projectiles.
+- Added an aim direction arrow, rotating bolt projectiles, hit and break particle bursts, and dash afterimages.
+- Added a breathing pulse on available time tree nodes with stroke-based hover.
 
 ### Changed
 

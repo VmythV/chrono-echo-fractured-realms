@@ -130,9 +130,17 @@ export class MapScene extends Phaser.Scene {
     }
 
     circle.setInteractive({ useHandCursor: true });
-    circle.on("pointerover", () => circle.setScale(1.08));
-    circle.on("pointerout", () => circle.setScale(1));
+    circle.on("pointerover", () => circle.setStrokeStyle(4, 0xf7f3e8, 1));
+    circle.on("pointerout", () => circle.setStrokeStyle(selected ? 4 : 2, selected ? 0xf7f3e8 : 0x2f4053, 1));
     circle.on("pointerup", () => this.enterNode(node.id));
+    this.tweens.add({
+      targets: circle,
+      scale: 1.07,
+      yoyo: true,
+      repeat: -1,
+      duration: 820,
+      ease: "sine.inOut"
+    });
   }
 
   private enterNode(nodeId: string): void {

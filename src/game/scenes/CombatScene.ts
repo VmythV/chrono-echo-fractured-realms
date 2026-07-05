@@ -85,6 +85,22 @@ const TIME_SKILLS = {
   rewindRestoreRatio: 0.6
 };
 
+type TimelineTheme = {
+  floor: number;
+  gridFill: number;
+  gridAlt: number;
+  gridStroke: number;
+  accent: number;
+  particle: number;
+};
+
+const TIMELINE_THEMES: Record<"ancient" | "city" | "future" | "corrupted", TimelineTheme> = {
+  ancient: { floor: 0x1b1812, gridFill: 0x241f14, gridAlt: 0x201b12, gridStroke: 0x3a3222, accent: 0xd5b65f, particle: 0xd5b65f },
+  city: { floor: 0x141a21, gridFill: 0x1a2430, gridAlt: 0x18202a, gridStroke: 0x2a3644, accent: 0x8be9fd, particle: 0x8fa3b5 },
+  future: { floor: 0x0f1d1b, gridFill: 0x142622, gridAlt: 0x12211e, gridStroke: 0x1e3a34, accent: 0x6edbd6, particle: 0x6edbd6 },
+  corrupted: { floor: 0x171020, gridFill: 0x1f162c, gridAlt: 0x1b1326, gridStroke: 0x322044, accent: 0xb57be8, particle: 0xb57be8 }
+};
+
 const MEMORY_SKILLS = {
   echoCooldownMs: 7000,
   echoSpreadRad: 0.22,
@@ -102,7 +118,11 @@ export class CombatScene extends Phaser.Scene {
   private bossVariant: BossVariant = "warden";
   private freezeDurationLimitMs = TIME_SKILLS.freezeDurationMs;
   private player!: ArcadeImage;
-  private aimLine!: Phaser.GameObjects.Line;
+  private playerNose!: Phaser.GameObjects.Image;
+  private roomTheme: TimelineTheme = TIMELINE_THEMES.city;
+  private hitEmitter!: Phaser.GameObjects.Particles.ParticleEmitter;
+  private sparkEmitter!: Phaser.GameObjects.Particles.ParticleEmitter;
+  private dashGhostTimerMs = 0;
   private freezePreview!: Phaser.GameObjects.Arc;
   private rewindTrail!: Phaser.GameObjects.Graphics;
   private combatHud!: Phaser.GameObjects.Graphics;
@@ -197,6 +217,28 @@ export class CombatScene extends Phaser.Scene {
     this.resultMode = "reward";
     this.paused = false;
     this.pausePanelElements = [];
+    this.dashGhostTimerMs = 0;
+    this.roomTheme = this.getRoomTheme();
+  }
+
+  private getRoomTheme(): TimelineTheme {
+    if (this.nodeType === "boss") {
+      return this.bossVariant === "glitch" ? TIMELINE_THEMES.corrupted : TIMELINE_THEMES.future;
+    }
+
+    if (this.nodeDepth <= 1) {
+      return TIMELINE_THEMES.ancient;
+    }
+
+    if (this.nodeDepth <= 3) {
+      return TIMELINE_THEMES.city;
+    }
+
+    if (this.nodeDepth <= 5) {
+      return TIMELINE_THEMES.future;
+    }
+
+    return TIMELINE_THEMES.corrupted;
   }
 
   create(): void {
@@ -234,28 +276,147 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private createGeneratedTextures(): void {
-    this.makeCircleTexture("player-core", 18, 0x6edbd6, 0x122a33);
-    this.makeCircleTexture("chaser-core", 18, 0xe06f5d, 0x341815);
-    this.makeCircleTexture("shooter-core", 18, 0xd5b65f, 0x352b13);
-    this.makeCircleTexture("anomaly-core", 18, 0x9a8cf0, 0x241a45);
-    this.makeCircleTexture("boss-core", 30, 0xb57be8, 0x2d1838);
-    this.makeCircleTexture("player-shot", 6, 0x8be9fd, 0x0f3c45);
-    this.makeCircleTexture("enemy-shot", 7, 0xf18f6f, 0x4a1f17);
+    this.makeTexture("player-core", 72, (g, c) => {
+      this.paintGlow(g, c, 18, 0x6edbd6);
+      g.fillStyle(0x0d2026, 1);
+      g.fillCircle(c, c, 18);
+      g.lineStyle(3, 0x6edbd6, 1);
+      g.strokeCircle(c, c, 18);
+      g.fillStyle(0x6edbd6, 0.95);
+      g.fillCircle(c, c, 7);
+      g.fillStyle(0xeafffd, 0.9);
+      g.fillCircle(c, c, 3);
+    });
+
+    this.makeTexture("player-nose", 20, (g) => {
+      g.fillStyle(0x8be9fd, 0.95);
+      g.fillTriangle(3, 3, 17, 10, 3, 17);
+    });
+
+    this.makeTexture("chaser-core", 72, (g, c) => {
+      this.paintGlow(g, c, 18, 0xe06f5d);
+      g.fillStyle(0xe06f5d, 0.95);
+      this.paintStar(g, c, 19, 0);
+      g.fillStyle(0xe06f5d, 0.95);
+      this.paintStar(g, c, 19, Math.PI / 3);
+      g.fillStyle(0x341815, 1);
+      g.fillCircle(c, c, 9);
+      g.fillStyle(0xf7a08a, 0.9);
+      g.fillCircle(c, c, 4);
+    });
+
+    this.makeTexture("shooter-core", 72, (g, c) => {
+      this.paintGlow(g, c, 18, 0xd5b65f);
+      g.fillStyle(0xd5b65f, 0.95);
+      g.fillPoints(this.diamondPoints(c, 19, 14), true);
+      g.fillStyle(0x352b13, 1);
+      g.fillPoints(this.diamondPoints(c, 10, 7), true);
+      g.fillStyle(0xf3e3ac, 0.9);
+      g.fillCircle(c, c, 3);
+    });
+
+    this.makeTexture("anomaly-core", 72, (g, c) => {
+      this.paintGlow(g, c, 18, 0x9a8cf0);
+      g.lineStyle(4, 0x9a8cf0, 0.95);
+      g.beginPath();
+      g.arc(c, c, 17, -2.6, 0.5);
+      g.strokePath();
+      g.lineStyle(3, 0x9a8cf0, 0.7);
+      g.beginPath();
+      g.arc(c + 2, c - 1, 17, 1.1, 2.5);
+      g.strokePath();
+      g.fillStyle(0x9a8cf0, 0.95);
+      g.fillCircle(c, c, 5);
+    });
+
+    this.makeBossTexture("boss-core", false);
+    this.makeBossTexture("boss-glitch", true);
+
+    this.makeTexture("player-shot", 28, (g) => {
+      g.fillStyle(0x8be9fd, 0.14);
+      g.fillRoundedRect(1, 4, 26, 12, 6);
+      g.fillStyle(0x8be9fd, 0.9);
+      g.fillRoundedRect(4, 7, 20, 6, 3);
+      g.fillStyle(0xeafcff, 0.95);
+      g.fillRoundedRect(8, 8.5, 12, 3, 1.5);
+    });
+
+    this.makeTexture("enemy-shot", 28, (g, c) => {
+      this.paintGlow(g, c, 7, 0xf18f6f);
+      g.fillStyle(0xf18f6f, 0.95);
+      g.fillCircle(c, c, 7);
+      g.fillStyle(0xffd9c4, 0.9);
+      g.fillCircle(c, c, 3);
+    });
+
+    this.makeTexture("fx-soft", 18, (g, c) => {
+      g.fillStyle(0xffffff, 0.18);
+      g.fillCircle(c, c, 8);
+      g.fillStyle(0xffffff, 0.4);
+      g.fillCircle(c, c, 5);
+      g.fillStyle(0xffffff, 0.85);
+      g.fillCircle(c, c, 2.5);
+    });
   }
 
-  private makeCircleTexture(key: string, radius: number, fill: number, stroke: number): void {
+  private makeTexture(key: string, size: number, paint: (graphics: Phaser.GameObjects.Graphics, center: number) => void): void {
     if (this.textures.exists(key)) {
       return;
     }
 
-    const size = radius * 2 + 6;
     const graphics = this.add.graphics();
-    graphics.fillStyle(fill, 1);
-    graphics.fillCircle(size / 2, size / 2, radius);
-    graphics.lineStyle(3, stroke, 1);
-    graphics.strokeCircle(size / 2, size / 2, radius);
+    paint(graphics, size / 2);
     graphics.generateTexture(key, size, size);
     graphics.destroy();
+  }
+
+  private diamondPoints(center: number, tall: number, wide: number): Phaser.Math.Vector2[] {
+    return [
+      new Phaser.Math.Vector2(center, center - tall),
+      new Phaser.Math.Vector2(center + wide, center),
+      new Phaser.Math.Vector2(center, center + tall),
+      new Phaser.Math.Vector2(center - wide, center)
+    ];
+  }
+
+  private paintGlow(graphics: Phaser.GameObjects.Graphics, center: number, radius: number, color: number): void {
+    graphics.fillStyle(color, 0.05);
+    graphics.fillCircle(center, center, radius * 1.9);
+    graphics.fillStyle(color, 0.09);
+    graphics.fillCircle(center, center, radius * 1.5);
+    graphics.fillStyle(color, 0.14);
+    graphics.fillCircle(center, center, radius * 1.2);
+  }
+
+  private paintStar(graphics: Phaser.GameObjects.Graphics, center: number, radius: number, rotation: number): void {
+    const points = [0, 1, 2].map((index) => {
+      const angle = rotation + Math.PI / 2 + (index * Math.PI * 2) / 3;
+      return { x: center + Math.cos(angle) * radius, y: center - Math.sin(angle) * radius };
+    });
+    graphics.fillTriangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y);
+  }
+
+  private makeBossTexture(key: string, glitch: boolean): void {
+    this.makeTexture(key, 120, (g, c) => {
+      this.paintGlow(g, c, 30, glitch ? 0xf18f6f : 0xb57be8);
+
+      if (glitch) {
+        g.lineStyle(4, 0xb57be8, 0.85);
+        g.strokeCircle(c - 3, c, 30);
+        g.lineStyle(4, 0xf18f6f, 0.85);
+        g.strokeCircle(c + 3, c, 30);
+      } else {
+        g.lineStyle(4, 0xb57be8, 1);
+        g.strokeCircle(c, c, 30);
+      }
+
+      g.lineStyle(2, glitch ? 0xf18f6f : 0xb57be8, 0.8);
+      g.strokeCircle(c, c, 20);
+      g.fillStyle(0x2d1838, 1);
+      g.fillCircle(c, c, 12);
+      g.fillStyle(glitch ? 0xffd9c4 : 0xd9bdf3, 0.95);
+      g.fillCircle(c, c, 6);
+    });
   }
 
   private createArena(): void {
@@ -265,7 +426,7 @@ export class CombatScene extends Phaser.Scene {
       ARENA.y + ARENA.height / 2,
       ARENA.width,
       ARENA.height,
-      0x18222c
+      this.roomTheme.floor
     );
     this.add
       .rectangle(
@@ -274,7 +435,7 @@ export class CombatScene extends Phaser.Scene {
         ARENA.width,
         ARENA.height
       )
-      .setStrokeStyle(2, 0x5a7288, 1);
+      .setStrokeStyle(2, this.roomTheme.accent, 0.55);
 
     const grid = this.add.grid(
       ARENA.x + ARENA.width / 2,
@@ -283,20 +444,69 @@ export class CombatScene extends Phaser.Scene {
       ARENA.height,
       64,
       64,
-      0x1d2a35,
-      0.36,
-      0x263746,
+      this.roomTheme.gridFill,
+      0.4,
+      this.roomTheme.gridStroke,
       0.4
     );
-    grid.setAltFillStyle(0x1a2630, 0.36);
+    grid.setAltFillStyle(this.roomTheme.gridAlt, 0.4);
     grid.setDepth(0);
+
+    this.add
+      .particles(0, 0, "fx-soft", {
+        emitZone: {
+          type: "random" as const,
+          // Phaser's RandomZoneSource typing rejects Geom shapes even though the runtime supports them.
+          source: new Phaser.Geom.Rectangle(
+            ARENA.x,
+            ARENA.y,
+            ARENA.width,
+            ARENA.height
+          ) as unknown as Phaser.Types.GameObjects.Particles.RandomZoneSource
+        },
+        lifespan: { min: 4000, max: 7000 },
+        speedY: { min: -16, max: -6 },
+        speedX: { min: -5, max: 5 },
+        alpha: { start: 0.2, end: 0 },
+        scale: { start: 0.9, end: 0.25 },
+        frequency: 240,
+        tint: this.roomTheme.particle,
+        blendMode: "ADD"
+      })
+      .setDepth(2);
+
+    this.hitEmitter = this.add
+      .particles(0, 0, "fx-soft", {
+        speed: { min: 60, max: 190 },
+        lifespan: { min: 200, max: 380 },
+        scale: { start: 0.8, end: 0 },
+        alpha: { start: 0.9, end: 0 },
+        emitting: false,
+        tint: 0xf7d06e,
+        blendMode: "ADD"
+      })
+      .setDepth(12);
+
+    this.sparkEmitter = this.add
+      .particles(0, 0, "fx-soft", {
+        speed: { min: 70, max: 220 },
+        lifespan: { min: 240, max: 420 },
+        scale: { start: 0.9, end: 0 },
+        alpha: { start: 0.9, end: 0 },
+        emitting: false,
+        tint: 0x8be9fd,
+        blendMode: "ADD"
+      })
+      .setDepth(12);
   }
 
   private createPlayer(): void {
     this.player = this.physics.add.image(ARENA.x + ARENA.width / 2, ARENA.y + ARENA.height - 120, "player-core");
-    this.player.setCircle(18, 3, 3);
+    this.player.setCircle(18, 18, 18);
     this.player.setCollideWorldBounds(true);
     this.player.setDepth(10);
+    this.playerNose = this.add.image(this.player.x, this.player.y, "player-nose");
+    this.playerNose.setDepth(11);
   }
 
   private createEnemies(): void {
@@ -319,12 +529,24 @@ export class CombatScene extends Phaser.Scene {
       chaser: "chaser-core",
       shooter: "shooter-core",
       anomaly: "anomaly-core",
-      boss: "boss-core"
+      boss: this.bossVariant === "glitch" ? "boss-glitch" : "boss-core"
     };
     const sprite = this.physics.add.image(x, y, textures[kind]);
-    sprite.setCircle(kind === "boss" ? 30 : 18, 3, 3);
+    const bodyRadius = kind === "boss" ? 30 : 18;
+    sprite.setCircle(bodyRadius, bodyRadius, bodyRadius);
     sprite.setCollideWorldBounds(true);
     sprite.setDepth(8);
+
+    if (kind === "anomaly") {
+      this.tweens.add({
+        targets: sprite,
+        alpha: 0.55,
+        yoyo: true,
+        repeat: -1,
+        duration: 650,
+        ease: "sine.inOut"
+      });
+    }
 
     const speeds: Record<EnemyKind, number> = {
       chaser: 145,
@@ -383,10 +605,6 @@ export class CombatScene extends Phaser.Scene {
     this.combatHud.setDepth(20);
     this.enemyHud = this.add.graphics();
     this.enemyHud.setDepth(18);
-
-    this.aimLine = this.add.line(0, 0, 0, 0, 0, 0, 0x8be9fd, 0.55);
-    this.aimLine.setOrigin(0, 0);
-    this.aimLine.setDepth(12);
 
     this.freezePreview = this.add.circle(0, 0, this.freezeRadius);
     this.freezePreview.setStrokeStyle(2, 0x8be9fd, 0.24);
@@ -596,6 +814,12 @@ export class CombatScene extends Phaser.Scene {
     if (this.dashRemainingMs > 0) {
       this.dashRemainingMs = Math.max(0, this.dashRemainingMs - delta);
       this.player.setVelocity(this.dashVector.x * PLAYER.dashSpeed, this.dashVector.y * PLAYER.dashSpeed);
+      this.dashGhostTimerMs += delta;
+
+      if (this.dashGhostTimerMs >= 40) {
+        this.dashGhostTimerMs = 0;
+        this.spawnDashGhost();
+      }
       return;
     }
 
@@ -619,9 +843,8 @@ export class CombatScene extends Phaser.Scene {
     const pointer = this.input.activePointer;
     pointer.updateWorldPoint(this.cameras.main);
     const angle = Phaser.Math.Angle.Between(this.player.x, this.player.y, pointer.worldX, pointer.worldY);
-    const endX = this.player.x + Math.cos(angle) * 58;
-    const endY = this.player.y + Math.sin(angle) * 58;
-    this.aimLine.setTo(this.player.x, this.player.y, endX, endY);
+    this.playerNose.setPosition(this.player.x + Math.cos(angle) * 30, this.player.y + Math.sin(angle) * 30);
+    this.playerNose.setRotation(angle);
     this.freezePreview.setPosition(pointer.worldX, pointer.worldY);
     this.freezePreview.setVisible(
       this.keys.Q.isDown && this.freezeCooldownMs <= 0 && this.isInsideArena(pointer.worldX, pointer.worldY)
@@ -646,6 +869,7 @@ export class CombatScene extends Phaser.Scene {
     this.dashVector.copy(direction).normalize();
     this.dashRemainingMs = PLAYER.dashDurationMs;
     this.dashCooldownMs = PLAYER.dashCooldownMs;
+    this.dashGhostTimerMs = 40;
     this.playerInvulnerableMs = Math.max(this.playerInvulnerableMs, PLAYER.dashDurationMs);
     playSfx("dash");
 
@@ -672,8 +896,9 @@ export class CombatScene extends Phaser.Scene {
 
     const direction = this.getAimVector();
     const projectile = this.physics.add.image(this.player.x, this.player.y, "player-shot");
-    projectile.setCircle(6, 3, 3);
+    projectile.setCircle(5, 9, 9);
     projectile.setVelocity(direction.x * PLAYER.attackSpeed, direction.y * PLAYER.attackSpeed);
+    projectile.setRotation(Math.atan2(direction.y, direction.x));
     projectile.setDepth(9);
     this.projectiles.push({
       sprite: projectile,
@@ -708,8 +933,9 @@ export class CombatScene extends Phaser.Scene {
     [-MEMORY_SKILLS.echoSpreadRad, 0, MEMORY_SKILLS.echoSpreadRad].forEach((offset) => {
       const direction = new Phaser.Math.Vector2(Math.cos(baseAngle + offset), Math.sin(baseAngle + offset));
       const projectile = this.physics.add.image(this.player.x, this.player.y, "player-shot");
-      projectile.setCircle(6, 3, 3);
+      projectile.setCircle(5, 9, 9);
       projectile.setVelocity(direction.x * PLAYER.attackSpeed, direction.y * PLAYER.attackSpeed);
+      projectile.setRotation(baseAngle + offset);
       projectile.setDepth(9);
       projectile.setTint(0x9a8cf0);
       this.projectiles.push({
@@ -756,6 +982,20 @@ export class CombatScene extends Phaser.Scene {
     this.showStatus(t("status.anchorReturn"));
   }
 
+  private spawnDashGhost(): void {
+    const ghost = this.add.image(this.player.x, this.player.y, "player-core");
+    ghost.setAlpha(0.35);
+    ghost.setDepth(9);
+    this.tweens.add({
+      targets: ghost,
+      alpha: 0,
+      scale: 0.7,
+      duration: 240,
+      ease: "Quad.easeOut",
+      onComplete: () => ghost.destroy()
+    });
+  }
+
   private clearAnchor(): void {
     this.anchorPosition = null;
     this.anchorRemainingMs = 0;
@@ -792,6 +1032,7 @@ export class CombatScene extends Phaser.Scene {
           this.showFloatingText(`${this.freezeImpactDamage}`, enemy.sprite.x, enemy.sprite.y - 52, "#8be9fd");
 
           if (enemy.health <= 0) {
+            this.sparkEmitter.explode(16, enemy.sprite.x, enemy.sprite.y);
             this.showFloatingText(t("status.break"), enemy.sprite.x, enemy.sprite.y, "#8be9fd");
             enemy.sprite.destroy();
           }
@@ -1016,7 +1257,7 @@ export class CombatScene extends Phaser.Scene {
     damage: number
   ): void {
     const projectile = this.physics.add.image(x, y, "enemy-shot");
-    projectile.setCircle(7, 3, 3);
+    projectile.setCircle(7, 7, 7);
     projectile.setVelocity(direction.x * speed, direction.y * speed);
     projectile.setDepth(9);
     this.projectiles.push({
@@ -1090,10 +1331,12 @@ export class CombatScene extends Phaser.Scene {
 
           if (enemy.health <= 0) {
             playSfx("enemyBreak");
+            this.sparkEmitter.explode(16, enemy.sprite.x, enemy.sprite.y);
             this.showFloatingText(t("status.break"), enemy.sprite.x, enemy.sprite.y, "#8be9fd");
             enemy.sprite.destroy();
           } else {
             playSfx("enemyHit");
+            this.hitEmitter.explode(6, enemy.sprite.x, enemy.sprite.y);
           }
           break;
         }
@@ -1121,6 +1364,7 @@ export class CombatScene extends Phaser.Scene {
       this.rewindShieldMs = 0;
       this.playerInvulnerableMs = PLAYER.invulnerableAfterHitMs;
       playSfx("shieldBlock");
+      this.sparkEmitter.explode(8, this.player.x, this.player.y);
       this.showFloatingText(t("status.shield"), this.player.x, this.player.y - 34, "#8fd694");
       this.player.setTint(0x8fd694);
       this.time.delayedCall(120, () => this.player.clearTint());
@@ -1130,6 +1374,7 @@ export class CombatScene extends Phaser.Scene {
     this.playerHealth = Math.max(0, this.playerHealth - amount);
     this.playerInvulnerableMs = PLAYER.invulnerableAfterHitMs;
     playSfx("playerHurt");
+    this.hitEmitter.explode(10, this.player.x, this.player.y);
     this.cameras.main.shake(130, 0.004);
     this.showFloatingText(`${amount}`, this.player.x, this.player.y - 34, "#f18f6f");
     this.player.setTint(0xf7d06e);

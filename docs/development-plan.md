@@ -28,6 +28,7 @@
 | Stage 7 | 适配不同人群和内容扩充 | 设置页、难度、多语言、事件、经济、战斗内容 |
 | Stage 8 | 局外记忆树 | 记忆货币、永久节点、新主动技能 |
 | Stage 9 | 稳定性与可维护性 | 断点续玩、暂停、冒烟测试 |
+| Stage 10 | 视觉识别 | 画风、主题战场、角色与攻击表现 |
 
 ## 3. Stage 0: Baseline
 
@@ -336,7 +337,29 @@
 - `docs/stage-9a-run-persistence-pause.md`
 - `docs/stage-9b-smoke-tests.md`
 
-## 13. Development Checkpoints
+## 13. Stage 10: Visual Identity
+
+目标：
+
+- 建立统一画风，让时间线主题和敌人类型在视觉上可读。
+
+范围：
+
+- 时间线主题战场与环境粒子。
+- 程序生成的辉光角色、怪物、Boss 变体与弹道贴图。
+- 攻击、冲刺、命中与消灭的即时视觉反馈。
+
+验收标准：
+
+- 不新增任何外部资源文件。
+- 四种主题与四种敌人剪影可在截图中直接区分。
+- 冒烟测试全部通过，性能无可感知下降。
+
+当前执行记录：
+
+- `docs/stage-10a-visual-identity.md`
+
+## 14. Development Checkpoints
 
 每个开发阶段结束前检查：
 
