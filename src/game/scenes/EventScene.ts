@@ -8,6 +8,7 @@ import {
 } from "../../core/run/event-catalog";
 import { completeNode, getNodeById, getRun } from "../../core/run/run-manager";
 import { playSfx } from "../audio/sfx";
+import { DISPLAY_FONT } from "../display";
 import { fadeInScene, transitionTo } from "../scene-transitions";
 
 type EventSceneData = {
@@ -34,7 +35,7 @@ export class EventScene extends Phaser.Scene {
     this.add.rectangle(640, 360, 1280, 720, 0x10151c);
     this.add.text(64, 46, t(`event.${event.id}.title`), {
       color: "#f7f3e8",
-      fontFamily: "Inter, Arial, sans-serif",
+      fontFamily: DISPLAY_FONT,
       fontSize: "32px"
     });
     this.add.text(64, 100, t("shards.label", { count: run.shards }), {

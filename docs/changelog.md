@@ -73,6 +73,11 @@
 - Added seeded room layouts with four obstacle patterns and physics-blocking, projectile-destroying obstacles.
 - Added seeded enemy compositions by depth with randomized spawn points.
 - Added fade transitions between all main scenes via `scene-transitions.ts`.
+- Added Stage 10C high-DPI, font, and sprite execution record.
+- Added high-DPI rendering: internal canvas at devicePixelRatio scale with per-scene camera zoom and text resolution patching.
+- Added the Orbitron display font (OFL) for scene titles with load-before-boot and system fallback.
+- Added Kenney Space Shooter Redux (CC0) sprites for the player, all enemies, both projectiles, and meteor obstacles.
+- Added HUD proximity fade in combat and main menu ambient animation (pulsing nodes, drifting particles).
 
 ### Changed
 

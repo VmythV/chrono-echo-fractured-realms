@@ -5,6 +5,7 @@ import { clearSaveData, loadSaveData, type SaveData } from "../../core/meta/save
 import { formatResidues } from "../../core/meta/time-residue";
 import { clearRunSnapshot, hasResumableRun, resumeSavedRun, startNewRun } from "../../core/run/run-manager";
 import { playSfx } from "../audio/sfx";
+import { DISPLAY_FONT } from "../display";
 import { fadeInScene, transitionTo } from "../scene-transitions";
 
 type MenuButtonVariant = "primary" | "secondary";
@@ -57,12 +58,54 @@ export class MainMenuScene extends Phaser.Scene {
       [812, 470, 17, 0xf18f6f],
       [1014, 520, 26, 0xb57be8],
       [1168, 448, 14, 0x6edbd6]
-    ].forEach(([x, y, radius, color]) => {
-      graphics.fillStyle(color, 0.2);
-      graphics.fillCircle(x, y, radius);
-      graphics.lineStyle(2, color, 0.82);
-      graphics.strokeCircle(x, y, radius);
+    ].forEach(([x, y, radius, color], index) => {
+      const node = this.add.circle(x, y, radius, color, 0.2);
+      node.setStrokeStyle(2, color, 0.82);
+      this.tweens.add({
+        targets: node,
+        alpha: 0.45,
+        scale: 1.18,
+        yoyo: true,
+        repeat: -1,
+        duration: 1500 + index * 160,
+        delay: index * 210,
+        ease: "sine.inOut"
+      });
     });
+
+    if (!this.textures.exists("menu-soft")) {
+      const soft = this.add.graphics();
+      soft.fillStyle(0xffffff, 0.18);
+      soft.fillCircle(9, 9, 8);
+      soft.fillStyle(0xffffff, 0.4);
+      soft.fillCircle(9, 9, 5);
+      soft.fillStyle(0xffffff, 0.85);
+      soft.fillCircle(9, 9, 2.5);
+      soft.generateTexture("menu-soft", 18, 18);
+      soft.destroy();
+    }
+
+    this.add
+      .particles(0, 0, "menu-soft", {
+        emitZone: {
+          type: "random" as const,
+          source: new Phaser.Geom.Rectangle(
+            0,
+            120,
+            1280,
+            600
+          ) as unknown as Phaser.Types.GameObjects.Particles.RandomZoneSource
+        },
+        lifespan: { min: 5000, max: 9000 },
+        speedY: { min: -14, max: -5 },
+        speedX: { min: -4, max: 4 },
+        alpha: { start: 0.16, end: 0 },
+        scale: { start: 0.8, end: 0.2 },
+        frequency: 300,
+        tint: [0x8be9fd, 0x6edbd6, 0xb57be8],
+        blendMode: "ADD"
+      })
+      .setDepth(1);
 
     this.add.rectangle(640, 360, 1280, 720, 0x10151c, 0.3);
   }
@@ -70,12 +113,12 @@ export class MainMenuScene extends Phaser.Scene {
   private drawTitle(): void {
     this.add.text(72, 76, "Chrono Echo", {
       color: "#f7f3e8",
-      fontFamily: "Inter, Arial, sans-serif",
+      fontFamily: DISPLAY_FONT,
       fontSize: "54px"
     });
     this.add.text(76, 136, "Fractured Realms", {
       color: "#8be9fd",
-      fontFamily: "Inter, Arial, sans-serif",
+      fontFamily: DISPLAY_FONT,
       fontSize: "24px"
     });
     this.add.text(76, 184, t("menu.tagline"), {

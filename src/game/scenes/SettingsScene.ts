@@ -10,6 +10,7 @@ import {
   type GameSettings
 } from "../../core/meta/settings";
 import { playSfx } from "../audio/sfx";
+import { DISPLAY_FONT } from "../display";
 import { fadeInScene, transitionTo } from "../scene-transitions";
 
 type SettingsButtonVariant = "primary" | "secondary";
@@ -31,7 +32,7 @@ export class SettingsScene extends Phaser.Scene {
     this.add.rectangle(640, 360, 1280, 720, 0x10151c);
     this.add.text(72, 76, t("settings.title"), {
       color: "#f7f3e8",
-      fontFamily: "Inter, Arial, sans-serif",
+      fontFamily: DISPLAY_FONT,
       fontSize: "42px"
     });
 

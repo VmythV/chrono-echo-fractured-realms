@@ -5,6 +5,7 @@ import { applyReward, completeNode, getNodeById, getRewards, getRun, spendShards
 import { getRuleSlotText, SHOP_PRICES } from "../../core/run/reward-catalog";
 import type { RewardContext, RewardKind } from "../../core/run/run-state";
 import { playSfx } from "../audio/sfx";
+import { DISPLAY_FONT } from "../display";
 import { fadeInScene, transitionTo } from "../scene-transitions";
 
 type RewardSceneData = {
@@ -44,7 +45,7 @@ export class RewardScene extends Phaser.Scene {
     this.add.rectangle(640, 360, 1280, 720, 0x10151c);
     this.add.text(64, 46, title, {
       color: "#f7f3e8",
-      fontFamily: "Inter, Arial, sans-serif",
+      fontFamily: DISPLAY_FONT,
       fontSize: "32px"
     });
     this.add.text(64, 92, t("common.health", { current: run.player.health, max: run.player.maxHealth }), {

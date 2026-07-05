@@ -359,6 +359,7 @@
 
 - `docs/stage-10a-visual-identity.md`
 - `docs/stage-10b-arena-variety-transitions.md`
+- `docs/stage-10c-hidpi-font-sprites.md`
 
 ## 14. Development Checkpoints
 

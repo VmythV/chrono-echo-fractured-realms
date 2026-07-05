@@ -10,6 +10,7 @@ import {
 import { getRun, startNewRun } from "../../core/run/run-manager";
 import { getRuleSlotText } from "../../core/run/reward-catalog";
 import { playSfx } from "../audio/sfx";
+import { DISPLAY_FONT } from "../display";
 import { fadeInScene, transitionTo } from "../scene-transitions";
 
 export class SummaryScene extends Phaser.Scene {
@@ -27,7 +28,7 @@ export class SummaryScene extends Phaser.Scene {
     this.add.text(640, 160, won ? t("summary.wonTitle") : t("result.lostTitle"), {
       align: "center",
       color: "#f7f3e8",
-      fontFamily: "Inter, Arial, sans-serif",
+      fontFamily: DISPLAY_FONT,
       fontSize: "42px"
     }).setOrigin(0.5, 0.5);
 

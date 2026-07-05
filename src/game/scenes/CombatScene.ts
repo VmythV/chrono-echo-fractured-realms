@@ -20,6 +20,7 @@ import {
 import { MAX_TEMPORAL_RULES } from "../../core/run/reward-catalog";
 import type { NodeType, TemporalRuleId } from "../../core/run/run-state";
 import { playSfx } from "../audio/sfx";
+import { DISPLAY_FONT } from "../display";
 import { fadeInScene, transitionTo } from "../scene-transitions";
 
 type ArcadeImage = Phaser.Physics.Arcade.Image;
@@ -39,6 +40,7 @@ type EnemyState = {
   frozenMs: number;
   windupMs: number;
   attackCycle: number;
+  baseTint?: number;
 };
 
 type ProjectileState = {
@@ -143,8 +145,9 @@ export class CombatScene extends Phaser.Scene {
   private bossVariant: BossVariant = "warden";
   private freezeDurationLimitMs = TIME_SKILLS.freezeDurationMs;
   private player!: ArcadeImage;
-  private playerNose!: Phaser.GameObjects.Image;
   private roomTheme: TimelineTheme = TIMELINE_THEMES.city;
+  private hudBg!: Phaser.GameObjects.Rectangle;
+  private hudAlpha = 1;
   private hitEmitter!: Phaser.GameObjects.Particles.ParticleEmitter;
   private sparkEmitter!: Phaser.GameObjects.Particles.ParticleEmitter;
   private dashGhostTimerMs = 0;
@@ -198,6 +201,17 @@ export class CombatScene extends Phaser.Scene {
 
   constructor() {
     super("CombatScene");
+  }
+
+  preload(): void {
+    this.load.image("ship-player", "assets/kenney/playerShip1_blue.png");
+    this.load.image("ship-chaser", "assets/kenney/enemyRed1.png");
+    this.load.image("ship-shooter", "assets/kenney/enemyGreen2.png");
+    this.load.image("ship-anomaly", "assets/kenney/ufoBlue.png");
+    this.load.image("ship-boss", "assets/kenney/ufoRed.png");
+    this.load.image("bolt-player", "assets/kenney/laserBlue07.png");
+    this.load.image("orb-enemy", "assets/kenney/laserRed08.png");
+    this.load.image("meteor", "assets/kenney/meteorGrey_big3.png");
   }
 
   init(data: { nodeId?: string } = {}): void {
@@ -308,90 +322,6 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private createGeneratedTextures(): void {
-    this.makeTexture("player-core", 72, (g, c) => {
-      this.paintGlow(g, c, 18, 0x6edbd6);
-      g.fillStyle(0x0d2026, 1);
-      g.fillCircle(c, c, 18);
-      g.lineStyle(3, 0x6edbd6, 1);
-      g.strokeCircle(c, c, 18);
-      g.fillStyle(0x6edbd6, 0.95);
-      g.fillCircle(c, c, 7);
-      g.fillStyle(0xeafffd, 0.9);
-      g.fillCircle(c, c, 3);
-    });
-
-    this.makeTexture("player-nose", 20, (g) => {
-      g.fillStyle(0x8be9fd, 0.95);
-      g.fillTriangle(3, 3, 17, 10, 3, 17);
-    });
-
-    this.makeTexture("chaser-core", 72, (g, c) => {
-      this.paintGlow(g, c, 18, 0xe06f5d);
-      g.fillStyle(0xe06f5d, 0.95);
-      this.paintStar(g, c, 19, 0);
-      g.fillStyle(0xe06f5d, 0.95);
-      this.paintStar(g, c, 19, Math.PI / 3);
-      g.fillStyle(0x341815, 1);
-      g.fillCircle(c, c, 9);
-      g.fillStyle(0xf7a08a, 0.9);
-      g.fillCircle(c, c, 4);
-    });
-
-    this.makeTexture("shooter-core", 72, (g, c) => {
-      this.paintGlow(g, c, 18, 0xd5b65f);
-      g.fillStyle(0xd5b65f, 0.95);
-      g.fillPoints(this.diamondPoints(c, 19, 14), true);
-      g.fillStyle(0x352b13, 1);
-      g.fillPoints(this.diamondPoints(c, 10, 7), true);
-      g.fillStyle(0xf3e3ac, 0.9);
-      g.fillCircle(c, c, 3);
-    });
-
-    this.makeTexture("anomaly-core", 72, (g, c) => {
-      this.paintGlow(g, c, 18, 0x9a8cf0);
-      g.lineStyle(4, 0x9a8cf0, 0.95);
-      g.beginPath();
-      g.arc(c, c, 17, -2.6, 0.5);
-      g.strokePath();
-      g.lineStyle(3, 0x9a8cf0, 0.7);
-      g.beginPath();
-      g.arc(c + 2, c - 1, 17, 1.1, 2.5);
-      g.strokePath();
-      g.fillStyle(0x9a8cf0, 0.95);
-      g.fillCircle(c, c, 5);
-    });
-
-    this.makeBossTexture("boss-core", false);
-    this.makeBossTexture("boss-glitch", true);
-
-    this.makeTexture("player-shot", 28, (g) => {
-      g.fillStyle(0x8be9fd, 0.14);
-      g.fillRoundedRect(1, 4, 26, 12, 6);
-      g.fillStyle(0x8be9fd, 0.9);
-      g.fillRoundedRect(4, 7, 20, 6, 3);
-      g.fillStyle(0xeafcff, 0.95);
-      g.fillRoundedRect(8, 8.5, 12, 3, 1.5);
-    });
-
-    this.makeTexture("enemy-shot", 28, (g, c) => {
-      this.paintGlow(g, c, 7, 0xf18f6f);
-      g.fillStyle(0xf18f6f, 0.95);
-      g.fillCircle(c, c, 7);
-      g.fillStyle(0xffd9c4, 0.9);
-      g.fillCircle(c, c, 3);
-    });
-
-    this.makeTexture("obstacle-round", 96, (g, c) => {
-      g.fillStyle(0xffffff, 0.06);
-      g.fillCircle(c, c, 34);
-      g.fillStyle(0x9a9a9a, 0.95);
-      g.fillCircle(c, c, 24);
-      g.lineStyle(3, 0xffffff, 0.5);
-      g.strokeCircle(c, c, 24);
-      g.fillStyle(0x565656, 0.9);
-      g.fillCircle(c, c, 13);
-    });
-
     this.makeTexture("obstacle-block", 140, (g, c) => {
       g.fillStyle(0xffffff, 0.06);
       g.fillRoundedRect(c - 66, c - 26, 132, 52, 10);
@@ -424,53 +354,9 @@ export class CombatScene extends Phaser.Scene {
     graphics.destroy();
   }
 
-  private diamondPoints(center: number, tall: number, wide: number): Phaser.Math.Vector2[] {
-    return [
-      new Phaser.Math.Vector2(center, center - tall),
-      new Phaser.Math.Vector2(center + wide, center),
-      new Phaser.Math.Vector2(center, center + tall),
-      new Phaser.Math.Vector2(center - wide, center)
-    ];
-  }
-
-  private paintGlow(graphics: Phaser.GameObjects.Graphics, center: number, radius: number, color: number): void {
-    graphics.fillStyle(color, 0.05);
-    graphics.fillCircle(center, center, radius * 1.9);
-    graphics.fillStyle(color, 0.09);
-    graphics.fillCircle(center, center, radius * 1.5);
-    graphics.fillStyle(color, 0.14);
-    graphics.fillCircle(center, center, radius * 1.2);
-  }
-
-  private paintStar(graphics: Phaser.GameObjects.Graphics, center: number, radius: number, rotation: number): void {
-    const points = [0, 1, 2].map((index) => {
-      const angle = rotation + Math.PI / 2 + (index * Math.PI * 2) / 3;
-      return { x: center + Math.cos(angle) * radius, y: center - Math.sin(angle) * radius };
-    });
-    graphics.fillTriangle(points[0].x, points[0].y, points[1].x, points[1].y, points[2].x, points[2].y);
-  }
-
-  private makeBossTexture(key: string, glitch: boolean): void {
-    this.makeTexture(key, 120, (g, c) => {
-      this.paintGlow(g, c, 30, glitch ? 0xf18f6f : 0xb57be8);
-
-      if (glitch) {
-        g.lineStyle(4, 0xb57be8, 0.85);
-        g.strokeCircle(c - 3, c, 30);
-        g.lineStyle(4, 0xf18f6f, 0.85);
-        g.strokeCircle(c + 3, c, 30);
-      } else {
-        g.lineStyle(4, 0xb57be8, 1);
-        g.strokeCircle(c, c, 30);
-      }
-
-      g.lineStyle(2, glitch ? 0xf18f6f : 0xb57be8, 0.8);
-      g.strokeCircle(c, c, 20);
-      g.fillStyle(0x2d1838, 1);
-      g.fillCircle(c, c, 12);
-      g.fillStyle(glitch ? 0xffd9c4 : 0xd9bdf3, 0.95);
-      g.fillCircle(c, c, 6);
-    });
+  private applyRoundBody(sprite: ArcadeImage, coverage: number): void {
+    const radius = (Math.min(sprite.width, sprite.height) * coverage) / 2;
+    sprite.setCircle(radius, sprite.width / 2 - radius, sprite.height / 2 - radius);
   }
 
   private createArena(): void {
@@ -555,12 +441,11 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private createPlayer(): void {
-    this.player = this.physics.add.image(ARENA.x + ARENA.width / 2, ARENA.y + ARENA.height - 120, "player-core");
-    this.player.setCircle(18, 18, 18);
+    this.player = this.physics.add.image(ARENA.x + ARENA.width / 2, ARENA.y + ARENA.height - 120, "ship-player");
+    this.player.setScale(0.42);
+    this.applyRoundBody(this.player, 0.75);
     this.player.setCollideWorldBounds(true);
     this.player.setDepth(10);
-    this.playerNose = this.add.image(this.player.x, this.player.y, "player-nose");
-    this.playerNose.setDepth(11);
   }
 
   private createObstacles(): void {
@@ -577,7 +462,7 @@ export class CombatScene extends Phaser.Scene {
 
     if (layout === "pillars") {
       [[-0.25, -0.22], [0.25, -0.22], [-0.25, 0.22], [0.25, 0.22]].forEach(([fx, fy]) => {
-        this.addObstacle("obstacle-round", cx + fx * ARENA.width, cy + fy * ARENA.height, 24);
+        this.addObstacle("meteor", cx + fx * ARENA.width, cy + fy * ARENA.height, 24);
       });
       return;
     }
@@ -596,7 +481,7 @@ export class CombatScene extends Phaser.Scene {
           Phaser.Math.Distance.Between(x, y, ARENA.x + ARENA.width / 2, ARENA.y + ARENA.height - 120) < 150;
 
         if (!nearPlayerSpawn) {
-          this.addObstacle("obstacle-round", x, y, 24);
+          this.addObstacle("meteor", x, y, 24);
         }
       }
     }
@@ -610,13 +495,22 @@ export class CombatScene extends Phaser.Scene {
   private addObstacle(texture: string, x: number, y: number, circleRadius: number): void {
     const obstacle = this.obstacleGroup.create(x, y, texture) as Phaser.Physics.Arcade.Image;
     obstacle.setTint(this.roomTheme.accent);
-    obstacle.setAlpha(0.85);
+    obstacle.setAlpha(0.9);
     obstacle.setDepth(4);
+
+    if (texture === "meteor") {
+      obstacle.setScale(0.62);
+      obstacle.refreshBody();
+    }
 
     const body = obstacle.body as Phaser.Physics.Arcade.StaticBody;
 
     if (circleRadius > 0) {
-      body.setCircle(circleRadius + 2, obstacle.width / 2 - circleRadius - 2, obstacle.height / 2 - circleRadius - 2);
+      body.setCircle(
+        circleRadius + 2,
+        obstacle.displayWidth / 2 - circleRadius - 2,
+        obstacle.displayHeight / 2 - circleRadius - 2
+      );
     } else {
       body.setSize(124, 44);
     }
@@ -690,25 +584,44 @@ export class CombatScene extends Phaser.Scene {
 
   private spawnEnemy(kind: EnemyKind, x: number, y: number): void {
     const textures: Record<EnemyKind, string> = {
-      chaser: "chaser-core",
-      shooter: "shooter-core",
-      anomaly: "anomaly-core",
-      boss: this.bossVariant === "glitch" ? "boss-glitch" : "boss-core"
+      chaser: "ship-chaser",
+      shooter: "ship-shooter",
+      anomaly: "ship-anomaly",
+      boss: "ship-boss"
+    };
+    const scales: Record<EnemyKind, number> = {
+      chaser: 0.45,
+      shooter: 0.45,
+      anomaly: 0.5,
+      boss: 0.95
     };
     const sprite = this.physics.add.image(x, y, textures[kind]);
-    const bodyRadius = kind === "boss" ? 30 : 18;
-    sprite.setCircle(bodyRadius, bodyRadius, bodyRadius);
+    sprite.setScale(scales[kind]);
+    this.applyRoundBody(sprite, 0.8);
     sprite.setCollideWorldBounds(true);
     sprite.setDepth(8);
     this.physics.add.collider(sprite, this.obstacleGroup);
 
     if (kind === "anomaly") {
+      sprite.setTint(0xb9a8ff);
       this.tweens.add({
         targets: sprite,
         alpha: 0.55,
         yoyo: true,
         repeat: -1,
         duration: 650,
+        ease: "sine.inOut"
+      });
+    }
+
+    if (kind === "boss" && this.bossVariant === "glitch") {
+      sprite.setTint(0xc77bf0);
+      this.tweens.add({
+        targets: sprite,
+        alpha: 0.7,
+        yoyo: true,
+        repeat: -1,
+        duration: 380,
         ease: "sine.inOut"
       });
     }
@@ -742,7 +655,9 @@ export class CombatScene extends Phaser.Scene {
       fireElapsedMs: initialElapsed[kind],
       frozenMs: 0,
       windupMs: 0,
-      attackCycle: 0
+      attackCycle: 0,
+      baseTint:
+        kind === "anomaly" ? 0xb9a8ff : kind === "boss" && this.bossVariant === "glitch" ? 0xc77bf0 : undefined
     });
   }
 
@@ -765,7 +680,8 @@ export class CombatScene extends Phaser.Scene {
 
   private createHud(): void {
     const extraSkillLines = Number(this.hasEchoAttack) + Number(this.hasTimeAnchor);
-    this.add.rectangle(16, 14, 292, 250 + extraSkillLines * 24, 0x10151c, 0.9).setOrigin(0, 0).setDepth(19);
+    this.hudBg = this.add.rectangle(16, 14, 292, 250 + extraSkillLines * 24, 0x10151c, 0.9).setOrigin(0, 0).setDepth(19);
+    this.hudAlpha = 1;
     this.combatHud = this.add.graphics();
     this.combatHud.setDepth(20);
     this.enemyHud = this.add.graphics();
@@ -851,7 +767,7 @@ export class CombatScene extends Phaser.Scene {
     const title = this.add.text(640, 296, t("pause.title"), {
       align: "center",
       color: "#f7f3e8",
-      fontFamily: "Inter, Arial, sans-serif",
+      fontFamily: DISPLAY_FONT,
       fontSize: "28px"
     }).setOrigin(0.5, 0.5).setDepth(41);
 
@@ -1008,8 +924,7 @@ export class CombatScene extends Phaser.Scene {
     const pointer = this.input.activePointer;
     pointer.updateWorldPoint(this.cameras.main);
     const angle = Phaser.Math.Angle.Between(this.player.x, this.player.y, pointer.worldX, pointer.worldY);
-    this.playerNose.setPosition(this.player.x + Math.cos(angle) * 30, this.player.y + Math.sin(angle) * 30);
-    this.playerNose.setRotation(angle);
+    this.player.setRotation(angle + Math.PI / 2);
     this.freezePreview.setPosition(pointer.worldX, pointer.worldY);
     this.freezePreview.setVisible(
       this.keys.Q.isDown && this.freezeCooldownMs <= 0 && this.isInsideArena(pointer.worldX, pointer.worldY)
@@ -1060,10 +975,11 @@ export class CombatScene extends Phaser.Scene {
     }
 
     const direction = this.getAimVector();
-    const projectile = this.physics.add.image(this.player.x, this.player.y, "player-shot");
-    projectile.setCircle(5, 9, 9);
+    const projectile = this.physics.add.image(this.player.x, this.player.y, "bolt-player");
+    projectile.setScale(0.9);
+    this.applyRoundBody(projectile, 1);
     projectile.setVelocity(direction.x * PLAYER.attackSpeed, direction.y * PLAYER.attackSpeed);
-    projectile.setRotation(Math.atan2(direction.y, direction.x));
+    projectile.setRotation(Math.atan2(direction.y, direction.x) + Math.PI / 2);
     projectile.setDepth(9);
     this.addObstacleHit(projectile);
     this.projectiles.push({
@@ -1098,10 +1014,11 @@ export class CombatScene extends Phaser.Scene {
 
     [-MEMORY_SKILLS.echoSpreadRad, 0, MEMORY_SKILLS.echoSpreadRad].forEach((offset) => {
       const direction = new Phaser.Math.Vector2(Math.cos(baseAngle + offset), Math.sin(baseAngle + offset));
-      const projectile = this.physics.add.image(this.player.x, this.player.y, "player-shot");
-      projectile.setCircle(5, 9, 9);
+      const projectile = this.physics.add.image(this.player.x, this.player.y, "bolt-player");
+      projectile.setScale(0.9);
+      this.applyRoundBody(projectile, 1);
       projectile.setVelocity(direction.x * PLAYER.attackSpeed, direction.y * PLAYER.attackSpeed);
-      projectile.setRotation(baseAngle + offset);
+      projectile.setRotation(baseAngle + offset + Math.PI / 2);
       projectile.setDepth(9);
       projectile.setTint(0x9a8cf0);
       this.addObstacleHit(projectile);
@@ -1150,7 +1067,9 @@ export class CombatScene extends Phaser.Scene {
   }
 
   private spawnDashGhost(): void {
-    const ghost = this.add.image(this.player.x, this.player.y, "player-core");
+    const ghost = this.add.image(this.player.x, this.player.y, "ship-player");
+    ghost.setScale(0.42);
+    ghost.setRotation(this.player.rotation);
     ghost.setAlpha(0.35);
     ghost.setDepth(9);
     this.tweens.add({
@@ -1269,23 +1188,37 @@ export class CombatScene extends Phaser.Scene {
         return;
       }
 
-      enemy.sprite.clearTint();
+      if (enemy.baseTint !== undefined) {
+        enemy.sprite.setTint(enemy.baseTint);
+      } else {
+        enemy.sprite.clearTint();
+      }
 
       if (enemy.kind === "chaser") {
         this.physics.moveToObject(enemy.sprite, this.player, enemy.speed);
+        const velocity = enemy.sprite.body?.velocity;
+
+        if (velocity && (velocity.x !== 0 || velocity.y !== 0)) {
+          enemy.sprite.setRotation(Math.atan2(velocity.y, velocity.x) + Math.PI / 2);
+        }
         return;
       }
 
       if (enemy.kind === "boss") {
+        enemy.sprite.rotation += delta * 0.0006;
         this.updateBoss(enemy, delta);
         return;
       }
 
       if (enemy.kind === "anomaly") {
+        enemy.sprite.rotation += delta * 0.0012;
         this.updateAnomaly(enemy, delta);
         return;
       }
 
+      enemy.sprite.setRotation(
+        Phaser.Math.Angle.Between(enemy.sprite.x, enemy.sprite.y, this.player.x, this.player.y) + Math.PI / 2
+      );
       this.updateShooter(enemy, delta);
     });
   }
@@ -1423,8 +1356,9 @@ export class CombatScene extends Phaser.Scene {
     speed: number,
     damage: number
   ): void {
-    const projectile = this.physics.add.image(x, y, "enemy-shot");
-    projectile.setCircle(7, 7, 7);
+    const projectile = this.physics.add.image(x, y, "orb-enemy");
+    projectile.setScale(0.45);
+    this.applyRoundBody(projectile, 0.8);
     projectile.setVelocity(direction.x * speed, direction.y * speed);
     projectile.setDepth(9);
     this.addObstacleHit(projectile);
@@ -1649,6 +1583,16 @@ export class CombatScene extends Phaser.Scene {
       t("hud.controls")
     );
     this.hudText.setText(hudLines);
+    this.updateHudFade();
+  }
+
+  private updateHudFade(): void {
+    const nearHud = this.player.x < 340 && this.player.y < this.hudBg.y + this.hudBg.height + 60;
+    const target = nearHud && this.roomState === "playing" ? 0.16 : 1;
+    this.hudAlpha += (target - this.hudAlpha) * 0.12;
+    this.hudBg.setAlpha(0.9 * this.hudAlpha);
+    this.hudText.setAlpha(this.hudAlpha);
+    this.combatHud.setAlpha(this.hudAlpha);
   }
 
   private getCombatSkillState(): string {

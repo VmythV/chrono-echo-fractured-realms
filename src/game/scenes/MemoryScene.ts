@@ -3,6 +3,7 @@ import { t } from "../../core/i18n";
 import { getMemoryNodeStatus, MEMORY_TREE, unlockMemoryNode, type MemoryNode } from "../../core/meta/memory-tree";
 import { loadSaveData } from "../../core/meta/save-state";
 import { playSfx } from "../audio/sfx";
+import { DISPLAY_FONT } from "../display";
 import { fadeInScene, transitionTo } from "../scene-transitions";
 
 const NODE_POSITIONS: Record<MemoryNode["id"], { x: number; y: number }> = {
@@ -25,7 +26,7 @@ export class MemoryScene extends Phaser.Scene {
     this.add.rectangle(640, 360, 1280, 720, 0x10151c);
     this.add.text(72, 56, t("memory.title"), {
       color: "#f7f3e8",
-      fontFamily: "Inter, Arial, sans-serif",
+      fontFamily: DISPLAY_FONT,
       fontSize: "42px"
     });
     this.add.text(76, 118, t("memory.balance", { count: saveData.memories }), {

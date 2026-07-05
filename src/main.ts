@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import "./styles.css";
+import { GAME_HEIGHT, GAME_WIDTH, RENDER_SCALE } from "./game/display";
 import { CombatScene } from "./game/scenes/CombatScene";
 import { EventScene } from "./game/scenes/EventScene";
 import { MainMenuScene } from "./game/scenes/MainMenuScene";
@@ -19,8 +20,8 @@ const config: Phaser.Types.Core.GameConfig = {
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: 1280,
-    height: 720
+    width: GAME_WIDTH * RENDER_SCALE,
+    height: GAME_HEIGHT * RENDER_SCALE
   },
   fps: {
     target: 60
@@ -80,11 +81,41 @@ window.addEventListener("unhandledrejection", (event) => {
   showErrorOverlay(event.reason instanceof Error ? event.reason.message : String(event.reason));
 });
 
-const game = new Phaser.Game(config);
+function patchTextResolution(): void {
+  if (RENDER_SCALE === 1) {
+    return;
+  }
 
-game.events.once(Phaser.Core.Events.READY, () => {
-  document.getElementById("boot-status")?.remove();
-});
+  // Phaser 4 has no game-wide text resolution setting; default every text to the render scale.
+  const factory = Phaser.GameObjects.GameObjectFactory.prototype as unknown as {
+    text: (x: number, y: number, text: string | string[], style?: Phaser.Types.GameObjects.Text.TextStyle) => Phaser.GameObjects.Text;
+  };
+  const baseText = factory.text;
 
-(window as Window & { __chronoEchoGame?: Phaser.Game }).__chronoEchoGame = game;
-(window as Window & { __chronoEchoDebug?: { getRun: typeof getRun } }).__chronoEchoDebug = { getRun };
+  factory.text = function (this: unknown, x, y, text, style) {
+    return baseText.call(this, x, y, text, { resolution: RENDER_SCALE, ...style });
+  };
+}
+
+async function boot(): Promise<void> {
+  try {
+    await Promise.race([
+      document.fonts.load('700 32px "Orbitron"'),
+      new Promise((resolve) => setTimeout(resolve, 1500))
+    ]);
+  } catch {
+    // The display font is optional; system fallbacks keep the game playable.
+  }
+
+  patchTextResolution();
+  const game = new Phaser.Game(config);
+
+  game.events.once(Phaser.Core.Events.READY, () => {
+    document.getElementById("boot-status")?.remove();
+  });
+
+  (window as Window & { __chronoEchoGame?: Phaser.Game }).__chronoEchoGame = game;
+  (window as Window & { __chronoEchoDebug?: { getRun: typeof getRun } }).__chronoEchoDebug = { getRun };
+}
+
+void boot();
