@@ -29,6 +29,16 @@ export class MainMenuScene extends Phaser.Scene {
     this.drawTitle();
     this.drawSaveSummary(saveData);
     this.drawActions();
+    this.drawControlsHint();
+  }
+
+  private drawControlsHint(): void {
+    this.add.text(76, 612, "WASD move, mouse aim, left click attack\nSpace dash, Q time freeze, E time rewind", {
+      color: "#8fa3b5",
+      fontFamily: "Inter, Arial, sans-serif",
+      fontSize: "15px",
+      lineSpacing: 6
+    });
   }
 
   private drawBackground(): void {

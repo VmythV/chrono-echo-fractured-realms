@@ -1,0 +1,52 @@
+# How To Play
+
+# Chrono Echo: Fractured Realms
+
+## 1. Goal
+
+Each run is a short trip through a fractured timeline. Pick a route on the Time Tree, clear nodes, and defeat the Fracture Warden at the end. A run takes about 10 to 15 minutes. Losing is normal: every run leaves Time Residue that changes your next run.
+
+## 2. Controls
+
+| Input | Action |
+| --- | --- |
+| W A S D | Move |
+| Mouse | Aim |
+| Left click | Attack |
+| Space | Dash (brief invulnerability) |
+| Q | Time Freeze: freeze enemies and enemy shots near the cursor |
+| E | Time Rewind: return to your position a few seconds ago and recover part of recent damage |
+| R | Confirm result panels |
+
+## 3. Run Flow
+
+1. Main Menu: press `Start Run`. The Timeline State panel shows what your past runs left behind.
+2. Time Tree: click a highlighted node to enter it. Node types: Combat, Elite, Event, Shop, Rest, Boss.
+3. Combat: clear all enemies in the room. After winning, pick one of three rewards.
+4. Boss: defeat the Fracture Warden to complete the run.
+5. Summary: review your build and the Time Residue this run generated, then return to the menu or start again.
+
+## 4. Builds
+
+Rewards come in three kinds:
+
+- Skill Upgrades: make Time Freeze and Time Rewind stronger (wider freeze, freeze damage, rewind shield).
+- Temporal Rules: passive combat rules, up to 5 slots per run. Rules can stack.
+- Recovery: restore health.
+
+Corrupted rewards appear when corruption is high: stronger effects with a corruption cost.
+
+## 5. Time Residue And Corruption
+
+- Your actions generate Time Residue at the end of a run. Active residues modify the next runs and expire after a few runs.
+- Corruption rises from risky choices. Higher corruption makes enemies stronger but improves reward quality. The Timeline Report on the map shows what is currently affecting your run.
+
+## 6. Settings
+
+The main menu has `Sound: On/Off` and `Volume: Low/Normal/High`. Settings are stored locally and survive `Reset Save`. `Reset Save` clears residues, run history, and corruption records.
+
+## 7. Requirements
+
+- A desktop browser with WebGL and JavaScript enabled (recent Chrome, Edge, Firefox, or Safari).
+- Keyboard and mouse. Touch input is not supported in this version.
+- All data stays in the browser via localStorage. No account or network is required.

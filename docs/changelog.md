@@ -37,6 +37,10 @@
 - Added local settings storage with sound toggle and volume steps.
 - Added runtime-synthesized sound effects for UI clicks, combat actions, time skills, and run results.
 - Added main menu Sound and Volume buttons.
+- Added Stage 6C playable build execution record.
+- Added boot loading indicator, noscript notice, and global error overlay with reload and dismiss actions.
+- Added main menu controls hint.
+- Added player guide in `docs/how-to-play.md`.
 
 ### Changed
 
@@ -51,3 +55,5 @@
 - Changed CombatScene, MapScene, RewardScene, and SummaryScene to display or apply corruption state.
 - Changed game startup flow to begin at MainMenuScene before creating a run.
 - Changed CombatScene to add a light camera shake when the player takes damage.
+- Changed Vite base to `./` so the packaged build runs from any static path.
+- Changed the `__chronoEchoGame` debug handle to be exposed in packaged builds for automated verification.

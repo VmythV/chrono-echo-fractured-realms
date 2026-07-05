@@ -260,6 +260,9 @@
 
 - `docs/stage-6a-web-shell.md`
 - `docs/stage-6b-settings-audio.md`
+- `docs/stage-6c-playable-build.md`
+
+状态：完成。玩家说明见 `docs/how-to-play.md`。
 
 ## 10. Development Checkpoints
 

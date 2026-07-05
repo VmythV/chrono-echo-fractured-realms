@@ -34,3 +34,60 @@ canvas {
   display: block;
 }
 
+#boot-status,
+.noscript-notice {
+  color: #8fa3b5;
+  font-size: 18px;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+#error-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(16, 21, 28, 0.86);
+}
+
+#error-overlay .error-panel {
+  max-width: 460px;
+  padding: 28px 32px;
+  border: 2px solid #5a7288;
+  background: #10151c;
+}
+
+#error-overlay h2 {
+  margin: 0 0 12px;
+  color: #f7f3e8;
+  font-size: 22px;
+  font-weight: 600;
+}
+
+#error-overlay p {
+  margin: 0 0 20px;
+  color: #cbd7e2;
+  font-size: 15px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+#error-overlay button {
+  margin-right: 12px;
+  padding: 9px 22px;
+  border: 2px solid #8be9fd;
+  background: #263746;
+  color: #e7edf2;
+  font-family: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+#error-overlay button.secondary {
+  border-color: #5a7288;
+  background: #18222c;
+  color: #cbd7e2;
+}
+

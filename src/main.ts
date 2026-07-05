@@ -37,8 +37,49 @@ const config: Phaser.Types.Core.GameConfig = {
   scene: [MainMenuScene, MapScene, CombatScene, RewardScene, SummaryScene]
 };
 
+function showErrorOverlay(message: string): void {
+  if (document.getElementById("error-overlay")) {
+    return;
+  }
+
+  const overlay = document.createElement("div");
+  overlay.id = "error-overlay";
+
+  const panel = document.createElement("div");
+  panel.className = "error-panel";
+
+  const title = document.createElement("h2");
+  title.textContent = "Timeline Error";
+
+  const body = document.createElement("p");
+  body.textContent = message || "An unexpected error interrupted the game.";
+
+  const reloadButton = document.createElement("button");
+  reloadButton.textContent = "Reload";
+  reloadButton.addEventListener("click", () => window.location.reload());
+
+  const dismissButton = document.createElement("button");
+  dismissButton.className = "secondary";
+  dismissButton.textContent = "Dismiss";
+  dismissButton.addEventListener("click", () => overlay.remove());
+
+  panel.append(title, body, reloadButton, dismissButton);
+  overlay.append(panel);
+  document.body.append(overlay);
+}
+
+window.addEventListener("error", (event) => {
+  showErrorOverlay(event.message);
+});
+
+window.addEventListener("unhandledrejection", (event) => {
+  showErrorOverlay(event.reason instanceof Error ? event.reason.message : String(event.reason));
+});
+
 const game = new Phaser.Game(config);
 
-if (import.meta.env.DEV) {
-  (window as Window & { __chronoEchoGame?: Phaser.Game }).__chronoEchoGame = game;
-}
+game.events.once(Phaser.Core.Events.READY, () => {
+  document.getElementById("boot-status")?.remove();
+});
+
+(window as Window & { __chronoEchoGame?: Phaser.Game }).__chronoEchoGame = game;
